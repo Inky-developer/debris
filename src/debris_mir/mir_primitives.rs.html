@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/mir/src/mir_primitives.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_primitives.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_mir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_mir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_mir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/mir/src/mir_primitives.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_primitives.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_mir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -185,187 +179,186 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">FxIndexMap</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>debris_common::{FxIndexMap, Ident, Span};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Formatter</span>};
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Formatter};
+<span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir_context::MirContextId</span>, <span class="ident">mir_object::MirObjectId</span>};
+<span class="kw">use crate</span>::{mir_context::MirContextId, mir_object::MirObjectId};
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirPrimitive</span> {
-    <span class="ident">Int</span>(<span class="ident">i32</span>),
-    <span class="ident">Bool</span>(<span class="ident">bool</span>),
-    <span class="ident">String</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
-    <span class="ident">FormatString</span>(<span class="ident">MirFormatString</span>),
-    <span class="ident">Function</span>(<span class="ident">MirFunction</span>),
-    <span class="ident">FunctionClass</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>),
-    <span class="ident">Module</span>(<span class="ident">MirModule</span>),
-    <span class="ident">Tuple</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>),
-    <span class="ident">TupleClass</span>(<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">MirObjectId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>),
-    <span class="ident">StructType</span>(<span class="ident">MirStructType</span>),
-    <span class="ident">Struct</span>(<span class="ident">MirStruct</span>),
-    <span class="ident">Null</span>,
-    <span class="ident">Never</span>,
+<span class="kw">pub enum </span>MirPrimitive {
+    Int(i32),
+    Bool(bool),
+    String(Rc&lt;str&gt;),
+    FormatString(MirFormatString),
+    Function(MirFunction),
+    FunctionClass(Vec&lt;MirObjectId&gt;, <span class="prelude-ty">Option</span>&lt;MirObjectId&gt;),
+    Module(MirModule),
+    Tuple(Vec&lt;MirObjectId&gt;),
+    TupleClass(Vec&lt;(MirObjectId, Span)&gt;),
+    StructType(MirStructType),
+    Struct(MirStruct),
+    Null,
+    Never,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirPrimitive</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirPrimitive::Int</span>(<span class="ident">i</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Int({i})&quot;</span>),
-            <span class="ident">MirPrimitive::Bool</span>(<span class="ident">b</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Bool({b})&quot;</span>),
-            <span class="ident">MirPrimitive::String</span>(<span class="ident">s</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;String({s})&quot;</span>),
-            <span class="ident">MirPrimitive::FormatString</span>(<span class="ident">fs</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;FormatString({fs:?})&quot;</span>),
-            <span class="ident">MirPrimitive::Function</span>(<span class="ident">func</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Function({func:?})&quot;</span>),
-            <span class="ident">MirPrimitive::FunctionClass</span>(<span class="ident">args</span>, <span class="ident">ret</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;FunctionClass({args:?}, {ret:?})&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirPrimitive {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            MirPrimitive::Int(i) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Int({i})&quot;</span>),
+            MirPrimitive::Bool(b) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Bool({b})&quot;</span>),
+            MirPrimitive::String(s) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;String({s})&quot;</span>),
+            MirPrimitive::FormatString(fs) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;FormatString({fs:?})&quot;</span>),
+            MirPrimitive::Function(func) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Function({func:?})&quot;</span>),
+            MirPrimitive::FunctionClass(args, ret) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;FunctionClass({args:?}, {ret:?})&quot;</span>)
             }
-            <span class="ident">MirPrimitive::Module</span>(<span class="ident">m</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Module({m:?})&quot;</span>),
-            <span class="ident">MirPrimitive::Tuple</span>(<span class="ident">t</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Tuple({t:?})&quot;</span>),
-            <span class="ident">MirPrimitive::TupleClass</span>(<span class="ident">t</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;TupleClass([&quot;</span>)<span class="question-mark">?</span>;
+            MirPrimitive::Module(m) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Module({m:?})&quot;</span>),
+            MirPrimitive::Tuple(t) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Tuple({t:?})&quot;</span>),
+            MirPrimitive::TupleClass(t) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;TupleClass([&quot;</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">iter</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{id:?}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>iter = t.iter();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((id, <span class="kw">_</span>)) = iter.next() {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;{id:?}&quot;</span>)<span class="question-mark">?</span>;
 
-                    <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">_span</span>) <span class="kw">in</span> <span class="ident">iter</span> {
-                        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, {id:?}&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">for </span>(id, _span) <span class="kw">in </span>iter {
+                        <span class="macro">write!</span>(f, <span class="string">&quot;, {id:?}&quot;</span>)<span class="question-mark">?</span>;
                     }
                 }
 
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;])&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">&quot;])&quot;</span>)
             }
-            <span class="ident">MirPrimitive::StructType</span>(<span class="ident">strukt</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;StructType({strukt:?})&quot;</span>),
-            <span class="ident">MirPrimitive::Struct</span>(<span class="ident">strukt</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Struct({strukt:?})&quot;</span>),
-            <span class="ident">MirPrimitive::Null</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Null&quot;</span>),
-            <span class="ident">MirPrimitive::Never</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Never&quot;</span>),
+            MirPrimitive::StructType(strukt) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;StructType({strukt:?})&quot;</span>),
+            MirPrimitive::Struct(strukt) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Struct({strukt:?})&quot;</span>),
+            MirPrimitive::Null =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Null&quot;</span>),
+            MirPrimitive::Never =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Never&quot;</span>),
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirFormatString</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirFormatStringComponent</span><span class="op">&gt;</span>);
+<span class="kw">pub struct </span>MirFormatString(<span class="kw">pub </span>Vec&lt;MirFormatStringComponent&gt;);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirFormatStringComponent</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MirFormatString</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirFormatStringComponent</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">MirFormatString</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>From&lt;Vec&lt;MirFormatStringComponent&gt;&gt; <span class="kw">for </span>MirFormatString {
+    <span class="kw">fn </span>from(val: Vec&lt;MirFormatStringComponent&gt;) -&gt; <span class="self">Self </span>{
+        MirFormatString(val)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirFormatString</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirFormatString {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirFormatStringComponent</span> {
-    <span class="ident">String</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
-    <span class="ident">Value</span>(<span class="ident">MirObjectId</span>),
+<span class="kw">pub enum </span>MirFormatStringComponent {
+    String(Rc&lt;str&gt;),
+    Value(MirObjectId),
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirFormatStringComponent</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MirFormatStringComponent::String</span>(<span class="ident">string</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{string}\&quot;&quot;</span>),
-            <span class="ident">MirFormatStringComponent::Value</span>(<span class="ident">val</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{val:?}&quot;</span>),
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirFormatStringComponent {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            MirFormatStringComponent::String(string) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;\&quot;{string}\&quot;&quot;</span>),
+            MirFormatStringComponent::Value(val) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{val:?}&quot;</span>),
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirFunctionParameter</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">typ</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
+<span class="kw">pub struct </span>MirFunctionParameter {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>typ: MirObjectId,
+    <span class="kw">pub </span>value: MirObjectId,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirFunction</span> {
-    <span class="kw">pub</span> <span class="ident">signature_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
-    <span class="kw">pub</span> <span class="ident">is_comptime</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Ident</span>,
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirFunctionParameter</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The span of the return type definition</span>
-    <span class="kw">pub</span> <span class="ident">return_type_span</span>: <span class="ident">Span</span>,
-    <span class="doccomment">/// The span of the expression that defined the return type</span>
-    <span class="kw">pub</span> <span class="ident">return_span</span>: <span class="ident">Span</span>,
+<span class="kw">pub struct </span>MirFunction {
+    <span class="kw">pub </span>signature_span: Span,
+    <span class="kw">pub </span>context_id: MirContextId,
+    <span class="kw">pub </span>is_comptime: bool,
+    <span class="kw">pub </span>name: Ident,
+    <span class="kw">pub </span>parameters: Vec&lt;MirFunctionParameter&gt;,
+    <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;MirObjectId&gt;,
+    <span class="doccomment">/// The span of the return type definition
+    </span><span class="kw">pub </span>return_type_span: Span,
+    <span class="doccomment">/// The span of the expression that defined the return type
+    </span><span class="kw">pub </span>return_span: Span,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirFunction</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;fn {}(&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">parameter</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="ident">index</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirFunction {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;fn {}(&quot;</span>, <span class="self">self</span>.name)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(index, parameter) <span class="kw">in </span><span class="self">self</span>.parameters.iter().enumerate() {
+            <span class="kw">if </span>index != <span class="number">0 </span>{
+                <span class="macro">write!</span>(f, <span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}: {:?}&quot;</span>, <span class="ident">parameter</span>.<span class="ident">value</span>, <span class="ident">parameter</span>.<span class="ident">typ</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">&quot;{:?}: {:?}&quot;</span>, parameter.value, parameter.typ)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;) &quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">return_type</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_type</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;-&gt; {return_type:?} &quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">&quot;) &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="kw-2">&amp;</span><span class="self">self</span>.return_type {
+            <span class="macro">write!</span>(f, <span class="string">&quot;-&gt; {return_type:?} &quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{{{:?}}}&quot;</span>, <span class="self">self</span>.<span class="ident">context_id</span>)
+        <span class="macro">write!</span>(f, <span class="string">&quot;{{{:?}}}&quot;</span>, <span class="self">self</span>.context_id)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirStructType</span> {
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Ident</span>,
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">FxIndexMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, (<span class="ident">MirObjectId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
+<span class="kw">pub struct </span>MirStructType {
+    <span class="kw">pub </span>name: Ident,
+    <span class="kw">pub </span>properties: FxIndexMap&lt;Ident, (MirObjectId, Span)&gt;,
+    <span class="kw">pub </span>context_id: MirContextId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirStructType</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;struct {} {{ &quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirStructType {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;struct {} {{ &quot;</span>, <span class="self">self</span>.name)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">iter</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, (<span class="ident">type_id</span>, <span class="kw">_</span>))) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.properties.iter();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((name, (type_id, <span class="kw">_</span>))) = iter.next() {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">for</span> (<span class="ident">name</span>, (<span class="ident">type_id</span>, <span class="kw">_</span>)) <span class="kw">in</span> <span class="ident">iter</span> {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, {name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
-            }
-        }
-
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;; {{{:?}}} }}&quot;</span>, <span class="self">self</span>.<span class="ident">context_id</span>)
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirStruct</span> {
-    <span class="kw">pub</span> <span class="ident">base_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">struct_type</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, (<span class="ident">MirObjectId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirStruct</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} {{ &quot;</span>, <span class="self">self</span>.<span class="ident">struct_type</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">iter</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, (<span class="ident">type_id</span>, <span class="kw">_</span>))) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
-
-            <span class="kw">for</span> (<span class="ident">name</span>, (<span class="ident">type_id</span>, <span class="kw">_</span>)) <span class="kw">in</span> <span class="ident">iter</span> {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, {name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">for </span>(name, (type_id, <span class="kw">_</span>)) <span class="kw">in </span>iter {
+                <span class="macro">write!</span>(f, <span class="string">&quot;, {name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; }}&quot;</span>)
+        <span class="macro">write!</span>(f, <span class="string">&quot;; {{{:?}}} }}&quot;</span>, <span class="self">self</span>.context_id)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirModule</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">last_item_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
+<span class="kw">pub struct </span>MirStruct {
+    <span class="kw">pub </span>base_span: Span,
+    <span class="kw">pub </span>struct_type: MirObjectId,
+    <span class="kw">pub </span>values: FxHashMap&lt;Ident, (MirObjectId, Span)&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirModule</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;mod {} {{{:?}}}&quot;</span>, <span class="self">self</span>.<span class="ident">ident</span>, <span class="self">self</span>.<span class="ident">context_id</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirStruct {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?} {{ &quot;</span>, <span class="self">self</span>.struct_type)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.values.iter();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((name, (type_id, <span class="kw">_</span>))) = iter.next() {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">for </span>(name, (type_id, <span class="kw">_</span>)) <span class="kw">in </span>iter {
+                <span class="macro">write!</span>(f, <span class="string">&quot;, {name}: {type_id:?}&quot;</span>)<span class="question-mark">?</span>;
+            }
+        }
+
+        <span class="macro">write!</span>(f, <span class="string">&quot; }}&quot;</span>)
+    }
+}
+
+<span class="kw">pub struct </span>MirModule {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>last_item_span: Span,
+    <span class="kw">pub </span>context_id: MirContextId,
+    <span class="kw">pub </span>ident: Ident,
+}
+
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirModule {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;mod {} {{{:?}}}&quot;</span>, <span class="self">self</span>.ident, <span class="self">self</span>.context_id)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

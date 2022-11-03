@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/global_opt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>global_opt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/global_opt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>global_opt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -566,544 +560,532 @@
 <span id="560">560</span>
 <span id="561">561</span>
 <span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">any::type_name</span>, <span class="ident">fmt</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{any::type_name, fmt};
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Config</span>, <span class="ident">OptMode</span>};
-<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use </span>debris_common::{Config, OptMode};
+<span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">block_id::BlockId</span>,
-    <span class="ident">item_id::ItemId</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">Function</span>, <span class="ident">Node</span>, <span class="ident">VariableAccessMut</span>},
-    <span class="ident">log</span>,
-    <span class="ident">minecraft_utils::ScoreboardValue</span>,
-    <span class="ident">opt</span>::{
-        <span class="ident">code_stats::CodeStats</span>,
-        <span class="ident">optimizers</span>::{
-            <span class="ident">optimize_alias_function</span>, <span class="ident">optimize_call_chain</span>, <span class="ident">optimize_common_path</span>,
-            <span class="ident">simple_arithmetic_optimization</span>, <span class="ident">ConstOptimizer</span>, <span class="ident">RedundancyOptimizer</span>,
-            <span class="ident">RedundantCopyOptimizer</span>,
+<span class="kw">use crate</span>::{
+    block_id::BlockId,
+    item_id::ItemId,
+    llir_nodes::{Branch, Call, Condition, ExecuteRawComponent, Function, Node, VariableAccessMut},
+    log,
+    minecraft_utils::ScoreboardValue,
+    opt::{
+        code_stats::CodeStats,
+        optimizers::{
+            optimize_alias_function, optimize_call_chain, optimize_common_path,
+            simple_arithmetic_optimization, ConstOptimizer, RedundancyOptimizer,
+            RedundantCopyOptimizer,
         },
     },
-    <span class="ident">Runtime</span>,
+    Runtime,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">call_graph</span>::{<span class="ident">CallGraph</span>, <span class="ident">InfiniteLoopDetector</span>},
-    <span class="ident">optimize_commands</span>::{
-        <span class="ident">ExecuteRawUpdate</span>, <span class="ident">OptimizeCommand</span>, <span class="ident">OptimizeCommandDeque</span>, <span class="ident">OptimizeCommandKind</span>,
+<span class="kw">use super</span>::{
+    call_graph::{CallGraph, InfiniteLoopDetector},
+    optimize_commands::{
+        ExecuteRawUpdate, OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind,
     },
-    <span class="ident">variable_metadata::VariableUsage</span>,
-    <span class="ident">NodeId</span>,
+    variable_metadata::VariableUsage,
+    NodeId,
 };
 
-<span class="doccomment">/// Does optimization on the whole program.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This allows (along others) for removing unused commands</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Config</span>,
-    <span class="kw">pub</span> <span class="ident">runtime</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Runtime</span>,
-    <span class="kw">pub</span> <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Does optimization on the whole program.
+///
+/// This allows (along others) for removing unused commands
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>GlobalOptimizer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub </span>config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Config,
+    <span class="kw">pub </span>runtime: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Runtime,
+    <span class="kw">pub </span>functions: FxHashMap&lt;BlockId, Function&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Config</span>,
-        <span class="ident">runtime</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Runtime</span>,
-        <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">GlobalOptimizer</span> {
-            <span class="ident">config</span>,
-            <span class="ident">runtime</span>,
-            <span class="ident">functions</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; GlobalOptimizer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub fn </span>new(
+        config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Config,
+        runtime: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Runtime,
+        functions: FxHashMap&lt;BlockId, Function&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        GlobalOptimizer {
+            config,
+            runtime,
+            functions,
         }
     }
 
-    <span class="doccomment">/// Runs the optimization passes and returns the final function map</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; (<span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>, <span class="ident">CodeStats</span>) {
-        <span class="kw">if</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">config</span>.<span class="ident">opt_mode</span>, <span class="ident">OptMode::None</span>) {
-            <span class="kw">let</span> <span class="ident">call_graph</span> <span class="op">=</span> <span class="ident">CallGraph::from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">functions</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stats</span> <span class="op">=</span> <span class="ident">CodeStats::new</span>(<span class="ident">call_graph</span>);
-            <span class="ident">stats</span>.<span class="ident">update</span>(<span class="self">self</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">functions</span>);
-            (<span class="self">self</span>.<span class="ident">functions</span>, <span class="ident">stats</span>)
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">stats</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">optimize</span>();
-            (<span class="self">self</span>.<span class="ident">functions</span>, <span class="ident">stats</span>)
+    <span class="doccomment">/// Runs the optimization passes and returns the final function map
+    </span><span class="kw">pub fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; (FxHashMap&lt;BlockId, Function&gt;, CodeStats) {
+        <span class="kw">if </span><span class="macro">matches!</span>(<span class="self">self</span>.config.opt_mode, OptMode::None) {
+            <span class="kw">let </span>call_graph = CallGraph::from(<span class="kw-2">&amp;</span><span class="self">self</span>.functions);
+            <span class="kw">let </span><span class="kw-2">mut </span>stats = CodeStats::new(call_graph);
+            stats.update(<span class="self">self</span>.runtime, <span class="kw-2">&amp;</span><span class="self">self</span>.functions);
+            (<span class="self">self</span>.functions, stats)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>stats = <span class="self">self</span>.optimize();
+            (<span class="self">self</span>.functions, stats)
         }
     }
 }
 
-<span class="doccomment">/// Maximum amount of Turing-complete iterations the optimizer performs</span>
-<span class="kw">const</span> <span class="ident">MAX_ITERATIONS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4096</span>;
+<span class="doccomment">/// Maximum amount of Turing-complete iterations the optimizer performs
+</span><span class="kw">const </span>MAX_ITERATIONS: usize = <span class="number">4096</span>;
 
-<span class="kw">impl</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">CodeStats</span> {
+<span class="kw">impl </span>GlobalOptimizer&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>optimize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; CodeStats {
         <span class="macro">log!</span>(<span class="string">&quot;Logging optimization steps:&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">const_optimizer</span> <span class="op">=</span> <span class="ident">ConstOptimizer::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">redundancy_optimizer</span> <span class="op">=</span> <span class="ident">RedundancyOptimizer::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copy_optimizer</span> <span class="op">=</span> <span class="ident">RedundantCopyOptimizer::default</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>const_optimizer = ConstOptimizer::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>redundancy_optimizer = RedundancyOptimizer::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>copy_optimizer = RedundantCopyOptimizer::default();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run_optimize_pass</span> <span class="op">=</span>
-            <span class="op">|</span><span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>, <span class="ident">aggressive_function_inlining</span>: <span class="ident">bool</span><span class="op">|</span> -&gt; <span class="ident">bool</span> {
-                <span class="ident">redundancy_optimizer</span>.<span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="ident">aggressive_function_inlining</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>run_optimize_pass =
+            |commands: <span class="kw-2">&amp;mut </span>Commands, aggressive_function_inlining: bool| -&gt; bool {
+                redundancy_optimizer.aggressive_function_inlining = aggressive_function_inlining;
 
-                <span class="comment">// Run the copy optimizer first, because inlining functions</span>
-                <span class="comment">// can actually make the copy optimizer not be able to optimize something</span>
-                <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">copy_optimizer</span>)
-                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">optimize_common_path</span>)
-                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">redundancy_optimizer</span>)
-                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">optimize_alias_function</span>)
-                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">simple_arithmetic_optimization</span>)
-                    <span class="op">|</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">const_optimizer</span>);
+                <span class="comment">// Run the copy optimizer first, because inlining functions
+                // can actually make the copy optimizer not be able to optimize something
+                </span><span class="kw">let </span>could_optimize = commands.run_optimizer(<span class="kw-2">&amp;mut </span>copy_optimizer)
+                    | commands.run_optimizer(<span class="kw-2">&amp;mut </span>optimize_common_path)
+                    | commands.run_optimizer(<span class="kw-2">&amp;mut </span>redundancy_optimizer)
+                    | commands.run_optimizer(<span class="kw-2">&amp;mut </span>optimize_alias_function)
+                    | commands.run_optimizer(<span class="kw-2">&amp;mut </span>simple_arithmetic_optimization)
+                    | commands.run_optimizer(<span class="kw-2">&amp;mut </span>const_optimizer);
 
-                <span class="kw">if</span> <span class="ident">could_optimize</span> {
-                    <span class="ident">commands</span>.<span class="ident">retain_functions</span>();
+                <span class="kw">if </span>could_optimize {
+                    commands.retain_functions();
                 }
 
-                <span class="ident">could_optimize</span>
+                could_optimize
             };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands_deque</span> <span class="op">=</span> <span class="ident">OptimizeCommandDeque::default</span>();
-        <span class="kw">let</span> <span class="ident">call_graph</span> <span class="op">=</span> <span class="ident">CallGraph::from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">functions</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variable_info</span> <span class="op">=</span> <span class="ident">CodeStats::new</span>(<span class="ident">call_graph</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>commands_deque = OptimizeCommandDeque::default();
+        <span class="kw">let </span>call_graph = CallGraph::from(<span class="kw-2">&amp;</span><span class="self">self</span>.functions);
+        <span class="kw">let </span><span class="kw-2">mut </span>variable_info = CodeStats::new(call_graph);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span> <span class="op">=</span> <span class="ident">Commands::new</span>(<span class="self">self</span>, <span class="kw-2">&amp;mut</span> <span class="ident">variable_info</span>, <span class="kw-2">&amp;mut</span> <span class="ident">commands_deque</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>commands = Commands::new(<span class="self">self</span>, <span class="kw-2">&amp;mut </span>variable_info, <span class="kw-2">&amp;mut </span>commands_deque);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iteration</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>iteration = <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="ident">commands</span>
-            .<span class="ident">optimizer</span>
-            .<span class="ident">config</span>
-            .<span class="ident">opt_mode</span>
-            .<span class="ident">aggressive_function_inlining</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>aggressive_function_inlining = commands
+            .optimizer
+            .config
+            .opt_mode
+            .aggressive_function_inlining();
         <span class="macro">log!</span>(<span class="string">&quot;Iteration 0\n{commands:?}\n===========&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at_exit</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="ident">iteration</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MAX_ITERATIONS</span> {
-                <span class="ident">aggressive_function_inlining</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>at_exit = <span class="bool-val">false</span>;
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>iteration &gt;= MAX_ITERATIONS {
+                aggressive_function_inlining = <span class="bool-val">false</span>;
             }
-            <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="ident">run_optimize_pass</span>(<span class="kw-2">&amp;mut</span> <span class="ident">commands</span>, <span class="ident">aggressive_function_inlining</span>);
-            <span class="macro">log!</span>(<span class="string">&quot;Iteration {}\n{commands:?}\n===========&quot;</span>, <span class="ident">iteration</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="kw">if</span> <span class="ident">could_optimize</span> {
-                <span class="ident">at_exit</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            } <span class="kw">else</span> {
-                <span class="kw">if</span> <span class="ident">at_exit</span> {
-                    <span class="ident">commands</span>
-                        .<span class="ident">stats</span>
-                        .<span class="ident">update</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
-                    <span class="ident">commands</span>.<span class="ident">retain_functions</span>();
-                    <span class="kw">return</span> <span class="ident">variable_info</span>;
+            <span class="kw">let </span>could_optimize = run_optimize_pass(<span class="kw-2">&amp;mut </span>commands, aggressive_function_inlining);
+            <span class="macro">log!</span>(<span class="string">&quot;Iteration {}\n{commands:?}\n===========&quot;</span>, iteration + <span class="number">1</span>);
+            <span class="kw">if </span>could_optimize {
+                at_exit = <span class="bool-val">false</span>;
+            } <span class="kw">else </span>{
+                <span class="kw">if </span>at_exit {
+                    commands
+                        .stats
+                        .update(commands.optimizer.runtime, <span class="kw-2">&amp;</span>commands.optimizer.functions);
+                    commands.retain_functions();
+                    <span class="kw">return </span>variable_info;
                 }
-                <span class="comment">// Todo: Remove this</span>
-                <span class="comment">// Temporary ways to check one last time that everything was optimized.</span>
-                <span class="comment">// Recomputes all statistics.</span>
-                <span class="ident">at_exit</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="ident">commands</span>
-                    .<span class="ident">stats</span>
-                    .<span class="ident">update</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
-                <span class="ident">commands</span>.<span class="ident">retain_functions</span>();
+                <span class="comment">// Todo: Remove this
+                // Temporary ways to check one last time that everything was optimized.
+                // Recomputes all statistics.
+                </span>at_exit = <span class="bool-val">true</span>;
+                commands
+                    .stats
+                    .update(commands.optimizer.runtime, <span class="kw-2">&amp;</span>commands.optimizer.functions);
+                commands.retain_functions();
             }
 
-            <span class="kw">if</span> <span class="ident">iteration</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="comment">// The common path optimizer requires accurate information here</span>
-                <span class="ident">commands</span>
-                    .<span class="ident">stats</span>
-                    .<span class="ident">update</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
-                <span class="ident">commands</span>.<span class="ident">retain_functions</span>();
-                <span class="kw">loop</span> {
-                    <span class="kw">let</span> <span class="ident">inner_could_optimize</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">optimize_common_path</span>);
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">inner_could_optimize</span> {
+            <span class="kw">if </span>iteration == <span class="number">0 </span>{
+                <span class="comment">// The common path optimizer requires accurate information here
+                </span>commands
+                    .stats
+                    .update(commands.optimizer.runtime, <span class="kw-2">&amp;</span>commands.optimizer.functions);
+                commands.retain_functions();
+                <span class="kw">loop </span>{
+                    <span class="kw">let </span>inner_could_optimize = commands.run_optimizer(<span class="kw-2">&amp;mut </span>optimize_common_path);
+                    <span class="kw">if </span>!inner_could_optimize {
                         <span class="kw">break</span>;
                     }
                 }
-                <span class="ident">commands</span>.<span class="ident">run_optimizer</span>(<span class="kw-2">&amp;mut</span> <span class="ident">optimize_call_chain</span>);
+                commands.run_optimizer(<span class="kw-2">&amp;mut </span>optimize_call_chain);
             }
-            <span class="ident">iteration</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            iteration += <span class="number">1</span>;
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Function</span> {
-        <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>get_function(<span class="kw-2">&amp;</span><span class="self">self</span>, id: BlockId) -&gt; <span class="kw-2">&amp;</span>Function {
+        <span class="self">self</span>.functions.get(<span class="kw-2">&amp;</span>id).unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_function_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">Function</span> {
-        <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="ident">id</span>).<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>get_function_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: BlockId) -&gt; <span class="kw-2">&amp;mut </span>Function {
+        <span class="self">self</span>.functions.get_mut(<span class="kw-2">&amp;</span>id).unwrap()
     }
 
-    <span class="doccomment">/// Iterates over all functions</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_functions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">NodeId</span>, <span class="kw-2">&amp;</span><span class="ident">Node</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">block_id</span>, <span class="ident">function</span>)<span class="op">|</span> {
-            <span class="ident">function</span>
-                .<span class="ident">nodes</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">enumerate</span>()
-                .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">index</span>, <span class="ident">node</span>)<span class="op">|</span> ((<span class="kw-2">*</span><span class="ident">block_id</span>, <span class="ident">index</span>), <span class="ident">node</span>))
+    <span class="doccomment">/// Iterates over all functions
+    </span><span class="kw">pub fn </span>iter_functions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw">impl </span>Iterator&lt;Item = (NodeId, <span class="kw-2">&amp;</span>Node)&gt;&gt; {
+        <span class="self">self</span>.functions.iter().map(|(block_id, function)| {
+            function
+                .nodes
+                .iter()
+                .enumerate()
+                .map(<span class="kw">move </span>|(index, node)| ((<span class="kw-2">*</span>block_id, index), node))
         })
     }
 
-    <span class="doccomment">/// Iterates over all nodes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_nodes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">NodeId</span>, <span class="kw-2">&amp;</span><span class="ident">Node</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">iter_functions</span>().<span class="ident">flatten</span>()
+    <span class="doccomment">/// Iterates over all nodes.
+    </span><span class="kw">pub fn </span>iter_nodes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (NodeId, <span class="kw-2">&amp;</span>Node)&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.iter_functions().flatten()
     }
 
-    <span class="doccomment">/// Iterates all subsequent nodes of this function</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">NodeId</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">NodeId</span>, <span class="kw-2">&amp;</span><span class="ident">Node</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid function&quot;</span>);
-        <span class="ident">function</span>
-            .<span class="ident">nodes</span>()
-            .<span class="ident">iter</span>()
-            .<span class="ident">enumerate</span>()
-            .<span class="ident">skip</span>(<span class="ident">item</span>.<span class="number">1</span> <span class="op">+</span> <span class="number">1</span>)
-            .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">index</span>, <span class="ident">node</span>)<span class="op">|</span> ((<span class="ident">function</span>.<span class="ident">id</span>, <span class="ident">index</span>), <span class="ident">node</span>))
+    <span class="doccomment">/// Iterates all subsequent nodes of this function
+    </span><span class="kw">pub fn </span>iter_at(<span class="kw-2">&amp;</span><span class="self">self</span>, item: <span class="kw-2">&amp;</span>NodeId) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (NodeId, <span class="kw-2">&amp;</span>Node)&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="kw">let </span>function = <span class="self">self</span>.functions.get(<span class="kw-2">&amp;</span>item.<span class="number">0</span>).expect(<span class="string">&quot;Invalid function&quot;</span>);
+        function
+            .nodes()
+            .iter()
+            .enumerate()
+            .skip(item.<span class="number">1 </span>+ <span class="number">1</span>)
+            .map(<span class="kw">move </span>|(index, node)| ((function.id, index), node))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">previous_node</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">node_id</span>: <span class="kw-2">&amp;</span><span class="ident">NodeId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">NodeId</span>, <span class="kw-2">&amp;</span><span class="ident">Node</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">node_id</span>.<span class="number">1</span>;
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+    <span class="kw">pub fn </span>previous_node(<span class="kw-2">&amp;</span><span class="self">self</span>, node_id: <span class="kw-2">&amp;</span>NodeId) -&gt; <span class="prelude-ty">Option</span>&lt;(NodeId, <span class="kw-2">&amp;</span>Node)&gt; {
+        <span class="kw">let </span>index = node_id.<span class="number">1</span>;
+        <span class="kw">if </span>index == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">new_index</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>;
+        <span class="kw">let </span>new_index = index - <span class="number">1</span>;
 
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>.<span class="number">0</span>);
-        <span class="prelude-val">Some</span>(((<span class="ident">node_id</span>.<span class="number">0</span>, <span class="ident">new_index</span>), <span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">nodes</span>[<span class="ident">new_index</span>]))
+        <span class="kw">let </span>function = <span class="self">self</span>.get_function(node_id.<span class="number">0</span>);
+        <span class="prelude-val">Some</span>(((node_id.<span class="number">0</span>, new_index), <span class="kw-2">&amp;</span>function.nodes[new_index]))
     }
 }
 
-<span class="doccomment">/// Interface for optimizing functions to get data about the code and emit</span>
-<span class="doccomment">/// optimization instructions</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">optimizer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">stats</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">CodeStats</span>,
-    <span class="kw">pub</span> <span class="ident">infinite_loop_detector</span>: <span class="ident">InfiniteLoopDetector</span>,
-    <span class="kw">pub</span> <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Interface for optimizing functions to get data about the code and emit
+/// optimization instructions
+</span><span class="kw">pub struct </span>Commands&lt;<span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub </span>optimizer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt </span><span class="kw-2">mut </span>GlobalOptimizer&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+    <span class="kw">pub </span>stats: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt </span><span class="kw-2">mut </span>CodeStats,
+    <span class="kw">pub </span>infinite_loop_detector: InfiniteLoopDetector,
+    <span class="kw">pub </span>commands: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt </span><span class="kw-2">mut </span>OptimizeCommandDeque&lt;OptimizeCommand&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">optimizer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">GlobalOptimizer</span><span class="op">&lt;</span><span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
-        <span class="ident">stats</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">CodeStats</span>,
-        <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt</span> <span class="kw-2">mut</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commands</span> <span class="op">=</span> <span class="ident">Commands</span> {
-            <span class="ident">optimizer</span>,
-            <span class="ident">stats</span>,
-            <span class="ident">commands</span>,
-            <span class="ident">infinite_loop_detector</span>: <span class="ident">Default::default</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span>&gt; Commands&lt;<span class="lifetime">&#39;opt</span>, <span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">fn </span>new(
+        optimizer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt </span><span class="kw-2">mut </span>GlobalOptimizer&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+        stats: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt </span><span class="kw-2">mut </span>CodeStats,
+        commands: <span class="kw-2">&amp;</span><span class="lifetime">&#39;opt </span><span class="kw-2">mut </span>OptimizeCommandDeque&lt;OptimizeCommand&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>commands = Commands {
+            optimizer,
+            stats,
+            commands,
+            infinite_loop_detector: Default::default(),
         };
-        <span class="ident">commands</span>
-            .<span class="ident">stats</span>
-            .<span class="ident">update</span>(<span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
+        commands
+            .stats
+            .update(commands.optimizer.runtime, <span class="kw-2">&amp;</span>commands.optimizer.functions);
 
-        <span class="ident">commands</span>.<span class="ident">retain_functions</span>();
+        commands.retain_functions();
 
-        <span class="ident">commands</span>
+        commands
     }
 
-    <span class="kw">fn</span> <span class="ident">retain_functions</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">stats</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">stats</span>;
-        <span class="self">self</span>.<span class="ident">optimizer</span>
-            .<span class="ident">functions</span>
-            .<span class="ident">retain</span>(<span class="op">|</span><span class="ident">k</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">stats</span>.<span class="ident">function_calls</span>.<span class="ident">get</span>(<span class="ident">k</span>).<span class="ident">copied</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
+    <span class="kw">fn </span>retain_functions(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>stats = <span class="kw-2">&amp;</span><span class="self">self</span>.stats;
+        <span class="self">self</span>.optimizer
+            .functions
+            .retain(|k, <span class="kw">_</span>| stats.function_calls.get(k).copied().unwrap_or(<span class="number">0</span>) != <span class="number">0</span>);
     }
 
-    <span class="comment">// returns whether a variable is unused</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_id_unused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>, <span class="ident">node</span>: <span class="ident">NodeId</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_reads</span>(<span class="ident">id</span>) <span class="op">==</span> <span class="number">0</span>
-            <span class="op">|</span><span class="op">|</span> ((<span class="op">!</span><span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">function_parameters</span>.<span class="ident">is_dependency</span>(<span class="ident">id</span>))
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>
-                    .<span class="ident">optimizer</span>
-                    .<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node</span>)
-                    .<span class="ident">any</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">node</span>)<span class="op">|</span> <span class="ident">node</span>.<span class="ident">reads_from</span>(<span class="ident">id</span>)))
+    <span class="comment">// returns whether a variable is unused
+    </span><span class="kw">pub fn </span>is_id_unused(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ItemId, node: NodeId) -&gt; bool {
+        <span class="self">self</span>.get_reads(id) == <span class="number">0
+            </span>|| ((!<span class="self">self</span>.stats.function_parameters.is_dependency(id))
+                &amp;&amp; !<span class="self">self
+                    </span>.optimizer
+                    .iter_at(<span class="kw-2">&amp;</span>node)
+                    .any(|(<span class="kw">_</span>, node)| node.reads_from(id)))
     }
 
-    <span class="doccomment">/// Returns the variable info for this node</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">var</span>: <span class="ident">ItemId</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">VariableUsage</span> {
-        <span class="self">self</span>.<span class="ident">stats</span>
-            .<span class="ident">variable_information</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">var</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Unknown variable&quot;</span>)
+    <span class="doccomment">/// Returns the variable info for this node
+    </span><span class="kw">pub fn </span>get_info(<span class="kw-2">&amp;</span><span class="self">self</span>, var: ItemId) -&gt; <span class="kw-2">&amp;</span>VariableUsage {
+        <span class="self">self</span>.stats
+            .variable_information
+            .get(<span class="kw-2">&amp;</span>var)
+            .expect(<span class="string">&quot;Unknown variable&quot;</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_reads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">var</span>: <span class="ident">ItemId</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">stats</span>
-            .<span class="ident">variable_information</span>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">var</span>)
-            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">usage</span><span class="op">|</span> <span class="ident">usage</span>.<span class="ident">reads</span>)
+    <span class="kw">pub fn </span>get_reads(<span class="kw-2">&amp;</span><span class="self">self</span>, var: ItemId) -&gt; usize {
+        <span class="self">self</span>.stats
+            .variable_information
+            .get(<span class="kw-2">&amp;</span>var)
+            .map_or(<span class="number">0</span>, |usage| usage.reads)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_call_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="ident">BlockId</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">function_calls</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="number">0</span>)
+    <span class="kw">pub fn </span>get_call_count(<span class="kw-2">&amp;</span><span class="self">self</span>, function: BlockId) -&gt; usize {
+        <span class="kw-2">*</span><span class="self">self</span>.stats.function_calls.get(<span class="kw-2">&amp;</span>function).unwrap_or(<span class="kw-2">&amp;</span><span class="number">0</span>)
     }
 
-    <span class="doccomment">/// Runs an optimizing function</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns whether this function could optimize anything</span>
-    <span class="kw">fn</span> <span class="ident">run_optimizer</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">optimizer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) -&gt; <span class="ident">bool</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Optimizer</span>,
+    <span class="doccomment">/// Runs an optimizing function
+    ///
+    /// Returns whether this function could optimize anything
+    </span><span class="kw">fn </span>run_optimizer&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, optimizer: <span class="kw-2">&amp;mut </span>F) -&gt; bool
+    <span class="kw">where
+        </span>F: Optimizer,
     {
-        <span class="ident">optimizer</span>.<span class="ident">optimize</span>(<span class="self">self</span>);
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">len</span>();
+        optimizer.optimize(<span class="self">self</span>);
+        <span class="kw">let </span>len = <span class="self">self</span>.commands.len();
         <span class="macro">log!</span>(
             <span class="string">&quot;{}: {:?}&quot;</span>,
-            <span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>().<span class="ident">split</span>(<span class="string">&quot;::&quot;</span>).<span class="ident">last</span>().<span class="ident">unwrap</span>(),
-            <span class="self">self</span>.<span class="ident">commands</span>
+            type_name::&lt;F&gt;().split(<span class="string">&quot;::&quot;</span>).last().unwrap(),
+            <span class="self">self</span>.commands
         );
-        <span class="self">self</span>.<span class="ident">execute_commands</span>();
-        <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span>
-    }
+        <span class="self">self</span>.execute_commands();
+        len &gt; <span class="number">0
+    </span>}
 
-    <span class="doccomment">/// Execute every command that is in the current command stack</span>
-    <span class="kw">fn</span> <span class="ident">execute_commands</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">pop_front</span>() {
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">command</span>.<span class="ident">id</span>;
-            <span class="comment">// Don&#39;t do anything for commands that effect nodes of unused functions</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get_call_count</span>(<span class="ident">id</span>.<span class="number">0</span>) <span class="op">==</span> <span class="number">0</span> {
+    <span class="doccomment">/// Execute every command that is in the current command stack
+    </span><span class="kw">fn </span>execute_commands(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(command) = <span class="self">self</span>.commands.pop_front() {
+            <span class="kw">let </span>id = command.id;
+            <span class="comment">// Don&#39;t do anything for commands that effect nodes of unused functions
+            </span><span class="kw">if </span><span class="self">self</span>.get_call_count(id.<span class="number">0</span>) == <span class="number">0 </span>{
                 <span class="kw">continue</span>;
             }
-            <span class="kw">match</span> <span class="ident">command</span>.<span class="ident">kind</span> {
-                <span class="ident">OptimizeCommandKind::Delete</span> =&gt; {
-                    <span class="comment">// Shifts back all following nodes so that the ids still match</span>
-                    <span class="self">self</span>.<span class="ident">commands</span>
-                        .<span class="ident">iter_mut</span>()
-                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">cmd</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">id</span>.<span class="number">0</span> <span class="op">==</span> <span class="ident">id</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">cmd</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">&gt;</span> <span class="ident">id</span>.<span class="number">1</span>)
-                        .<span class="ident">for_each</span>(<span class="ident">OptimizeCommand::shift_back</span>);
-                    <span class="comment">// Removes the node that was scheduled to be deleted</span>
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">optimizer</span>
-                        .<span class="ident">functions</span>
-                        .<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>)
-                        .<span class="ident">unwrap</span>()
-                        .<span class="ident">nodes</span>
-                        .<span class="ident">remove</span>(<span class="ident">id</span>.<span class="number">1</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="kw-2">&amp;</span><span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+            <span class="kw">match </span>command.kind {
+                OptimizeCommandKind::Delete =&gt; {
+                    <span class="comment">// Shifts back all following nodes so that the ids still match
+                    </span><span class="self">self</span>.commands
+                        .iter_mut()
+                        .filter(|cmd| cmd.id.<span class="number">0 </span>== id.<span class="number">0 </span>&amp;&amp; cmd.id.<span class="number">1 </span>&gt; id.<span class="number">1</span>)
+                        .for_each(OptimizeCommand::shift_back);
+                    <span class="comment">// Removes the node that was scheduled to be deleted
+                    </span><span class="kw">let </span>node = <span class="self">self
+                        </span>.optimizer
+                        .functions
+                        .get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>)
+                        .unwrap()
+                        .nodes
+                        .remove(id.<span class="number">1</span>);
+                    <span class="self">self</span>.stats.remove_node(<span class="kw-2">&amp;</span>node, <span class="kw-2">&amp;</span>id);
                 }
-                <span class="ident">OptimizeCommandKind::DiscardResult</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
-                    <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node::Nop</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="kw-2">&amp;</span><span class="ident">old_value</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>] <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_value</span> {
-                        <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">store</span>) =&gt; {
-                            <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="kw-2">&amp;</span><span class="ident">store</span>.<span class="ident">command</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                            <span class="kw-2">*</span><span class="ident">store</span>.<span class="ident">command</span>
+                OptimizeCommandKind::DiscardResult =&gt; {
+                    <span class="kw">let </span>nodes = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes;
+                    <span class="kw">let </span>old_value = std::mem::replace(<span class="kw-2">&amp;mut </span>nodes[id.<span class="number">1</span>], Node::Nop);
+                    <span class="self">self</span>.stats.remove_node(<span class="kw-2">&amp;</span>old_value, <span class="kw-2">&amp;</span>id);
+                    nodes[id.<span class="number">1</span>] = <span class="kw">match </span>old_value {
+                        Node::FastStoreFromResult(store) =&gt; {
+                            <span class="self">self</span>.stats.add_node(<span class="kw-2">&amp;</span>store.command, <span class="kw-2">&amp;</span>id);
+                            <span class="kw-2">*</span>store.command
                         }
-                        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {other:?}&quot;</span>),
+                        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {other:?}&quot;</span>),
                     }
                 }
-                <span class="ident">OptimizeCommandKind::InlineBranch</span>(<span class="ident">condition</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
-                    <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>], <span class="ident">Node::Nop</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="kw-2">&amp;</span><span class="ident">old_value</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="kw">let</span> <span class="ident">new_node</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_value</span> {
-                        <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                            <span class="ident">condition</span>: <span class="kw">_</span>,
-                            <span class="ident">pos_branch</span>,
-                            <span class="ident">neg_branch</span>,
-                        }) =&gt; <span class="kw-2">*</span><span class="kw">if</span> <span class="ident">condition</span> { <span class="ident">pos_branch</span> } <span class="kw">else</span> { <span class="ident">neg_branch</span> },
-                        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {other:?}&quot;</span>),
+                OptimizeCommandKind::InlineBranch(condition) =&gt; {
+                    <span class="kw">let </span>nodes = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes;
+                    <span class="kw">let </span>old_value = std::mem::replace(<span class="kw-2">&amp;mut </span>nodes[id.<span class="number">1</span>], Node::Nop);
+                    <span class="self">self</span>.stats.remove_node(<span class="kw-2">&amp;</span>old_value, <span class="kw-2">&amp;</span>id);
+                    <span class="kw">let </span>new_node = <span class="kw">match </span>old_value {
+                        Node::Branch(Branch {
+                            condition: <span class="kw">_</span>,
+                            pos_branch,
+                            neg_branch,
+                        }) =&gt; <span class="kw-2">*</span><span class="kw">if </span>condition { pos_branch } <span class="kw">else </span>{ neg_branch },
+                        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {other:?}&quot;</span>),
                     };
 
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="kw-2">&amp;</span><span class="ident">new_node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>] <span class="op">=</span> <span class="ident">new_node</span>;
+                    <span class="self">self</span>.stats.add_node(<span class="kw-2">&amp;</span>new_node, <span class="kw-2">&amp;</span>id);
+                    nodes[id.<span class="number">1</span>] = new_node;
                 }
-                <span class="ident">OptimizeCommandKind::UpdateBranch</span> {
-                    <span class="ident">branch</span>: <span class="ident">branch_selector</span>,
-                    <span class="ident">new_node</span>,
+                OptimizeCommandKind::UpdateBranch {
+                    branch: branch_selector,
+                    new_node,
                 } =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="kw">let</span> <span class="ident">branch</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span> <span class="ident">node</span> {
-                        <span class="ident">branch</span>
-                    } <span class="kw">else</span> {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="kw">let </span>Node::Branch(branch) = node <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>()
                     };
-                    <span class="kw">let</span> <span class="ident">branch_node</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">branch_selector</span> {
-                        <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">as_mut</span>()
-                    } <span class="kw">else</span> {
-                        <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">as_mut</span>()
+                    <span class="kw">let </span>branch_node = <span class="kw">if </span>branch_selector {
+                        branch.pos_branch.as_mut()
+                    } <span class="kw">else </span>{
+                        branch.neg_branch.as_mut()
                     };
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">branch_node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="kw-2">*</span><span class="ident">branch_node</span> <span class="op">=</span> <span class="ident">new_node</span>;
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">branch_node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="self">self</span>.stats.remove_node(branch_node, <span class="kw-2">&amp;</span>id);
+                    <span class="kw-2">*</span>branch_node = new_node;
+                    <span class="self">self</span>.stats.add_node(branch_node, <span class="kw-2">&amp;</span>id);
                 }
-                <span class="ident">OptimizeCommandKind::UpdateBranchCondition</span>(<span class="ident">new_condition</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span> <span class="ident">node</span> {
-                        <span class="ident">branch</span>.<span class="ident">condition</span> <span class="op">=</span> <span class="ident">new_condition</span>;
-                    } <span class="kw">else</span> {
+                OptimizeCommandKind::UpdateBranchCondition(new_condition) =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="self">self</span>.stats.remove_node(node, <span class="kw-2">&amp;</span>id);
+                    <span class="kw">if let </span>Node::Branch(branch) = node {
+                        branch.condition = new_condition;
+                    } <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>(<span class="string">&quot;Must be a branch!&quot;</span>);
                     }
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="self">self</span>.stats.add_node(node, <span class="kw-2">&amp;</span>id);
                 }
-                <span class="ident">OptimizeCommandKind::InlineFunction</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="kw">let</span> <span class="ident">inlined_function_id</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
-                        <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) =&gt; <span class="kw-2">*</span><span class="ident">id</span>,
-                        <span class="ident">other</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, <span class="ident">other</span>),
+                OptimizeCommandKind::InlineFunction =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;</span><span class="self">self</span>.optimizer.functions.get(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="kw">let </span>inlined_function_id = <span class="kw">match </span>node {
+                        Node::Call(Call { id }) =&gt; <span class="kw-2">*</span>id,
+                        other =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid node: {:?}&quot;</span>, other),
                     };
 
-                    <span class="comment">// SAFETY: The call will always be removed</span>
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="comment">// SAFETY: The call will always be removed
+                    </span><span class="self">self</span>.stats.remove_node(node, <span class="kw-2">&amp;</span>id);
 
-                    <span class="comment">// If this is the only call to this function, it can be consumed safely.</span>
-                    <span class="kw">let</span> <span class="ident">consume</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_call_count</span>(<span class="ident">inlined_function_id</span>) <span class="op">==</span> <span class="number">0</span>;
-                    <span class="kw">let</span> <span class="ident">new_nodes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">consume</span> {
-                        <span class="bool-val">true</span> =&gt; {
-                            <span class="self">self</span>.<span class="ident">optimizer</span>
-                                .<span class="ident">functions</span>
-                                .<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">inlined_function_id</span>)
-                                .<span class="ident">unwrap</span>()
-                                .<span class="ident">nodes</span>
+                    <span class="comment">// If this is the only call to this function, it can be consumed safely.
+                    </span><span class="kw">let </span>consume = <span class="self">self</span>.get_call_count(inlined_function_id) == <span class="number">0</span>;
+                    <span class="kw">let </span>new_nodes = <span class="kw">match </span>consume {
+                        <span class="bool-val">true </span>=&gt; {
+                            <span class="self">self</span>.optimizer
+                                .functions
+                                .remove(<span class="kw-2">&amp;</span>inlined_function_id)
+                                .unwrap()
+                                .nodes
                         }
-                        <span class="bool-val">false</span> =&gt; <span class="self">self</span>
-                            .<span class="ident">optimizer</span>
-                            .<span class="ident">functions</span>
-                            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">inlined_function_id</span>)
-                            .<span class="ident">unwrap</span>()
-                            .<span class="ident">nodes</span>
-                            .<span class="ident">clone</span>(),
+                        <span class="bool-val">false </span>=&gt; <span class="self">self
+                            </span>.optimizer
+                            .functions
+                            .get(<span class="kw-2">&amp;</span>inlined_function_id)
+                            .unwrap()
+                            .nodes
+                            .clone(),
                     };
 
-                    <span class="comment">// SAFETY: See above</span>
-                    <span class="kw">for</span> (<span class="ident">rel_index</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">new_nodes</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">rel_index</span> <span class="op">+</span> <span class="ident">id</span>.<span class="number">1</span>;
-                        <span class="kw">let</span> <span class="ident">node_id</span> <span class="op">=</span> (<span class="ident">id</span>.<span class="number">0</span>, <span class="ident">index</span>);
-                        <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">node_id</span>);
+                    <span class="comment">// SAFETY: See above
+                    </span><span class="kw">for </span>(rel_index, node) <span class="kw">in </span>new_nodes.iter().enumerate() {
+                        <span class="kw">let </span>index = rel_index + id.<span class="number">1</span>;
+                        <span class="kw">let </span>node_id = (id.<span class="number">0</span>, index);
+                        <span class="self">self</span>.stats.add_node(node, <span class="kw-2">&amp;</span>node_id);
                     }
 
-                    <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>;
-                    <span class="ident">nodes</span>.<span class="ident">splice</span>(<span class="ident">id</span>.<span class="number">1</span>..<span class="op">=</span><span class="ident">id</span>.<span class="number">1</span>, <span class="ident">new_nodes</span>.<span class="ident">into_iter</span>());
+                    <span class="kw">let </span>nodes = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes;
+                    nodes.splice(id.<span class="number">1</span>..=id.<span class="number">1</span>, new_nodes.into_iter());
                 }
-                <span class="ident">OptimizeCommandKind::RemoveAliasFunction</span>(<span class="ident">aliased_function</span>) =&gt; {
-                    <span class="comment">// For each node, update any reference to this function</span>
-                    <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">values_mut</span>() {
-                        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">function</span>.<span class="ident">nodes</span> {
-                            <span class="ident">node</span>.<span class="ident">scan_mut</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> {
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">target_id</span> }) <span class="op">=</span> <span class="ident">inner</span> {
-                                    <span class="kw">if</span> <span class="ident">target_id</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span> {
-                                        <span class="kw-2">*</span><span class="ident">target_id</span> <span class="op">=</span> <span class="ident">aliased_function</span>;
+                OptimizeCommandKind::RemoveAliasFunction(aliased_function) =&gt; {
+                    <span class="comment">// For each node, update any reference to this function
+                    </span><span class="kw">for </span>function <span class="kw">in </span><span class="self">self</span>.optimizer.functions.values_mut() {
+                        <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;mut </span>function.nodes {
+                            node.scan_mut(<span class="kw-2">&amp;mut </span>|inner| {
+                                <span class="kw">if let </span>Node::Call(Call { id: target_id }) = inner {
+                                    <span class="kw">if </span>target_id == <span class="kw-2">&amp;</span>id.<span class="number">0 </span>{
+                                        <span class="kw-2">*</span>target_id = aliased_function;
                                     }
                                 }
                             });
                         }
                     }
-                    <span class="comment">// Since there is no sane way to do incremental updates,</span>
-                    <span class="comment">// just recompute all stats here :(</span>
-                    <span class="self">self</span>.<span class="ident">stats</span>
-                        .<span class="ident">update</span>(<span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">call_graph</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>);
-                    <span class="self">self</span>.<span class="ident">retain_functions</span>();
+                    <span class="comment">// Since there is no sane way to do incremental updates,
+                    // just recompute all stats here :(
+                    </span><span class="self">self</span>.stats
+                        .update(<span class="self">self</span>.optimizer.runtime, <span class="kw-2">&amp;</span><span class="self">self</span>.optimizer.functions);
+                    <span class="self">self</span>.stats.call_graph.update(<span class="kw-2">&amp;</span><span class="self">self</span>.optimizer.functions);
+                    <span class="self">self</span>.retain_functions();
                 }
-                <span class="ident">OptimizeCommandKind::ChangeWrite</span>(<span class="ident">new_target</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="ident">node</span>.<span class="ident">variable_accesses_mut</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-                        <span class="ident">VariableAccessMut::Write</span>(<span class="ident">value</span>, <span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">VariableAccessMut::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">value</span>)) =&gt; {
-                            <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="ident">new_target</span>;
+                OptimizeCommandKind::ChangeWrite(new_target) =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="self">self</span>.stats.remove_node(node, <span class="kw-2">&amp;</span>id);
+                    node.variable_accesses_mut(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
+                        VariableAccessMut::Write(value, <span class="kw">_</span>)
+                        | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, value)) =&gt; {
+                            <span class="kw-2">*</span>value = new_target;
                         }
-                        <span class="kw">_</span> =&gt; {}
+                        <span class="kw">_ </span>=&gt; {}
                     });
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="self">self</span>.stats.add_node(node, <span class="kw-2">&amp;</span>id);
                 }
-                <span class="ident">OptimizeCommandKind::ChangeReads</span>(<span class="ident">old_id</span>, <span class="ident">new_value</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="ident">node</span>.<span class="ident">variable_accesses_mut</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-                        <span class="ident">VariableAccessMut::Read</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="ident">VariableAccessMut::ReadWrite</span>(<span class="ident">value</span>) =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) <span class="op">=</span> <span class="ident">value</span> {
-                                <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">old_id</span> {
-                                    <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="ident">new_value</span>;
+                OptimizeCommandKind::ChangeReads(old_id, new_value) =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="self">self</span>.stats.remove_node(node, <span class="kw-2">&amp;</span>id);
+                    node.variable_accesses_mut(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
+                        VariableAccessMut::Read(value) | VariableAccessMut::ReadWrite(value) =&gt; {
+                            <span class="kw">if let </span>ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) = value {
+                                <span class="kw">if </span>id == <span class="kw-2">&amp;</span>old_id {
+                                    <span class="kw-2">*</span>value = new_value;
                                 }
                             }
                         }
 
-                        <span class="ident">VariableAccessMut::Write</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
+                        VariableAccessMut::Write(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
                     });
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="self">self</span>.stats.add_node(node, <span class="kw-2">&amp;</span>id);
                 }
-                <span class="ident">OptimizeCommandKind::SetCondition</span>(<span class="ident">condition</span>, <span class="ident">indices</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">old_condition</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">node</span> {
-                        <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; <span class="kw-2">&amp;mut</span> <span class="ident">branch</span>.<span class="ident">condition</span>,
-                        <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">store</span>) =&gt; <span class="kw">match</span> <span class="ident">store</span>.<span class="ident">command</span>.<span class="ident">as_mut</span>() {
-                            <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) =&gt; <span class="ident">condition</span>,
-                            <span class="ident">other</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid command: {:?}&quot;</span>, <span class="ident">other</span>),
+                OptimizeCommandKind::SetCondition(condition, indices) =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="kw">let </span><span class="kw-2">mut </span>old_condition = <span class="kw">match </span>node {
+                        Node::Branch(branch) =&gt; <span class="kw-2">&amp;mut </span>branch.condition,
+                        Node::FastStoreFromResult(store) =&gt; <span class="kw">match </span>store.command.as_mut() {
+                            Node::Condition(condition) =&gt; condition,
+                            other =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Invalid command: {:?}&quot;</span>, other),
                         },
-                        <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {other:?}&quot;</span>),
+                        other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Invalid node: {other:?}&quot;</span>),
                     };
 
-                    <span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="ident">indices</span>.<span class="ident">into_iter</span>().<span class="ident">rev</span>() {
-                        <span class="ident">old_condition</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">old_condition</span> {
-                            <span class="ident">Condition::And</span>(<span class="ident">values</span>) <span class="op">|</span> <span class="ident">Condition::Or</span>(<span class="ident">values</span>) =&gt; <span class="kw-2">&amp;mut</span> <span class="ident">values</span>[<span class="ident">index</span>],
-                            <span class="ident">Condition::Compare</span> { .. } =&gt; <span class="macro">unreachable!</span>(),
+                    <span class="kw">for </span>index <span class="kw">in </span>indices.into_iter().rev() {
+                        old_condition = <span class="kw">match </span>old_condition {
+                            Condition::And(values) | Condition::Or(values) =&gt; <span class="kw-2">&amp;mut </span>values[index],
+                            Condition::Compare { .. } =&gt; <span class="macro">unreachable!</span>(),
                         }
                     }
 
-                    <span class="comment">// SAFETY: Treating the condition as a separate node does not</span>
-                    <span class="comment">// have any effect on the variable reads</span>
-                    <span class="kw">let</span> <span class="ident">new_condition_node</span> <span class="op">=</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="kw-2">&amp;</span><span class="ident">new_condition_node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="comment">// SAFETY: Treating the condition as a separate node does not
+                    // have any effect on the variable reads
+                    </span><span class="kw">let </span>new_condition_node = Node::Condition(condition);
+                    <span class="self">self</span>.stats.add_node(<span class="kw-2">&amp;</span>new_condition_node, <span class="kw-2">&amp;</span>id);
 
-                    <span class="kw">let</span> <span class="ident">new_condition</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">cond</span>) <span class="op">=</span> <span class="ident">new_condition_node</span> {
-                        <span class="ident">cond</span>
-                    } <span class="kw">else</span> {
+                    <span class="kw">let </span>Node::Condition(new_condition) = new_condition_node <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>()
                     };
-                    <span class="kw">let</span> <span class="ident">old_condition</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="ident">old_condition</span>, <span class="ident">new_condition</span>);
-                    <span class="kw">let</span> <span class="ident">old_condition_node</span> <span class="op">=</span> <span class="ident">Node::Condition</span>(<span class="ident">old_condition</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="kw-2">&amp;</span><span class="ident">old_condition_node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
+                    <span class="kw">let </span>old_condition = std::mem::replace(old_condition, new_condition);
+                    <span class="kw">let </span>old_condition_node = Node::Condition(old_condition);
+                    <span class="self">self</span>.stats.remove_node(<span class="kw-2">&amp;</span>old_condition_node, <span class="kw-2">&amp;</span>id);
                 }
-                <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">new_node</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="kw-2">&amp;</span><span class="ident">new_node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="kw-2">*</span><span class="ident">node</span> <span class="op">=</span> <span class="ident">new_node</span>;
+                OptimizeCommandKind::Replace(new_node) =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="self">self</span>.stats.remove_node(node, <span class="kw-2">&amp;</span>id);
+                    <span class="self">self</span>.stats.add_node(<span class="kw-2">&amp;</span>new_node, <span class="kw-2">&amp;</span>id);
+                    <span class="kw-2">*</span>node = new_node;
                 }
-                <span class="ident">OptimizeCommandKind::InsertAfter</span>(<span class="ident">next_node</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(<span class="kw-2">&amp;</span><span class="ident">next_node</span>, <span class="kw-2">&amp;</span>(<span class="ident">id</span>.<span class="number">0</span>, <span class="ident">id</span>.<span class="number">1</span> <span class="op">+</span> <span class="number">1</span>));
-                    <span class="comment">// Shift forward all following nodes</span>
-                    <span class="self">self</span>.<span class="ident">commands</span>
-                        .<span class="ident">iter_mut</span>()
-                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">cmd</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">id</span>.<span class="number">0</span> <span class="op">==</span> <span class="ident">id</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">cmd</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">&gt;</span> <span class="ident">id</span>.<span class="number">1</span>)
-                        .<span class="ident">for_each</span>(<span class="ident">OptimizeCommand::shift_forward</span>);
-                    <span class="self">self</span>.<span class="ident">optimizer</span>
-                        .<span class="ident">get_function_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>)
-                        .<span class="ident">nodes</span>
-                        .<span class="ident">insert</span>(<span class="ident">id</span>.<span class="number">1</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">next_node</span>);
+                OptimizeCommandKind::InsertAfter(next_node) =&gt; {
+                    <span class="self">self</span>.stats.add_node(<span class="kw-2">&amp;</span>next_node, <span class="kw-2">&amp;</span>(id.<span class="number">0</span>, id.<span class="number">1 </span>+ <span class="number">1</span>));
+                    <span class="comment">// Shift forward all following nodes
+                    </span><span class="self">self</span>.commands
+                        .iter_mut()
+                        .filter(|cmd| cmd.id.<span class="number">0 </span>== id.<span class="number">0 </span>&amp;&amp; cmd.id.<span class="number">1 </span>&gt; id.<span class="number">1</span>)
+                        .for_each(OptimizeCommand::shift_forward);
+                    <span class="self">self</span>.optimizer
+                        .get_function_mut(id.<span class="number">0</span>)
+                        .nodes
+                        .insert(id.<span class="number">1 </span>+ <span class="number">1</span>, next_node);
                 }
-                <span class="ident">OptimizeCommandKind::UpdateExecuteRaw</span>(<span class="ident">index</span>, <span class="ident">update</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>];
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">remove_node</span>(<span class="ident">node</span>, <span class="kw-2">&amp;</span><span class="ident">id</span>);
-                    <span class="kw">let</span> <span class="ident">execute_raw</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Execute</span>(<span class="ident">execute_raw</span>) <span class="op">=</span> <span class="ident">node</span> {
-                        <span class="ident">execute_raw</span>
-                    } <span class="kw">else</span> {
+                OptimizeCommandKind::UpdateExecuteRaw(index, update) =&gt; {
+                    <span class="kw">let </span>node = <span class="kw-2">&amp;mut </span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>];
+                    <span class="self">self</span>.stats.remove_node(node, <span class="kw-2">&amp;</span>id);
+                    <span class="kw">let </span>Node::Execute(execute_raw) = node <span class="kw">else </span>{
                         <span class="macro">unreachable!</span>()
                     };
-                    <span class="kw">match</span> <span class="ident">update</span> {
-                        <span class="ident">ExecuteRawUpdate::Replace</span>(<span class="ident">new_node</span>) =&gt; {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">old_node</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">execute_raw</span>.<span class="number">0</span>[<span class="ident">index</span>] {
-                                <span class="kw-2">*</span><span class="ident">old_node</span> <span class="op">=</span> <span class="ident">new_node</span>;
-                            } <span class="kw">else</span> {
+                    <span class="kw">match </span>update {
+                        ExecuteRawUpdate::Replace(new_node) =&gt; {
+                            <span class="kw">if let </span>ExecuteRawComponent::Node(old_node) = <span class="kw-2">&amp;mut </span>execute_raw.<span class="number">0</span>[index] {
+                                <span class="kw-2">*</span>old_node = new_node;
+                            } <span class="kw">else </span>{
                                 <span class="macro">unreachable!</span>();
                             }
                         }
-                        <span class="ident">ExecuteRawUpdate::Delete</span> =&gt; {
-                            <span class="ident">execute_raw</span>.<span class="number">0</span>.<span class="ident">remove</span>(<span class="ident">index</span>);
+                        ExecuteRawUpdate::Delete =&gt; {
+                            execute_raw.<span class="number">0</span>.remove(index);
                         }
                     }
-                    <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">add_node</span>(
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">nodes</span>[<span class="ident">id</span>.<span class="number">1</span>],
-                        <span class="kw-2">&amp;</span><span class="ident">id</span>,
+                    <span class="self">self</span>.stats.add_node(
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.optimizer.functions.get_mut(<span class="kw-2">&amp;</span>id.<span class="number">0</span>).unwrap().nodes[id.<span class="number">1</span>],
+                        <span class="kw-2">&amp;</span>id,
                     );
                 }
             }
@@ -1111,35 +1093,34 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Commands</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">fn</span> <span class="ident">write_fn</span>(<span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="ident">Function</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{func}&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Commands&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">fn </span>write_fn(f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;, func: <span class="kw-2">&amp;</span>Function) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{func}&quot;</span>)
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">functions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">optimizer</span>.<span class="ident">functions</span>.<span class="ident">iter</span>().<span class="ident">collect_vec</span>();
-        <span class="ident">functions</span>.<span class="ident">sort_unstable_by_key</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">id</span>.<span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>functions = <span class="self">self</span>.optimizer.functions.iter().collect_vec();
+        functions.sort_unstable_by_key(|(id, <span class="kw">_</span>)| id.<span class="number">0</span>);
 
-        <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">func</span>) <span class="kw">in</span> <span class="ident">functions</span> {
-            <span class="ident">write_fn</span>(<span class="ident">f</span>, <span class="ident">func</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(<span class="kw">_</span>, func) <span class="kw">in </span>functions {
+            write_fn(f, func)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Optimizer</span> {
-    <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>);
+<span class="kw">pub trait </span>Optimizer {
+    <span class="kw">fn </span>optimize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, commands: <span class="kw-2">&amp;mut </span>Commands);
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="ident">Optimizer</span> <span class="kw">for</span> <span class="ident">F</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>),
+<span class="kw">impl</span>&lt;F&gt; Optimizer <span class="kw">for </span>F
+<span class="kw">where
+    </span>F: Fn(<span class="kw-2">&amp;mut </span>Commands),
 {
-    <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>) {
-        (<span class="self">self</span>)(<span class="ident">commands</span>);
+    <span class="kw">fn </span>optimize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, commands: <span class="kw-2">&amp;mut </span>Commands) {
+        (<span class="self">self</span>)(commands);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

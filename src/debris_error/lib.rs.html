@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/error/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/error/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -97,99 +91,98 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Compilation error handling</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Exports the default Result type which is used throughout the compiler</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Compilation error handling
+//!
+//! Exports the default Result type which is used throughout the compiler
 
-<span class="kw">use</span> <span class="ident">annotate_snippets::display_list::DisplayList</span>;
-<span class="kw">use</span> <span class="ident">debris_common::CompileContext</span>;
+</span><span class="kw">use </span>annotate_snippets::display_list::DisplayList;
+<span class="kw">use </span>debris_common::CompileContext;
 
-<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">lang_error</span>::{<span class="ident">ControlFlowRequires</span>, <span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parse_error::ParseError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">snippet</span>::{<span class="ident">SliceOwned</span>, <span class="ident">SnippetOwned</span>, <span class="ident">SourceAnnotationOwned</span>};
+<span class="kw">use </span>itertools::Itertools;
+<span class="kw">pub use </span>lang_error::{ControlFlowRequires, LangError, LangErrorKind};
+<span class="kw">pub use </span>parse_error::ParseError;
+<span class="kw">pub use </span>snippet::{SliceOwned, SnippetOwned, SourceAnnotationOwned};
 
-<span class="kw">mod</span> <span class="ident">utils</span>;
+<span class="kw">mod </span>utils;
 
-<span class="kw">mod</span> <span class="ident">lang_error</span>;
-<span class="kw">mod</span> <span class="ident">macros</span>;
-<span class="kw">mod</span> <span class="ident">parse_error</span>;
-<span class="kw">mod</span> <span class="ident">snippet</span>;
+<span class="kw">mod </span>lang_error;
+<span class="kw">mod </span>macros;
+<span class="kw">mod </span>parse_error;
+<span class="kw">mod </span>snippet;
 
-<span class="doccomment">/// Used to determine whether the error messages should use console colors</span>
-<span class="doccomment">/// Or be plain text</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">COLORED</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;colored_errors&quot;</span>);
+<span class="doccomment">/// Used to determine whether the error messages should use console colors
+/// Or be plain text
+</span><span class="kw">pub const </span>COLORED: bool = <span class="macro">cfg!</span>(feature = <span class="string">&quot;colored_errors&quot;</span>);
 
-<span class="doccomment">/// The result type used by most of the core functions</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">SingleCompileError</span><span class="op">&gt;</span>;
+<span class="doccomment">/// The result type used by most of the core functions
+</span><span class="kw">pub type </span><span class="prelude-ty">Result</span>&lt;T&gt; = std::result::Result&lt;T, SingleCompileError&gt;;
 
-<span class="doccomment">/// A result type which allows quick error throwing since no span and other boilerplate is needed</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">LangErrorKind</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A result type which allows quick error throwing since no span and other boilerplate is needed
+</span><span class="kw">pub type </span>LangResult&lt;T&gt; = std::result::Result&lt;T, LangErrorKind&gt;;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>AsAnnotationSnippet&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>as_annotation_snippet(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CompileContext) -&gt; SnippetOwned&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">to_display_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_annotation_snippet</span>(<span class="ident">ctx</span>);
-        <span class="kw">let</span> <span class="ident">display_list</span> <span class="op">=</span> <span class="ident">DisplayList::from</span>(<span class="ident">snippet</span>.<span class="ident">as_snippet</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">input_files</span>));
-        <span class="ident">display_list</span>.<span class="ident">to_string</span>()
+    <span class="kw">fn </span>to_display_list(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CompileContext) -&gt; String {
+        <span class="kw">let </span>snippet = <span class="self">self</span>.as_annotation_snippet(ctx);
+        <span class="kw">let </span>display_list = DisplayList::from(snippet.as_snippet(<span class="kw-2">&amp;</span>ctx.input_files));
+        display_list.to_string()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompileErrors</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SingleCompileError</span><span class="op">&gt;</span>);
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>CompileErrors(<span class="kw">pub </span>Vec&lt;SingleCompileError&gt;);
 
-<span class="kw">impl</span> <span class="ident">CompileErrors</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> <span class="ident">error</span>.<span class="ident">format</span>(<span class="ident">ctx</span>)).<span class="ident">join</span>(<span class="string">&quot;\n\n&quot;</span>)
+<span class="kw">impl </span>CompileErrors {
+    <span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>CompileContext) -&gt; String {
+        <span class="self">self</span>.<span class="number">0</span>.iter().map(|error| error.format(ctx)).join(<span class="string">&quot;\n\n&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SingleCompileError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CompileErrors</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SingleCompileError</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">CompileErrors</span>(<span class="ident">errors</span>)
+<span class="kw">impl </span>From&lt;Vec&lt;SingleCompileError&gt;&gt; <span class="kw">for </span>CompileErrors {
+    <span class="kw">fn </span>from(errors: Vec&lt;SingleCompileError&gt;) -&gt; <span class="self">Self </span>{
+        CompileErrors(errors)
     }
 }
 
-<span class="doccomment">/// A Compile Error</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is the Err value for most of this crate.</span>
-<span class="doccomment">/// It is compatible with the `annotate_snippets` library.</span>
-<span class="doccomment">/// That means that nice rust-style error messages can be printed.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SingleCompileError</span> {
-    <span class="doccomment">/// An error which happens when parsing the input</span>
-    <span class="ident">ParseError</span>(<span class="ident">ParseError</span>),
-    <span class="doccomment">/// An error which happens when compiling the input</span>
-    <span class="ident">LangError</span>(<span class="ident">LangError</span>),
+<span class="doccomment">/// A Compile Error
+///
+/// This type is the Err value for most of this crate.
+/// It is compatible with the `annotate_snippets` library.
+/// That means that nice rust-style error messages can be printed.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>SingleCompileError {
+    <span class="doccomment">/// An error which happens when parsing the input
+    </span>ParseError(ParseError),
+    <span class="doccomment">/// An error which happens when compiling the input
+    </span>LangError(LangError),
 }
 
-<span class="kw">impl</span> <span class="ident">SingleCompileError</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) -&gt; <span class="ident">String</span> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&gt;</span><span class="ident">::to_display_list</span>(<span class="self">self</span>, <span class="ident">ctx</span>)
+<span class="kw">impl </span>SingleCompileError {
+    <span class="kw">pub fn </span>format(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>CompileContext) -&gt; String {
+        &lt;<span class="self">Self </span><span class="kw">as </span>AsAnnotationSnippet&gt;::to_display_list(<span class="self">self</span>, ctx)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ParseError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SingleCompileError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">parse_error</span>: <span class="ident">ParseError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">SingleCompileError::ParseError</span>(<span class="ident">parse_error</span>)
+<span class="kw">impl </span>From&lt;ParseError&gt; <span class="kw">for </span>SingleCompileError {
+    <span class="kw">fn </span>from(parse_error: ParseError) -&gt; <span class="self">Self </span>{
+        SingleCompileError::ParseError(parse_error)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LangError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SingleCompileError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">lang_error</span>: <span class="ident">LangError</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">SingleCompileError::LangError</span>(<span class="ident">lang_error</span>)
+<span class="kw">impl </span>From&lt;LangError&gt; <span class="kw">for </span>SingleCompileError {
+    <span class="kw">fn </span>from(lang_error: LangError) -&gt; <span class="self">Self </span>{
+        SingleCompileError::LangError(lang_error)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SingleCompileError</span> {
-    <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SingleCompileError::ParseError</span>(<span class="ident">parse_error</span>) =&gt; <span class="ident">parse_error</span>.<span class="ident">as_annotation_snippet</span>(<span class="ident">ctx</span>),
-            <span class="ident">SingleCompileError::LangError</span>(<span class="ident">lang_error</span>) =&gt; <span class="ident">lang_error</span>.<span class="ident">as_annotation_snippet</span>(<span class="ident">ctx</span>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AsAnnotationSnippet&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>SingleCompileError {
+    <span class="kw">fn </span>as_annotation_snippet(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CompileContext) -&gt; SnippetOwned&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            SingleCompileError::ParseError(parse_error) =&gt; parse_error.as_annotation_snippet(ctx),
+            SingleCompileError::LangError(lang_error) =&gt; lang_error.as_annotation_snippet(ctx),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

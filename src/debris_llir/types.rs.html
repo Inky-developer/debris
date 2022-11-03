@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -110,112 +104,111 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-</pre><pre class="rust"><code><span class="doccomment">/// The type of a class object</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Type</span> {
-    <span class="doccomment">/// Type which matches with every other type</span>
-    <span class="doccomment">/// Objects of type any should not exist.</span>
-    <span class="ident">Any</span>,
-    <span class="doccomment">/// The null type, implicitly returned by functions</span>
-    <span class="doccomment">/// which don&#39;t specify a return type, also the</span>
-    <span class="doccomment">/// value that statements return (since everything</span>
-    <span class="doccomment">/// is an expression)</span>
-    <span class="ident">Null</span>,
-    <span class="doccomment">/// Marks a value that cannot be constructed, for example</span>
-    <span class="doccomment">/// The return value of `loop {}`</span>
-    <span class="ident">Never</span>,
-    <span class="doccomment">/// Compile time known 32-bit signed integer</span>
-    <span class="ident">ComptimeInt</span>,
-    <span class="doccomment">/// 32-bit signed integer known at runtime</span>
-    <span class="ident">DynamicInt</span>,
-    <span class="doccomment">/// A boolean value known at compile time</span>
-    <span class="ident">ComptimeBool</span>,
-    <span class="doccomment">/// Runtime boolean</span>
-    <span class="ident">DynamicBool</span>,
-    <span class="doccomment">/// A compile time known string</span>
-    <span class="ident">String</span>,
-    <span class="doccomment">/// A compile time known format string</span>
-    <span class="ident">FormatString</span>,
-    <span class="doccomment">/// Any function, native or api</span>
-    <span class="ident">Function</span>,
-    <span class="doccomment">/// A reference to a compiled function</span>
-    <span class="doccomment">/// A compiled function is uniquely identified by its block id</span>
-    <span class="doccomment">/// Basically a function after monomorphization</span>
-    <span class="ident">FunctionRef</span>,
-    <span class="doccomment">/// The type of a type</span>
-    <span class="ident">Type</span>,
-    <span class="doccomment">/// Module type</span>
-    <span class="ident">Module</span>,
-    <span class="doccomment">/// Type of a struct definition</span>
-    <span class="ident">Struct</span>,
-    <span class="doccomment">/// An instantiated struct</span>
-    <span class="ident">StructObject</span>,
-    <span class="doccomment">/// Type of a tuple</span>
-    <span class="doccomment">/// TODO: Could a [`Type::Tuple`] not just be a [`Type::TupleObject`] with types as elements?</span>
-    <span class="ident">Tuple</span>,
-    <span class="doccomment">/// An instantiated tuple</span>
-    <span class="ident">TupleObject</span>,
+</pre><pre class="rust"><code><span class="doccomment">/// The type of a class object
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
+</span><span class="kw">pub enum </span>Type {
+    <span class="doccomment">/// Type which matches with every other type
+    /// Objects of type any should not exist.
+    </span>Any,
+    <span class="doccomment">/// The null type, implicitly returned by functions
+    /// which don&#39;t specify a return type, also the
+    /// value that statements return (since everything
+    /// is an expression)
+    </span>Null,
+    <span class="doccomment">/// Marks a value that cannot be constructed, for example
+    /// The return value of `loop {}`
+    </span>Never,
+    <span class="doccomment">/// Compile time known 32-bit signed integer
+    </span>ComptimeInt,
+    <span class="doccomment">/// 32-bit signed integer known at runtime
+    </span>DynamicInt,
+    <span class="doccomment">/// A boolean value known at compile time
+    </span>ComptimeBool,
+    <span class="doccomment">/// Runtime boolean
+    </span>DynamicBool,
+    <span class="doccomment">/// A compile time known string
+    </span>String,
+    <span class="doccomment">/// A compile time known format string
+    </span>FormatString,
+    <span class="doccomment">/// Any function, native or api
+    </span>Function,
+    <span class="doccomment">/// A reference to a compiled function
+    /// A compiled function is uniquely identified by its block id
+    /// Basically a function after monomorphization
+    </span>FunctionRef,
+    <span class="doccomment">/// The type of a type
+    </span>Type,
+    <span class="doccomment">/// Module type
+    </span>Module,
+    <span class="doccomment">/// Type of a struct definition
+    </span>Struct,
+    <span class="doccomment">/// An instantiated struct
+    </span>StructObject,
+    <span class="doccomment">/// Type of a tuple
+    /// TODO: Could a [`Type::Tuple`] not just be a [`Type::TupleObject`] with types as elements?
+    </span>Tuple,
+    <span class="doccomment">/// An instantiated tuple
+    </span>TupleObject,
 }
 
-<span class="kw">impl</span> <span class="ident">Type</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_int</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Type::DynamicInt</span> <span class="op">|</span> <span class="ident">Type::ComptimeInt</span>)
+<span class="kw">impl </span>Type {
+    <span class="kw">pub fn </span>is_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Type::DynamicInt | Type::ComptimeInt)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_never</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Type::Never</span>)
+    <span class="kw">pub fn </span>is_never(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Type::Never)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diverges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">is_never</span>()
+    <span class="kw">pub fn </span>diverges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_never()
     }
 
-    <span class="doccomment">/// Returns whether this type can be completely encoded at runtime</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="doccomment">/// Returns whether this type can be completely encoded at runtime
+    </span><span class="kw">pub fn </span>runtime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(
             <span class="self">self</span>,
-            <span class="ident">Type::DynamicBool</span>
-                <span class="op">|</span> <span class="ident">Type::DynamicInt</span>
-                <span class="op">|</span> <span class="ident">Type::Null</span>
-                <span class="op">|</span> <span class="ident">Type::Never</span>
-                <span class="op">|</span> <span class="ident">Type::StructObject</span>
-                <span class="op">|</span> <span class="ident">Type::TupleObject</span>
+            Type::DynamicBool
+                | Type::DynamicInt
+                | Type::Null
+                | Type::Never
+                | Type::StructObject
+                | Type::TupleObject
         )
     }
 
-    <span class="doccomment">/// Returns whether this type can be encoded at compile time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="op">!</span><span class="self">self</span>.<span class="ident">runtime_encodable</span>()
+    <span class="doccomment">/// Returns whether this type can be encoded at compile time.
+    </span><span class="kw">pub fn </span>comptime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        !<span class="self">self</span>.runtime_encodable()
     }
 
-    <span class="doccomment">/// Returns whether `other` matches the pattern of `self`</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::match_same_arms</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Type</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            <span class="comment">// The never type matches always</span>
-            (<span class="ident">Type::Never</span>, <span class="kw">_</span>) <span class="op">|</span> (<span class="kw">_</span>, <span class="ident">Type::Never</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="comment">// `Any` matches every other type only as a pattern</span>
-            (<span class="ident">Type::Any</span>, <span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            (<span class="ident">a</span>, <span class="ident">b</span>) =&gt; <span class="kw-2">*</span><span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
+    <span class="doccomment">/// Returns whether `other` matches the pattern of `self`
+    </span><span class="attr">#[allow(clippy::match_same_arms)]
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: Type) -&gt; bool {
+        <span class="kw">match </span>(<span class="self">self</span>, other) {
+            <span class="comment">// The never type matches always
+            </span>(Type::Never, <span class="kw">_</span>) | (<span class="kw">_</span>, Type::Never) =&gt; <span class="bool-val">true</span>,
+            <span class="comment">// `Any` matches every other type only as a pattern
+            </span>(Type::Any, <span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            (a, b) =&gt; <span class="kw-2">*</span>a == b,
         }
     }
 
-    <span class="doccomment">/// Returns whether this type should be treated as a reference.</span>
-    <span class="doccomment">/// This effects e.g. whether variables get copied when assigned or passed to functions</span>
-    <span class="doccomment">/// TODO: implement some proper reference object, to make this less implicit and confusing.</span>
-    <span class="doccomment">/// Right now, only structs are treated as references</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_reference</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Type::StructObject</span>)
+    <span class="doccomment">/// Returns whether this type should be treated as a reference.
+    /// This effects e.g. whether variables get copied when assigned or passed to functions
+    /// TODO: implement some proper reference object, to make this less implicit and confusing.
+    /// Right now, only structs are treated as references
+    </span><span class="kw">pub fn </span>is_reference(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Type::StructObject)
     }
 }
 
-<span class="doccomment">/// Error messages can safely use the debug impl for display</span>
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">Type</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::use_debug</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{self:?}&quot;</span>)
+<span class="doccomment">/// Error messages can safely use the debug impl for display
+</span><span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>Type {
+    <span class="attr">#[allow(clippy::use_debug)]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{self:?}&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

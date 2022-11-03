@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["debris_backends"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"enum\" href=\"debris_backends/common/string_escape/enum.StringEscape.html\" title=\"enum debris_backends::common::string_escape::StringEscape\">StringEscape</a>","synthetic":false,"types":["debris_backends::common::string_escape::StringEscape"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"debris_backends":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"enum\" href=\"debris_backends/common/string_escape/enum.StringEscape.html\" title=\"enum debris_backends::common::string_escape::StringEscape\">StringEscape</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

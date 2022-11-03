@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimize_commands.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>optimize_commands.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimize_commands.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>optimize_commands.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -121,123 +115,122 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cmp::Ordering</span>,
-    <span class="ident">collections::VecDeque</span>,
-    <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    cmp::Ordering,
+    collections::VecDeque,
+    ops::{Deref, DerefMut},
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">block_id::BlockId</span>,
-    <span class="ident">item_id::ItemId</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">Condition</span>, <span class="ident">Node</span>},
-    <span class="ident">minecraft_utils::ScoreboardValue</span>,
+<span class="kw">use crate</span>::{
+    block_id::BlockId,
+    item_id::ItemId,
+    llir_nodes::{Condition, Node},
+    minecraft_utils::ScoreboardValue,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::NodeId</span>;
+<span class="kw">use </span><span class="kw">super</span>::NodeId;
 
-<span class="doccomment">/// Optimizing functions output commands that tell the optimizer what to do,</span>
-<span class="doccomment">/// this is done so that there are no troubles with mutability</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OptimizeCommandKind</span> {
-    <span class="doccomment">/// Deletes a single node</span>
-    <span class="ident">Delete</span>,
-    <span class="doccomment">/// Converts the [FastStoreFromResult](crate::llir_nodes::FastStoreFromResult) node into its command, discarding</span>
-    <span class="doccomment">/// the result</span>
-    <span class="ident">DiscardResult</span>,
-    <span class="doccomment">/// Discards the node and only keeps the branch that matches the bool.</span>
-    <span class="doccomment">/// (true =&gt; pos_branch, false =&gt; neg_branch)</span>
-    <span class="ident">InlineBranch</span>(<span class="ident">bool</span>),
-    <span class="doccomment">/// Updates the specified branch with the new node</span>
-    <span class="ident">UpdateBranch</span> { <span class="ident">branch</span>: <span class="ident">bool</span>, <span class="ident">new_node</span>: <span class="ident">Node</span> },
-    <span class="doccomment">/// Updates the condition of a branch</span>
-    <span class="ident">UpdateBranchCondition</span>(<span class="ident">Condition</span>),
-    <span class="doccomment">/// Inlines the function of this function call.</span>
-    <span class="ident">InlineFunction</span>,
-    <span class="doccomment">/// Removes all aliases to a function which only redirects to another function</span>
-    <span class="doccomment">/// The argument specifies the aliased function.</span>
-    <span class="ident">RemoveAliasFunction</span>(<span class="ident">BlockId</span>),
-    <span class="doccomment">/// Changes the variable this node writes to</span>
-    <span class="ident">ChangeWrite</span>(<span class="ident">ItemId</span>),
-    <span class="doccomment">/// Replaces all variables `.0` with `.1`</span>
-    <span class="ident">ChangeReads</span>(<span class="ident">ItemId</span>, <span class="ident">ScoreboardValue</span>),
-    <span class="doccomment">/// Changes the condition of this branch to a new condition</span>
-    <span class="doccomment">/// Vec usize contains the exact index of the condition to replace</span>
-    <span class="doccomment">/// (Vec since conditions can be nested)</span>
-    <span class="ident">SetCondition</span>(<span class="ident">Condition</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// Replaces the old node completely</span>
-    <span class="ident">Replace</span>(<span class="ident">Node</span>),
-    <span class="doccomment">/// Inserts this node after</span>
-    <span class="ident">InsertAfter</span>(<span class="ident">Node</span>),
-    <span class="doccomment">/// Modifies a [`Node::Execute`]</span>
-    <span class="doccomment">/// IMPORTANT: Right now the indices don&#39;t get normalized after a component is deleted</span>
-    <span class="doccomment">/// This means that this command should not get used anywhere else other than in the one branch in redundancy_optimizer</span>
-    <span class="ident">UpdateExecuteRaw</span>(<span class="ident">usize</span>, <span class="ident">ExecuteRawUpdate</span>),
+<span class="doccomment">/// Optimizing functions output commands that tell the optimizer what to do,
+/// this is done so that there are no troubles with mutability
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>OptimizeCommandKind {
+    <span class="doccomment">/// Deletes a single node
+    </span>Delete,
+    <span class="doccomment">/// Converts the [FastStoreFromResult](crate::llir_nodes::FastStoreFromResult) node into its command, discarding
+    /// the result
+    </span>DiscardResult,
+    <span class="doccomment">/// Discards the node and only keeps the branch that matches the bool.
+    /// (true =&gt; pos_branch, false =&gt; neg_branch)
+    </span>InlineBranch(bool),
+    <span class="doccomment">/// Updates the specified branch with the new node
+    </span>UpdateBranch { branch: bool, new_node: Node },
+    <span class="doccomment">/// Updates the condition of a branch
+    </span>UpdateBranchCondition(Condition),
+    <span class="doccomment">/// Inlines the function of this function call.
+    </span>InlineFunction,
+    <span class="doccomment">/// Removes all aliases to a function which only redirects to another function
+    /// The argument specifies the aliased function.
+    </span>RemoveAliasFunction(BlockId),
+    <span class="doccomment">/// Changes the variable this node writes to
+    </span>ChangeWrite(ItemId),
+    <span class="doccomment">/// Replaces all variables `.0` with `.1`
+    </span>ChangeReads(ItemId, ScoreboardValue),
+    <span class="doccomment">/// Changes the condition of this branch to a new condition
+    /// Vec usize contains the exact index of the condition to replace
+    /// (Vec since conditions can be nested)
+    </span>SetCondition(Condition, Vec&lt;usize&gt;),
+    <span class="doccomment">/// Replaces the old node completely
+    </span>Replace(Node),
+    <span class="doccomment">/// Inserts this node after
+    </span>InsertAfter(Node),
+    <span class="doccomment">/// Modifies a [`Node::Execute`]
+    /// IMPORTANT: Right now the indices don&#39;t get normalized after a component is deleted
+    /// This means that this command should not get used anywhere else other than in the one branch in redundancy_optimizer
+    </span>UpdateExecuteRaw(usize, ExecuteRawUpdate),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteRawUpdate</span> {
-    <span class="ident">Delete</span>,
-    <span class="ident">Replace</span>(<span class="ident">Node</span>),
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>ExecuteRawUpdate {
+    Delete,
+    Replace(Node),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OptimizeCommand</span> {
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">NodeId</span>,
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">OptimizeCommandKind</span>,
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>OptimizeCommand {
+    <span class="kw">pub </span>id: NodeId,
+    <span class="kw">pub </span>kind: OptimizeCommandKind,
 }
 
-<span class="kw">impl</span> <span class="ident">OptimizeCommand</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">NodeId</span>, <span class="ident">kind</span>: <span class="ident">OptimizeCommandKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">OptimizeCommand</span> { <span class="ident">id</span>, <span class="ident">kind</span> }
+<span class="kw">impl </span>OptimizeCommand {
+    <span class="kw">pub fn </span>new(id: NodeId, kind: OptimizeCommandKind) -&gt; <span class="self">Self </span>{
+        OptimizeCommand { id, kind }
     }
 
-    <span class="doccomment">/// Shifts the node id of this command one back</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::cast_sign_loss</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">amt</span>: <span class="ident">i8</span>) {
-        <span class="kw">match</span> <span class="ident">amt</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) {
-            <span class="ident">Ordering::Greater</span> =&gt; <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">+</span><span class="op">=</span> <span class="ident">amt</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">Ordering::Less</span> =&gt; <span class="self">self</span>.<span class="ident">id</span>.<span class="number">1</span> <span class="op">-</span><span class="op">=</span> <span class="ident">amt</span>.<span class="ident">unsigned_abs</span>() <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="ident">Ordering::Equal</span> =&gt; {}
+    <span class="doccomment">/// Shifts the node id of this command one back
+    </span><span class="attr">#[allow(clippy::cast_sign_loss)]
+    </span><span class="kw">pub fn </span>shift(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amt: i8) {
+        <span class="kw">match </span>amt.cmp(<span class="kw-2">&amp;</span><span class="number">0</span>) {
+            Ordering::Greater =&gt; <span class="self">self</span>.id.<span class="number">1 </span>+= amt <span class="kw">as </span>usize,
+            Ordering::Less =&gt; <span class="self">self</span>.id.<span class="number">1 </span>-= amt.unsigned_abs() <span class="kw">as </span>usize,
+            Ordering::Equal =&gt; {}
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift_back</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">shift</span>(<span class="op">-</span><span class="number">1</span>);
+    <span class="kw">pub fn </span>shift_back(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.shift(-<span class="number">1</span>);
     }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift_forward</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">shift</span>(<span class="number">1</span>);
-    }
-}
-
-<span class="doccomment">/// Just a wrapper around deque with a simple push method</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">push_back</span>(<span class="ident">value</span>);
+    <span class="kw">pub fn </span>shift_forward(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.shift(<span class="number">1</span>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
+<span class="doccomment">/// Just a wrapper around deque with a simple push method
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>OptimizeCommandDeque&lt;T&gt;(VecDeque&lt;T&gt;);
+
+<span class="kw">impl</span>&lt;T&gt; OptimizeCommandDeque&lt;T&gt; {
+    <span class="kw">pub fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) {
+        <span class="self">self</span>.<span class="number">0</span>.push_back(value);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="number">0</span>
-    }
+<span class="kw">impl</span>&lt;T&gt; Deref <span class="kw">for </span>OptimizeCommandDeque&lt;T&gt; {
+    <span class="kw">type </span>Target = VecDeque&lt;T&gt;;
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">OptimizeCommandDeque</span>(<span class="ident">VecDeque::default</span>())
+<span class="kw">impl</span>&lt;T&gt; DerefMut <span class="kw">for </span>OptimizeCommandDeque&lt;T&gt; {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>OptimizeCommandDeque&lt;T&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        OptimizeCommandDeque(VecDeque::default())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

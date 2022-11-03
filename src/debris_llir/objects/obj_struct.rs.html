@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_struct.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_struct.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_struct.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_struct.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -124,126 +118,125 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">hash::BuildHasherDefault</span>, <span class="ident">rc::Rc</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
-<span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
-<span class="kw">use</span> <span class="ident">indexmap::IndexMap</span>;
-<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
-<span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHasher</span>;
+<span class="kw">use </span>debris_common::Ident;
+<span class="kw">use </span>indexmap::IndexMap;
+<span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>once_cell::unsync::OnceCell;
+<span class="kw">use </span>rustc_hash::FxHasher;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
-    <span class="ident">impl_class</span>,
-    <span class="ident">memory::MemoryLayout</span>,
-    <span class="ident">type_context::TypeContext</span>,
-    <span class="ident">ObjectPayload</span>, <span class="ident">ObjectProperties</span>, <span class="ident">Type</span>,
+<span class="kw">use crate</span>::{
+    class::{Class, ClassKind, ClassRef},
+    impl_class,
+    memory::MemoryLayout,
+    type_context::TypeContext,
+    ObjectPayload, ObjectProperties, Type,
 };
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">StructRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Struct</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>StructRef = Rc&lt;Struct&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Struct</span> {
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
-    <span class="doccomment">/// The fields are stored in an indexmap so that the user defined</span>
-    <span class="doccomment">/// order is preserved. Uses the fast [FxHasher]</span>
-    <span class="kw">pub</span> <span class="ident">fields</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">ClassRef</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FxHasher</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Namespace is in a once cell, because the struct must be created before</span>
-    <span class="doccomment">/// its members can be added</span>
-    <span class="kw">pub</span> <span class="ident">namespace</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">ObjectProperties</span><span class="op">&gt;</span>,
+<span class="attr">#[derive(PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Struct {
+    <span class="kw">pub </span>ident: Ident,
+    <span class="doccomment">/// The fields are stored in an indexmap so that the user defined
+    /// order is preserved. Uses the fast [FxHasher]
+    </span><span class="kw">pub </span>fields: IndexMap&lt;Ident, ClassRef, BuildHasherDefault&lt;FxHasher&gt;&gt;,
+    <span class="doccomment">/// Namespace is in a once cell, because the struct must be created before
+    /// its members can be added
+    </span><span class="kw">pub </span>namespace: OnceCell&lt;ObjectProperties&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Struct</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diverges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">diverges</span>())
+<span class="kw">impl </span>Struct {
+    <span class="kw">pub fn </span>diverges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fields.values().any(|value| value.diverges())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">values</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> {
-            <span class="ident">value</span>
-                .<span class="ident">kind</span>
-                .<span class="ident">as_value</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Field classes of a struct can never be values&quot;</span>)
-                .<span class="ident">runtime_encodable</span>()
+    <span class="kw">pub fn </span>runtime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fields.values().all(|value| {
+            value
+                .kind
+                .as_value()
+                .expect(<span class="string">&quot;Field classes of a struct can never be values&quot;</span>)
+                .runtime_encodable()
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">fields</span>
-            .<span class="ident">values</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">kind</span>.<span class="ident">comptime_encodable</span>())
+    <span class="kw">pub fn </span>comptime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.fields
+            .values()
+            .any(|value| value.kind.comptime_encodable())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Struct</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Struct&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;ident&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ident</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;fields&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fields</span>)
-            .<span class="ident">field</span>(
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Struct {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Struct&quot;</span>)
+            .field(<span class="string">&quot;ident&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ident)
+            .field(<span class="string">&quot;fields&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.fields)
+            .field(
                 <span class="string">&quot;namespace&quot;</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>
-                    .<span class="ident">namespace</span>
-                    .<span class="ident">get</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">namespace</span><span class="op">|</span> <span class="ident">namespace</span>.<span class="ident">keys</span>().<span class="ident">collect_vec</span>()),
+                <span class="kw-2">&amp;</span><span class="self">self
+                    </span>.namespace
+                    .get()
+                    .map(|namespace| namespace.keys().collect_vec()),
             )
-            .<span class="ident">finish</span>()
+            .finish()
     }
 }
 
-<span class="doccomment">/// Stores a user defined struct</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjStruct</span> {
-    <span class="kw">pub</span> <span class="ident">struct_ref</span>: <span class="ident">StructRef</span>,
+<span class="doccomment">/// Stores a user defined struct
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>ObjStruct {
+    <span class="kw">pub </span>struct_ref: StructRef,
 }
 
-<span class="macro">impl_class!</span> {<span class="ident">ObjStruct</span>, <span class="ident">Type::Struct</span>, {}}
+<span class="macro">impl_class! </span>{ObjStruct, Type::Struct, {}}
 
-<span class="kw">impl</span> <span class="ident">ObjStruct</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">strukt</span>: <span class="ident">StructRef</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ObjStruct</span> { <span class="ident">struct_ref</span>: <span class="ident">strukt</span> }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjStruct</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
-        <span class="kw-2">&amp;</span><span class="ident">MemoryLayout::Unsized</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">create_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ClassRef</span> {
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">ClassKind::Struct</span>(<span class="self">self</span>.<span class="ident">struct_ref</span>.<span class="ident">clone</span>());
-        <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">Class::new_empty</span>(<span class="ident">kind</span>);
-        <span class="ident">ClassRef::new</span>(<span class="ident">class</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">namespace</span>
-            .<span class="ident">get</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Evaluated struct property during struct initialization&quot;</span>)
-            .<span class="ident">get</span>(<span class="ident">ident</span>)
-            .<span class="ident">cloned</span>()
+<span class="kw">impl </span>ObjStruct {
+    <span class="kw">pub fn </span>new(strukt: StructRef) -&gt; <span class="self">Self </span>{
+        ObjStruct { struct_ref: strukt }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">ObjStruct</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">StructRef</span>;
+<span class="kw">impl </span>ObjectPayload <span class="kw">for </span>ObjStruct {
+    <span class="kw">fn </span>memory_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MemoryLayout {
+        <span class="kw-2">&amp;</span>MemoryLayout::Unsized
+    }
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">struct_ref</span>
+    <span class="kw">fn </span>create_class(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>TypeContext) -&gt; ClassRef {
+        <span class="kw">let </span>kind = ClassKind::Struct(<span class="self">self</span>.struct_ref.clone());
+        <span class="kw">let </span>class = Class::new_empty(kind);
+        ClassRef::new(class)
+    }
+
+    <span class="kw">fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>TypeContext, ident: <span class="kw-2">&amp;</span>Ident) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::ObjectRef&gt; {
+        <span class="self">self</span>.namespace
+            .get()
+            .expect(<span class="string">&quot;Evaluated struct property during struct initialization&quot;</span>)
+            .get(ident)
+            .cloned()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Struct</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;struct {}&gt;&quot;</span>, <span class="self">self</span>.<span class="ident">ident</span>)
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>ObjStruct {
+    <span class="kw">type </span>Target = StructRef;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.struct_ref
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjStruct</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">fmt::Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">struct_ref</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Struct {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;&lt;struct {}&gt;&quot;</span>, <span class="self">self</span>.ident)
+    }
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ObjStruct {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        fmt::Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.struct_ref, f)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

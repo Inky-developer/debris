@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/error/src/lang_error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lang_error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_error/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/error/src/lang_error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lang_error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_error/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -656,660 +650,657 @@
 <span id="650">650</span>
 <span id="651">651</span>
 <span id="652">652</span>
-<span id="653">653</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::panic::Location</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">borrow::Cow</span>, <span class="ident">cmp::Ordering</span>};
+</pre><pre class="rust"><code><span class="attr">#[cfg(debug_assertions)]
+</span><span class="kw">use </span>std::{backtrace::Backtrace, borrow::Cow, cmp::Ordering};
 
-<span class="kw">use</span> <span class="ident">annotate_snippets::snippet::AnnotationType</span>;
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompileContext</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
-<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
+<span class="kw">use </span>annotate_snippets::snippet::AnnotationType;
+<span class="kw">use </span>debris_common::{CompileContext, Ident, Span, SpecialIdent};
+<span class="kw">use </span>itertools::Itertools;
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">snippet::AnnotationOwned</span>,
-    <span class="ident">utils</span>::{<span class="ident">display_expected_of_all</span>, <span class="ident">display_expected_of_any</span>},
-    <span class="ident">AsAnnotationSnippet</span>, <span class="ident">SliceOwned</span>, <span class="ident">SnippetOwned</span>, <span class="ident">SourceAnnotationOwned</span>,
+<span class="kw">use super</span>::{
+    snippet::AnnotationOwned,
+    utils::{display_expected_of_all, display_expected_of_any},
+    AsAnnotationSnippet, SliceOwned, SnippetOwned, SourceAnnotationOwned,
 };
 
-<span class="doccomment">/// A generic error which gets thrown when compiling</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Contains a more specific [`LangErrorKind`]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LangError</span> {
-    <span class="doccomment">/// The specific error</span>
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">LangErrorKind</span>,
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="doccomment">/// In debug mode stores the caller to provide additional</span>
-    <span class="doccomment">/// debugging help</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="ident">caller</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Location</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A generic error which gets thrown when compiling
+///
+/// Contains a more specific [`LangErrorKind`]
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>LangError {
+    <span class="doccomment">/// The specific error
+    </span><span class="kw">pub </span>kind: LangErrorKind,
+    <span class="kw">pub </span>span: Span,
+    <span class="doccomment">/// In debug mode stores the backtrace to provide additional
+    /// debugging help
+    </span><span class="attr">#[cfg(debug_assertions)]
+    </span>backtrace: Backtrace,
 }
 
-<span class="kw">impl</span> <span class="ident">LangError</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">LangError</span> { <span class="ident">kind</span>, <span class="ident">span</span> }
+<span class="kw">impl </span>LangError {
+    <span class="attr">#[cfg(not(debug_assertions))]
+    </span><span class="kw">pub fn </span>new(kind: LangErrorKind, span: Span) -&gt; <span class="self">Self </span>{
+        LangError { kind, span }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">kind</span>: <span class="ident">LangErrorKind</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">LangError</span> {
-            <span class="ident">kind</span>,
-            <span class="ident">span</span>,
-            <span class="ident">caller</span>: <span class="ident">Location::caller</span>(),
+    <span class="attr">#[cfg(debug_assertions)]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>new(kind: LangErrorKind, span: Span) -&gt; <span class="self">Self </span>{
+        LangError {
+            kind,
+            span,
+            backtrace: Backtrace::force_capture(),
         }
     }
 }
 
-<span class="doccomment">/// Specifies a specific error reason</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LangErrorKind</span> {
-    <span class="ident">UnexpectedProperty</span> {
-        <span class="ident">property</span>: <span class="ident">String</span>,
-        <span class="ident">value_class</span>: <span class="ident">String</span>,
+<span class="doccomment">/// Specifies a specific error reason
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone)]
+</span><span class="kw">pub enum </span>LangErrorKind {
+    UnexpectedProperty {
+        property: String,
+        value_class: String,
     },
-    <span class="ident">TupleMismatch</span> {
-        <span class="ident">lhs_count</span>: <span class="ident">usize</span>,
-        <span class="ident">rhs_count</span>: <span class="ident">usize</span>,
+    TupleMismatch {
+        lhs_count: usize,
+        rhs_count: usize,
     },
-    <span class="ident">IndexOutOfBounds</span> {
-        <span class="ident">index</span>: <span class="ident">i32</span>,
-        <span class="ident">max</span>: <span class="ident">i64</span>,
+    IndexOutOfBounds {
+        index: i32,
+        max: i64,
     },
-    <span class="ident">ImmutableProperty</span>,
-    <span class="ident">UnexpectedType</span> {
-        <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">got</span>: <span class="ident">String</span>,
-        <span class="ident">declared</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+    ImmutableProperty,
+    UnexpectedType {
+        expected: Vec&lt;String&gt;,
+        got: String,
+        declared: <span class="prelude-ty">Option</span>&lt;Span&gt;,
     },
-    <span class="ident">UnexpectedStructInitializer</span> {
-        <span class="ident">ident</span>: <span class="ident">Ident</span>,
-        <span class="ident">strukt</span>: <span class="ident">Ident</span>,
-        <span class="ident">available</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+    UnexpectedStructInitializer {
+        ident: Ident,
+        strukt: Ident,
+        available: Vec&lt;Ident&gt;,
     },
-    <span class="ident">MissingStructInitializer</span> {
-        <span class="ident">strukt</span>: <span class="ident">Ident</span>,
-        <span class="ident">missing</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+    MissingStructInitializer {
+        strukt: Ident,
+        missing: Vec&lt;Ident&gt;,
     },
-    <span class="ident">UnexpectedOverload</span> {
-        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">function_definition_span</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+    UnexpectedOverload {
+        parameters: Vec&lt;String&gt;,
+        expected: Vec&lt;Vec&lt;String&gt;&gt;,
+        function_definition_span: <span class="prelude-ty">Option</span>&lt;Span&gt;,
     },
-    <span class="ident">MissingVariable</span> {
-        <span class="ident">var_name</span>: <span class="ident">Ident</span>,
-        <span class="ident">similar</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-        <span class="ident">notes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    MissingVariable {
+        var_name: Ident,
+        similar: Vec&lt;String&gt;,
+        notes: Vec&lt;String&gt;,
     },
-    <span class="ident">NonComptimeVariable</span> {
-        <span class="ident">var_name</span>: <span class="ident">String</span>,
-        <span class="ident">class</span>: <span class="ident">String</span>,
+    NonComptimeVariable {
+        var_name: String,
+        class: String,
     },
-    <span class="ident">UnexpectedOperator</span> {
-        <span class="ident">operator</span>: <span class="ident">SpecialIdent</span>,
-        <span class="ident">lhs</span>: <span class="ident">String</span>,
-        <span class="ident">rhs</span>: <span class="ident">String</span>,
+    UnexpectedOperator {
+        operator: SpecialIdent,
+        lhs: String,
+        rhs: String,
     },
-    <span class="ident">MissingModule</span> {
-        <span class="ident">path</span>: <span class="ident">String</span>,
-        <span class="ident">error</span>: <span class="ident">std::io::ErrorKind</span>,
+    MissingModule {
+        path: String,
+        error: std::io::ErrorKind,
     },
-    <span class="ident">CircularImport</span> {
-        <span class="ident">module</span>: <span class="ident">String</span>,
+    CircularImport {
+        module: String,
     },
-    <span class="ident">InvalidControlFlow</span> {
-        <span class="ident">control_flow</span>: <span class="ident">String</span>,
-        <span class="ident">requires</span>: <span class="ident">ControlFlowRequires</span>,
+    InvalidControlFlow {
+        control_flow: String,
+        requires: ControlFlowRequires,
     },
-    <span class="ident">UnreachableCode</span>,
-    <span class="ident">NotYetImplemented</span> {
-        <span class="ident">msg</span>: <span class="ident">String</span>,
+    UnreachableCode,
+    NotYetImplemented {
+        msg: String,
     },
-    <span class="ident">ComptimeUpdate</span>,
-    <span class="ident">ComptimeCall</span>,
-    <span class="ident">InvalidComptimeBranch</span>,
-    <span class="ident">ContinueWithValue</span>,
-    <span class="ident">InvalidExternItemPath</span> {
-        <span class="ident">path</span>: <span class="ident">String</span>,
-        <span class="ident">error</span>: <span class="ident">String</span>,
+    ComptimeUpdate,
+    ComptimeCall,
+    InvalidComptimeBranch,
+    ContinueWithValue,
+    InvalidExternItemPath {
+        path: String,
+        error: String,
     },
-    <span class="ident">FunctionAlreadyExported</span>,
+    FunctionAlreadyExported,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ControlFlowRequires</span> {
-    <span class="ident">Function</span>,
-    <span class="ident">Loop</span>,
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+</span><span class="kw">pub enum </span>ControlFlowRequires {
+    Function,
+    Loop,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsAnnotationSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LangError</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">as_annotation_snippet</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">SnippetOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">LangErrorSnippet</span> { <span class="ident">slices</span>, <span class="kw-2">mut</span> <span class="ident">footer</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">get_snippet</span>(<span class="self">self</span>.<span class="ident">span</span>, <span class="ident">ctx</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AsAnnotationSnippet&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw">for </span>LangError {
+    <span class="attr">#[allow(unused_mut)]
+    </span><span class="kw">fn </span>as_annotation_snippet(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CompileContext) -&gt; SnippetOwned&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>LangErrorSnippet { slices, <span class="kw-2">mut </span>footer } = <span class="self">self</span>.kind.get_snippet(<span class="self">self</span>.span, ctx);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="ident">footer</span>.<span class="ident">push</span>(<span class="ident">AnnotationOwned</span> {
-            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Info</span>,
-            <span class="ident">id</span>: <span class="prelude-val">None</span>,
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Owned</span>(<span class="macro">format!</span>(<span class="string">&quot;Error thrown at {}&quot;</span>, <span class="self">self</span>.<span class="ident">caller</span>))),
+        <span class="attr">#[cfg(debug_assertions)]
+        </span>footer.push(AnnotationOwned {
+            annotation_type: AnnotationType::Info,
+            id: <span class="prelude-val">None</span>,
+            label: <span class="prelude-val">Some</span>(Cow::Owned(<span class="macro">format!</span>(<span class="string">&quot;Backtrace:\n{}&quot;</span>, <span class="self">self</span>.backtrace))),
         });
 
-        <span class="ident">SnippetOwned</span> {
-            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-            <span class="ident">id</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;Lang&quot;</span>.<span class="ident">into</span>()),
-            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
-            <span class="ident">slices</span>,
-            <span class="ident">footer</span>,
+        SnippetOwned {
+            annotation_type: AnnotationType::Error,
+            id: <span class="prelude-val">Some</span>(<span class="string">&quot;Lang&quot;</span>.into()),
+            title: <span class="self">self</span>.kind.to_string().into(),
+            slices,
+            footer,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">LangErrorKind</span> {}
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>LangErrorKind {}
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">LangErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LangErrorKind::UnexpectedProperty</span> {
-                <span class="ident">property</span>,
-                <span class="ident">value_class</span>: <span class="kw">_</span>,
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>LangErrorKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            LangErrorKind::UnexpectedProperty {
+                property,
+                value_class: <span class="kw">_</span>,
             } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;&#39;{property}&#39; does not exist on this value&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">&quot;&#39;{property}&#39; does not exist on this value&quot;</span>)
             }
-            <span class="ident">LangErrorKind::TupleMismatch</span> {
-                <span class="ident">lhs_count</span>,
-                <span class="ident">rhs_count</span>,
+            LangErrorKind::TupleMismatch {
+                lhs_count,
+                rhs_count,
             } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
-                <span class="string">&quot;Expected a tuple with {lhs_count} elements, but got {rhs_count}&quot;</span>
-            ),
-            <span class="ident">LangErrorKind::IndexOutOfBounds</span> { <span class="ident">index</span>, <span class="ident">max</span> } =&gt; {
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">index</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Index {index} is out of bounds (max: {max})&quot;</span>)
-                } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Index must be greater than 0 (got: {index})&quot;</span>)
+                f,
+                <span class="string">&quot;Expected a tuple with {lhs_count} elements, but got {rhs_count}&quot;
+            </span>),
+            LangErrorKind::IndexOutOfBounds { index, max } =&gt; {
+                <span class="kw">if </span><span class="kw-2">*</span>index &gt; <span class="number">0 </span>{
+                    <span class="macro">write!</span>(f, <span class="string">&quot;Index {index} is out of bounds (max: {max})&quot;</span>)
+                } <span class="kw">else </span>{
+                    <span class="macro">write!</span>(f, <span class="string">&quot;Index must be greater than 0 (got: {index})&quot;</span>)
                 }
             }
-            <span class="ident">LangErrorKind::ImmutableProperty</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot change immutable value&quot;</span>),
-            <span class="ident">LangErrorKind::UnexpectedType</span> {
-                <span class="ident">expected</span>: <span class="kw">_</span>,
-                <span class="ident">got</span>,
-                <span class="ident">declared</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Received unexpected type {got}&quot;</span>),
-            <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> {
-                <span class="ident">ident</span>,
-                <span class="ident">strukt</span>,
-                <span class="ident">available</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Unexpected member {ident} of {strukt}&quot;</span>),
-            <span class="ident">LangErrorKind::MissingStructInitializer</span> {
-                <span class="ident">strukt</span>: <span class="kw">_</span>,
-                <span class="ident">missing</span>: <span class="kw">_</span>,
+            LangErrorKind::ImmutableProperty =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Cannot change immutable value&quot;</span>),
+            LangErrorKind::UnexpectedType {
+                expected: <span class="kw">_</span>,
+                got,
+                declared: <span class="kw">_</span>,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Received unexpected type {got}&quot;</span>),
+            LangErrorKind::UnexpectedStructInitializer {
+                ident,
+                strukt,
+                available: <span class="kw">_</span>,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Unexpected member {ident} of {strukt}&quot;</span>),
+            LangErrorKind::MissingStructInitializer {
+                strukt: <span class="kw">_</span>,
+                missing: <span class="kw">_</span>,
             } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Incomplete struct instantiation&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">&quot;Incomplete struct instantiation&quot;</span>)
             }
-            <span class="ident">LangErrorKind::UnexpectedOverload</span> {
-                <span class="ident">parameters</span>,
-                <span class="ident">expected</span>: <span class="kw">_</span>,
-                <span class="ident">function_definition_span</span>: <span class="kw">_</span>,
+            LangErrorKind::UnexpectedOverload {
+                parameters,
+                expected: <span class="kw">_</span>,
+                function_definition_span: <span class="kw">_</span>,
             } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+                f,
                 <span class="string">&quot;No overload was found for parameters ({})&quot;</span>,
-                <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+                parameters.iter().join(<span class="string">&quot;, &quot;</span>)
             ),
-            <span class="ident">LangErrorKind::MissingVariable</span> {
-                <span class="ident">var_name</span>,
-                <span class="ident">similar</span>: <span class="kw">_</span>,
-                <span class="ident">notes</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Variable &#39;{var_name}&#39; does not exist&quot;</span>),
-            <span class="ident">LangErrorKind::NonComptimeVariable</span> { <span class="ident">var_name</span>, <span class="ident">class</span>: <span class="kw">_</span> } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
-                <span class="string">&quot;Cannot assign non-comptime value to const variable &#39;{var_name}&#39;&quot;</span>
-            ),
-            <span class="ident">LangErrorKind::UnexpectedOperator</span> { <span class="ident">operator</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span> } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
-                <span class="string">&quot;Operator {operator} is not defined between type {lhs} and {rhs}&quot;</span>
-            ),
-            <span class="ident">LangErrorKind::MissingModule</span> { <span class="ident">path</span>, <span class="ident">error</span>: <span class="kw">_</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot find module at {path}&quot;</span>)
+            LangErrorKind::MissingVariable {
+                var_name,
+                similar: <span class="kw">_</span>,
+                notes: <span class="kw">_</span>,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Variable &#39;{var_name}&#39; does not exist&quot;</span>),
+            LangErrorKind::NonComptimeVariable { var_name, class: <span class="kw">_ </span>} =&gt; <span class="macro">write!</span>(
+                f,
+                <span class="string">&quot;Cannot assign non-comptime value to const variable &#39;{var_name}&#39;&quot;
+            </span>),
+            LangErrorKind::UnexpectedOperator { operator, lhs, rhs } =&gt; <span class="macro">write!</span>(
+                f,
+                <span class="string">&quot;Operator {operator} is not defined between type {lhs} and {rhs}&quot;
+            </span>),
+            LangErrorKind::MissingModule { path, error: <span class="kw">_ </span>} =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Cannot find module at {path}&quot;</span>)
             }
-            <span class="ident">LangErrorKind::CircularImport</span> { <span class="ident">module</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot import &#39;{module}&#39; multiple times&quot;</span>)
+            LangErrorKind::CircularImport { module } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Cannot import &#39;{module}&#39; multiple times&quot;</span>)
             }
-            <span class="ident">LangErrorKind::InvalidControlFlow</span> {
-                <span class="ident">control_flow</span>,
-                <span class="ident">requires</span>: <span class="kw">_</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid control flow statement: {control_flow}&quot;</span>),
-            <span class="ident">LangErrorKind::UnreachableCode</span> {} =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This code will never be executed&quot;</span>),
-            <span class="ident">LangErrorKind::NotYetImplemented</span> { <span class="ident">msg</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This feature is not yet implemented: {msg}&quot;</span>)
+            LangErrorKind::InvalidControlFlow {
+                control_flow,
+                requires: <span class="kw">_</span>,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Invalid control flow statement: {control_flow}&quot;</span>),
+            LangErrorKind::UnreachableCode {} =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;This code will never be executed&quot;</span>),
+            LangErrorKind::NotYetImplemented { msg } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;This feature is not yet implemented: {msg}&quot;</span>)
             }
-            <span class="ident">LangErrorKind::ComptimeUpdate</span> =&gt; {
+            LangErrorKind::ComptimeUpdate =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">f</span>,
-                    <span class="string">&quot;Cannot update this variable at runtime, only at compile time&quot;</span>
-                )
+                    f,
+                    <span class="string">&quot;Cannot update this variable at runtime, only at compile time&quot;
+                </span>)
             }
-            <span class="ident">LangErrorKind::ComptimeCall</span> =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
-                <span class="string">&quot;Cannot call comptime function in a a non-comptime context&quot;</span>
-            ),
-            <span class="ident">LangErrorKind::InvalidComptimeBranch</span> =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot evaluate this condition at compile time&quot;</span>)
+            LangErrorKind::ComptimeCall =&gt; <span class="macro">write!</span>(
+                f,
+                <span class="string">&quot;Cannot call comptime function in a a non-comptime context&quot;
+            </span>),
+            LangErrorKind::InvalidComptimeBranch =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Cannot evaluate this condition at compile time&quot;</span>)
             }
-            <span class="ident">LangErrorKind::ContinueWithValue</span> =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Cannot continue with a value&quot;</span>)
+            LangErrorKind::ContinueWithValue =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Cannot continue with a value&quot;</span>)
             }
-            <span class="ident">LangErrorKind::InvalidExternItemPath</span> { .. } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Invalid extern item path&quot;</span>)
+            LangErrorKind::InvalidExternItemPath { .. } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Invalid extern item path&quot;</span>)
             }
-            <span class="ident">LangErrorKind::FunctionAlreadyExported</span> =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;This function is already exported&quot;</span>)
+            LangErrorKind::FunctionAlreadyExported =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;This function is already exported&quot;</span>)
             }
         }
     }
 }
 
-<span class="kw">struct</span> <span class="ident">LangErrorSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">slices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SliceOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">footer</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AnnotationOwned</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>LangErrorSnippet&lt;<span class="lifetime">&#39;a</span>&gt; {
+    slices: Vec&lt;SliceOwned&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    footer: Vec&lt;AnnotationOwned&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">LangErrorKind</span> {
-    <span class="kw">fn</span> <span class="ident">get_snippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompileContext</span>) -&gt; <span class="ident">LangErrorSnippet</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_span_code</span>(<span class="ident">span</span>);
-        <span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">path</span>.<span class="ident">as_deref</span>();
-        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_code</span>().<span class="ident">source</span>.<span class="ident">as_ref</span>();
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_relative_span</span>(<span class="ident">span</span>).<span class="ident">unwrap</span>();
+<span class="kw">impl </span>LangErrorKind {
+    <span class="kw">fn </span>get_snippet&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span, ctx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CompileContext) -&gt; LangErrorSnippet&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>code = ctx.input_files.get_span_code(span);
+        <span class="kw">let </span>origin = code.get_code().path.as_deref();
+        <span class="kw">let </span>source = code.get_code().source.as_ref();
+        <span class="kw">let </span>range = code.get_relative_span(span).unwrap();
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LangErrorKind::UnexpectedProperty</span> { <span class="ident">value_class</span>, <span class="ident">property</span> } =&gt; {
-                <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">origin</span>,
-                        <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;{} has no property &#39;{}&#39;&quot;</span>, <span class="ident">value_class</span>, <span class="ident">property</span>),
-                            <span class="ident">range</span>,
+        <span class="kw">match </span><span class="self">self </span>{
+            LangErrorKind::UnexpectedProperty { value_class, property } =&gt; {
+                LangErrorSnippet {
+                    slices: <span class="macro">vec!</span>[SliceOwned {
+                        origin,
+                        source,
+                        annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: <span class="macro">format!</span>(<span class="string">&quot;{} has no property &#39;{}&#39;&quot;</span>, value_class, property),
+                            range,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                    footer: <span class="macro">vec!</span>[],
                 }
             }
-            <span class="ident">LangErrorKind::TupleMismatch</span> {<span class="ident">lhs_count</span>,<span class="ident">rhs_count</span>} =&gt; {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">lhs_count</span>.<span class="ident">cmp</span>(<span class="ident">rhs_count</span>) {
-                    <span class="ident">Ordering::Greater</span> =&gt; <span class="string">&quot;Not enough values to unpack&quot;</span>,
-                    <span class="ident">Ordering::Less</span> =&gt; <span class="string">&quot;Too many values to unpack&quot;</span>,
-                    <span class="ident">Ordering::Equal</span> =&gt; <span class="macro">unreachable!</span>()
+            LangErrorKind::TupleMismatch {lhs_count,rhs_count} =&gt; {
+                <span class="kw">let </span>message = <span class="kw">match </span>lhs_count.cmp(rhs_count) {
+                    Ordering::Greater =&gt; <span class="string">&quot;Not enough values to unpack&quot;</span>,
+                    Ordering::Less =&gt; <span class="string">&quot;Too many values to unpack&quot;</span>,
+                    Ordering::Equal =&gt; <span class="macro">unreachable!</span>()
                 };
-                <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">origin</span> ,
-                        <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;{}: expected {} but got {}&quot;</span>, <span class="ident">message</span>, <span class="ident">lhs_count</span>, <span class="ident">rhs_count</span>),
-                            <span class="ident">range</span>,
+                LangErrorSnippet {
+                    slices: <span class="macro">vec!</span>[SliceOwned {
+                        origin ,
+                        source,
+                        annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: <span class="macro">format!</span>(<span class="string">&quot;{}: expected {} but got {}&quot;</span>, message, lhs_count, rhs_count),
+                            range,
                         }]
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                    footer: <span class="macro">vec!</span>[]
                 }
             }
-            <span class="ident">LangErrorKind::IndexOutOfBounds</span>{..} =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span> ,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Invalid access here&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::IndexOutOfBounds{..} =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin ,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Invalid access here&quot;</span>.into(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             },
-            <span class="ident">LangErrorKind::ImmutableProperty</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span> ,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Comptime properties are immutable&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::ImmutableProperty =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin ,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Comptime properties are immutable&quot;</span>.into(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             },
-            <span class="ident">LangErrorKind::UnexpectedType</span> { <span class="ident">expected</span>, <span class="ident">got</span>, <span class="ident">declared</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">expected_msg</span> <span class="op">=</span> <span class="ident">display_expected_of_any</span>(<span class="ident">expected</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">snippet</span> <span class="op">=</span> <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">origin</span>,
-                        <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;{}, but got {}&quot;</span>, <span class="ident">expected_msg</span>, <span class="ident">got</span>),
-                            <span class="ident">range</span>,
+            LangErrorKind::UnexpectedType { expected, got, declared } =&gt; {
+                <span class="kw">let </span>expected_msg = display_expected_of_any(expected);
+                <span class="kw">let </span><span class="kw-2">mut </span>snippet = LangErrorSnippet {
+                    slices: <span class="macro">vec!</span>[SliceOwned {
+                        origin,
+                        source,
+                        annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: <span class="macro">format!</span>(<span class="string">&quot;{}, but got {}&quot;</span>, expected_msg, got),
+                            range,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                    footer: <span class="macro">vec!</span>[],
                 };
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">declared</span>) <span class="op">=</span> <span class="ident">declared</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">declared</span>) <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_relative_span</span>(<span class="kw-2">*</span><span class="ident">declared</span>) {
-                        <span class="ident">snippet</span>.<span class="ident">slices</span>[<span class="number">0</span>].<span class="ident">annotations</span>.<span class="ident">push</span>(<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Info</span>,
-                            <span class="ident">label</span>: <span class="string">&quot;Type declared here&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">range</span>: <span class="ident">declared</span>
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(declared) = declared {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(declared) = code.get_relative_span(<span class="kw-2">*</span>declared) {
+                        snippet.slices[<span class="number">0</span>].annotations.push(SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Info,
+                            label: <span class="string">&quot;Type declared here&quot;</span>.to_string(),
+                            range: declared
                         });
                     }
                 }
 
-                <span class="ident">snippet</span>
+                snippet
             },
-            <span class="ident">LangErrorKind::UnexpectedStructInitializer</span> { <span class="ident">ident</span>, <span class="ident">strukt</span>:<span class="kw">_</span>, <span class="ident">available</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Unexpected member: {}&quot;</span>, <span class="ident">ident</span>),
-                        <span class="ident">range</span>,
+            LangErrorKind::UnexpectedStructInitializer { ident, strukt:<span class="kw">_</span>, available } =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="macro">format!</span>(<span class="string">&quot;Unexpected member: {}&quot;</span>, ident),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Help</span>,
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Owned</span>(<span class="ident">display_expected_of_any</span>(<span class="ident">available</span>)))
+                footer: <span class="macro">vec!</span>[AnnotationOwned {
+                    annotation_type: AnnotationType::Help,
+                    id: <span class="prelude-val">None</span>,
+                    label: <span class="prelude-val">Some</span>(Cow::Owned(display_expected_of_any(available)))
                 }],
             },
-            <span class="ident">LangErrorKind::MissingStructInitializer</span> { <span class="ident">missing</span>, <span class="ident">strukt</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Incomplete struct initialization of {}&quot;</span>, <span class="ident">strukt</span>),
-                        <span class="ident">range</span>,
+            LangErrorKind::MissingStructInitializer { missing, strukt } =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="macro">format!</span>(<span class="string">&quot;Incomplete struct initialization of {}&quot;</span>, strukt),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Help</span>,
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Owned</span>(<span class="ident">display_expected_of_all</span>(<span class="ident">missing</span>)))
+                footer: <span class="macro">vec!</span>[AnnotationOwned {
+                    annotation_type: AnnotationType::Help,
+                    id: <span class="prelude-val">None</span>,
+                    label: <span class="prelude-val">Some</span>(Cow::Owned(display_expected_of_all(missing)))
                 }],
             },
-            <span class="ident">LangErrorKind::UnexpectedOverload</span> { <span class="ident">parameters</span>, <span class="ident">expected</span>, <span class="ident">function_definition_span</span>} =&gt; {
-                <span class="kw">let</span> <span class="ident">parameters_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="ident">parameters</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">String::clone</span>).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>));
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">possible_overloads</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">params</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">is_empty</span>() {
-                        <span class="string">&quot;no parameters&quot;</span>.<span class="ident">to_string</span>()
-                    } <span class="kw">else</span> {
-                        <span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">String::clone</span>).<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)
+            LangErrorKind::UnexpectedOverload { parameters, expected, function_definition_span} =&gt; {
+                <span class="kw">let </span>parameters_string = <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, parameters.iter().map(String::clone).join(<span class="string">&quot;, &quot;</span>));
+                <span class="kw">let </span><span class="kw-2">mut </span>possible_overloads = expected.iter().map(|params| {
+                    <span class="kw">if </span>params.is_empty() {
+                        <span class="string">&quot;no parameters&quot;</span>.to_string()
+                    } <span class="kw">else </span>{
+                        params.iter().map(String::clone).join(<span class="string">&quot;, &quot;</span>)
                     }
                 });
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">expected</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                    <span class="macro">format!</span>(<span class="string">&quot;Called with {} but expected ({})&quot;</span>, <span class="ident">parameters_string</span>, <span class="ident">possible_overloads</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>())
-                } <span class="kw">else</span> {
-                    <span class="macro">format!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  <span class="ident">possible_overloads</span>.<span class="ident">join</span>(<span class="string">&quot;\n  * &quot;</span>))
+                <span class="kw">let </span>message = <span class="kw">if </span>expected.len() == <span class="number">1 </span>{
+                    <span class="macro">format!</span>(<span class="string">&quot;Called with {} but expected ({})&quot;</span>, parameters_string, possible_overloads.next().unwrap())
+                } <span class="kw">else </span>{
+                    <span class="macro">format!</span>(<span class="string">&quot;Expected one of:\n  * {}&quot;</span>,  possible_overloads.join(<span class="string">&quot;\n  * &quot;</span>))
                 };
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">annotations</span> <span class="op">=</span>  <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                    <span class="ident">label</span>: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">range</span>,
+                <span class="kw">let </span><span class="kw-2">mut </span>annotations =  <span class="macro">vec!</span>[SourceAnnotationOwned {
+                    annotation_type: AnnotationType::Error,
+                    label: <span class="string">&quot;No valid overload for this function call exists&quot;</span>.to_string(),
+                    range,
                 }];
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">function_definition_span</span> {
-                    <span class="kw">let</span> <span class="ident">local_span</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">get_relative_span</span>(<span class="kw-2">*</span><span class="ident">span</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>) <span class="op">=</span> <span class="ident">local_span</span> {
-                        <span class="ident">annotations</span>.<span class="ident">push</span>(<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Info</span>,
-                            <span class="ident">label</span>: <span class="string">&quot;Function defined here&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">range</span>: <span class="ident">span</span>,
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = function_definition_span {
+                    <span class="kw">let </span>local_span = code.get_relative_span(<span class="kw-2">*</span>span);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(span) = local_span {
+                        annotations.push(SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Info,
+                            label: <span class="string">&quot;Function defined here&quot;</span>.to_string(),
+                            range: span,
                         });
                     }
                 }
 
-                <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">source</span>,
-                        <span class="ident">origin</span>,
-                        <span class="ident">annotations</span>,
+                LangErrorSnippet {
+                    slices: <span class="macro">vec!</span>[SliceOwned {
+                        source,
+                        origin,
+                        annotations,
                     }],
-                    <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,
-                        <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">into</span>())
+                    footer: <span class="macro">vec!</span>[AnnotationOwned {
+                        annotation_type: AnnotationType::Note,
+                        id: <span class="prelude-val">None</span>,
+                        label: <span class="prelude-val">Some</span>(message.into())
                     }],
                 }
             }
-            <span class="ident">LangErrorKind::MissingVariable</span> { <span class="ident">similar</span>, <span class="ident">var_name</span>, <span class="ident">notes</span> } =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">notes</span> <span class="op">=</span> <span class="ident">notes</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">note</span><span class="op">|</span> <span class="ident">AnnotationOwned</span> {
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">note</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
-                }).<span class="ident">collect_vec</span>();
+            LangErrorKind::MissingVariable { similar, var_name, notes } =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>notes = notes.iter().map(|note| AnnotationOwned {
+                    id: <span class="prelude-val">None</span>,
+                    annotation_type: AnnotationType::Note,
+                    label: <span class="prelude-val">Some</span>(note.clone().into())
+                }).collect_vec();
 
-                <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">similar</span>.<span class="ident">as_slice</span>() {
+                <span class="kw">let </span>footer = <span class="kw">match </span>similar.as_slice() {
                     [] =&gt; <span class="prelude-val">None</span>,
-                    [<span class="ident">one</span>] =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean: &#39;{}&#39;?&quot;</span>, <span class="ident">one</span>).<span class="ident">into</span>()),
-                    <span class="ident">multiple</span> =&gt; {
-                        <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Similar names exist: {}&quot;</span>, <span class="ident">multiple</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>)).<span class="ident">into</span>())
+                    [one] =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Did you mean: &#39;{}&#39;?&quot;</span>, one).into()),
+                    multiple =&gt; {
+                        <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;Similar names exist: {}&quot;</span>, multiple.join(<span class="string">&quot;, &quot;</span>)).into())
                     }
                 };
 
-                <span class="ident">notes</span>.<span class="ident">push</span>(<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Help</span>,
-                    <span class="ident">label</span>: <span class="ident">footer</span>,
+                notes.push(AnnotationOwned {
+                    id: <span class="prelude-val">None</span>,
+                    annotation_type: AnnotationType::Help,
+                    label: footer,
                 });
 
-                <span class="ident">LangErrorSnippet</span> {
-                    <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                        <span class="ident">origin</span>,
-                        <span class="ident">source</span>,
-                        <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                            <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                            <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Variable {} not found in this scope&quot;</span>, <span class="ident">var_name</span>),
-                            <span class="ident">range</span>,
+                LangErrorSnippet {
+                    slices: <span class="macro">vec!</span>[SliceOwned {
+                        origin,
+                        source,
+                        annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                            annotation_type: AnnotationType::Error,
+                            label: <span class="macro">format!</span>(<span class="string">&quot;Variable {} not found in this scope&quot;</span>, var_name),
+                            range,
                         }],
                     }],
-                    <span class="ident">footer</span>: <span class="ident">notes</span>,
+                    footer: notes,
                 }
             }
-            <span class="ident">LangErrorKind::NonComptimeVariable</span> {
-                <span class="ident">class</span>, <span class="ident">var_name</span>,
-            } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;Cannot assign non-comptime value to &#39;{}&#39;&quot;</span>, <span class="ident">var_name</span>),
-                        <span class="ident">range</span>,
+            LangErrorKind::NonComptimeVariable {
+                class, var_name,
+            } =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="macro">format!</span>(<span class="string">&quot;Cannot assign non-comptime value to &#39;{}&#39;&quot;</span>, var_name),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;The value of type {} cannot be known at compile time&quot;</span>, <span class="ident">class</span>).<span class="ident">into</span>())
+                footer: <span class="macro">vec!</span>[AnnotationOwned {
+                    id: <span class="prelude-val">None</span>,
+                    annotation_type: AnnotationType::Note,
+                    label: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;The value of type {} cannot be known at compile time&quot;</span>, class).into())
                 }],
             },
-            <span class="ident">LangErrorKind::UnexpectedOperator</span> {
-                <span class="ident">lhs</span>,
-                <span class="ident">rhs</span>: <span class="kw">_</span>,
-                <span class="ident">operator</span>,
-            } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;{} does not implement operator {}&quot;</span>, <span class="ident">lhs</span>, <span class="ident">operator</span>),
-                        <span class="ident">range</span>,
+            LangErrorKind::UnexpectedOperator {
+                lhs,
+                rhs: <span class="kw">_</span>,
+                operator,
+            } =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="macro">format!</span>(<span class="string">&quot;{} does not implement operator {}&quot;</span>, lhs, operator),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                footer: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::MissingModule</span> {
-                <span class="ident">path</span>: <span class="kw">_</span>,
-                <span class="ident">error</span>,
-            } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="kw">match</span> <span class="ident">error</span> {
-                            <span class="ident">std::io::ErrorKind::NotFound</span> =&gt; <span class="string">&quot;Cannot find this module&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">std::io::ErrorKind::PermissionDenied</span> =&gt; <span class="string">&quot;Cannot access this module because the permission was denied&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">other</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, <span class="ident">other</span>)
+            LangErrorKind::MissingModule {
+                path: <span class="kw">_</span>,
+                error,
+            } =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="kw">match </span>error {
+                            std::io::ErrorKind::NotFound =&gt; <span class="string">&quot;Cannot find this module&quot;</span>.to_string(),
+                            std::io::ErrorKind::PermissionDenied =&gt; <span class="string">&quot;Cannot access this module because the permission was denied&quot;</span>.to_string(),
+                            other =&gt; <span class="macro">format!</span>(<span class="string">&quot;Error reading this module: {:?}&quot;</span>, other)
                         },
-                        <span class="ident">range</span>,
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                footer: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::CircularImport</span> {
-                <span class="ident">module</span>: <span class="kw">_</span>
-            } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Trying to import this module multiple times&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::CircularImport {
+                module: <span class="kw">_
+            </span>} =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Trying to import this module multiple times&quot;</span>.to_string(),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                footer: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::InvalidControlFlow</span> { <span class="ident">control_flow</span>, <span class="ident">requires</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">requires</span> {
-                    <span class="ident">ControlFlowRequires::Function</span> =&gt; <span class="string">&quot;only valid in a function&quot;</span>,
-                    <span class="ident">ControlFlowRequires::Loop</span> =&gt; <span class="string">&quot;only valid in a loop&quot;</span>,
+            LangErrorKind::InvalidControlFlow { control_flow, requires } =&gt; {
+                <span class="kw">let </span>message = <span class="kw">match </span>requires {
+                    ControlFlowRequires::Function =&gt; <span class="string">&quot;only valid in a function&quot;</span>,
+                    ControlFlowRequires::Loop =&gt; <span class="string">&quot;only valid in a loop&quot;</span>,
                 };
-                <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="macro">format!</span>(<span class="string">&quot;{} is {}&quot;</span>, <span class="ident">control_flow</span>, <span class="ident">message</span>),
-                        <span class="ident">range</span>,
+                LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="macro">format!</span>(<span class="string">&quot;{} is {}&quot;</span>, control_flow, message),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                footer: <span class="macro">vec!</span>[],
             }},
-            <span class="ident">LangErrorKind::UnreachableCode</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[
-                    <span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;This code cannot be reached&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::UnreachableCode =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[
+                    SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;This code cannot be reached&quot;</span>.to_string(),
+                        range,
                     }
                     ],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[],
+                footer: <span class="macro">vec!</span>[],
             },
-            <span class="ident">LangErrorKind::NotYetImplemented</span> { <span class="ident">msg</span>: <span class="kw">_</span> } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;This feature is not yet implemented!&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::NotYetImplemented { msg: <span class="kw">_ </span>} =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;This feature is not yet implemented!&quot;</span>.to_string(),
+                        range,
                     }],
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Note</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;If you think this is a bug, please submit an issue at the github repository.&quot;</span>.<span class="ident">into</span>())
+                footer: <span class="macro">vec!</span>[AnnotationOwned {
+                    id: <span class="prelude-val">None</span>,
+                    annotation_type: AnnotationType::Note,
+                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;If you think this is a bug, please submit an issue at the github repository.&quot;</span>.into())
                 }],
             },
-            <span class="ident">LangErrorKind::ComptimeUpdate</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Cannot perform runtime updates for this value&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::ComptimeUpdate =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Cannot perform runtime updates for this value&quot;</span>.to_string(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             },
-            <span class="ident">LangErrorKind::ComptimeCall</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Cannot perform comptime calls in this context&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::ComptimeCall =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Cannot perform comptime calls in this context&quot;</span>.to_string(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             },
-            <span class="ident">LangErrorKind::InvalidComptimeBranch</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Cannot know the value of this condition at compile time&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::InvalidComptimeBranch =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Cannot know the value of this condition at compile time&quot;</span>.to_string(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[<span class="ident">AnnotationOwned</span> {
-                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Help</span>,
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;Try removing the comptime keyword&quot;</span>.<span class="ident">into</span>())
+                footer: <span class="macro">vec!</span>[AnnotationOwned {
+                    id: <span class="prelude-val">None</span>,
+                    annotation_type: AnnotationType::Help,
+                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;Try removing the comptime keyword&quot;</span>.into())
                 }]
             },
-            <span class="ident">LangErrorKind::ContinueWithValue</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::ContinueWithValue =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: String::new(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             },
-            <span class="ident">LangErrorKind::InvalidExternItemPath</span>{ <span class="ident">error</span>, .. } =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="ident">error</span>.<span class="ident">into</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::InvalidExternItemPath{ error, .. } =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: error.into(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             },
-            <span class="ident">LangErrorKind::FunctionAlreadyExported</span> =&gt; <span class="ident">LangErrorSnippet</span> {
-                <span class="ident">slices</span>: <span class="macro">vec!</span>[<span class="ident">SliceOwned</span> {
-                    <span class="ident">origin</span>,
-                    <span class="ident">source</span>,
-                    <span class="ident">annotations</span>: <span class="macro">vec!</span>[<span class="ident">SourceAnnotationOwned</span> {
-                        <span class="ident">annotation_type</span>: <span class="ident">AnnotationType::Error</span>,
-                        <span class="ident">label</span>: <span class="string">&quot;Cannot export a function multiple times&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">range</span>,
+            LangErrorKind::FunctionAlreadyExported =&gt; LangErrorSnippet {
+                slices: <span class="macro">vec!</span>[SliceOwned {
+                    origin,
+                    source,
+                    annotations: <span class="macro">vec!</span>[SourceAnnotationOwned {
+                        annotation_type: AnnotationType::Error,
+                        label: <span class="string">&quot;Cannot export a function multiple times&quot;</span>.into(),
+                        range,
                     }]
                 }],
-                <span class="ident">footer</span>: <span class="macro">vec!</span>[]
+                footer: <span class="macro">vec!</span>[]
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

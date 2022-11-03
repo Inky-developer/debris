@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/memory.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>memory.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/memory.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>memory.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -128,56 +122,56 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::iter::zip</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::iter::zip;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">item_id::ItemId</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">FastStore</span>, <span class="ident">Node</span>},
-    <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardValue</span>},
-    <span class="ident">ObjectRef</span>,
+<span class="kw">use crate</span>::{
+    item_id::ItemId,
+    llir_nodes::{FastStore, Node},
+    minecraft_utils::{Scoreboard, ScoreboardValue},
+    ObjectRef,
 };
 
-<span class="doccomment">/// Copies a scoreboard value from source to destination</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">copy</span>(<span class="ident">dest</span>: <span class="ident">ItemId</span>, <span class="ident">source</span>: <span class="ident">ItemId</span>) -&gt; <span class="ident">Node</span> {
-    <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-        <span class="ident">id</span>: <span class="ident">dest</span>,
-        <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-        <span class="ident">value</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">source</span>),
+<span class="doccomment">/// Copies a scoreboard value from source to destination
+</span><span class="attr">#[must_use]
+</span><span class="kw">pub fn </span>copy(dest: ItemId, source: ItemId) -&gt; Node {
+    Node::FastStore(FastStore {
+        id: dest,
+        scoreboard: Scoreboard::Main,
+        value: ScoreboardValue::Scoreboard(Scoreboard::Main, source),
     })
 }
 
-<span class="doccomment">/// Copies all items from source over to destination</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mem_copy</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">add_node</span>: <span class="ident">F</span>, <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span>)
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">Node</span>),
+<span class="doccomment">/// Copies all items from source over to destination
+</span><span class="kw">pub fn </span>mem_copy&lt;F&gt;(<span class="kw-2">mut </span>add_node: F, dest: <span class="kw-2">&amp;</span>ObjectRef, source: <span class="kw-2">&amp;</span>ObjectRef)
+<span class="kw">where
+    </span>F: FnMut(Node),
 {
-    <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">class</span>.<span class="ident">diverges</span>() {
+    <span class="kw">if </span>source.class.diverges() {
         <span class="kw">return</span>;
     }
 
-    <span class="kw">let</span> <span class="ident">dest_layout</span> <span class="op">=</span> <span class="ident">dest</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>();
-    <span class="kw">let</span> <span class="ident">source_layout</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>();
+    <span class="kw">let </span>dest_layout = dest.payload.memory_layout();
+    <span class="kw">let </span>source_layout = source.payload.memory_layout();
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">dest_layout</span>.<span class="ident">mem_size</span>(),
-        <span class="ident">source_layout</span>.<span class="ident">mem_size</span>(),
-        <span class="string">&quot;Layout mismatch&quot;</span>
-    );
+        dest_layout.mem_size(),
+        source_layout.mem_size(),
+        <span class="string">&quot;Layout mismatch&quot;
+    </span>);
 
-    <span class="kw">match</span> (<span class="ident">dest_layout</span>, <span class="ident">source_layout</span>) {
-        (<span class="ident">MemoryLayout::Unsized</span>, <span class="ident">MemoryLayout::Unsized</span>) =&gt; (),
-        (<span class="ident">MemoryLayout::One</span>(<span class="ident">dest</span>), <span class="ident">MemoryLayout::One</span>(<span class="ident">source</span>)) =&gt; {
-            <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">source</span> {
-                <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>));
+    <span class="kw">match </span>(dest_layout, source_layout) {
+        (MemoryLayout::Unsized, MemoryLayout::Unsized) =&gt; (),
+        (MemoryLayout::One(dest), MemoryLayout::One(source)) =&gt; {
+            <span class="kw">if </span>dest != source {
+                add_node(copy(<span class="kw-2">*</span>dest, <span class="kw-2">*</span>source));
             }
         }
-        (<span class="ident">MemoryLayout::Multiple</span>(<span class="ident">dest_vec</span>), <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">source_vec</span>))
-            <span class="kw">if</span> <span class="ident">dest_vec</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">source_vec</span>.<span class="ident">len</span>() =&gt;
+        (MemoryLayout::Multiple(dest_vec), MemoryLayout::Multiple(source_vec))
+            <span class="kw">if </span>dest_vec.len() == source_vec.len() =&gt;
         {
-            <span class="kw">for</span> (<span class="ident">dest</span>, <span class="ident">source</span>) <span class="kw">in</span> <span class="ident">zip</span>(<span class="ident">dest_vec</span>, <span class="ident">source_vec</span>) {
-                <span class="kw">if</span> <span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">source</span> {
-                    <span class="ident">add_node</span>(<span class="ident">copy</span>(<span class="kw-2">*</span><span class="ident">dest</span>, <span class="kw-2">*</span><span class="ident">source</span>));
+            <span class="kw">for </span>(dest, source) <span class="kw">in </span>zip(dest_vec, source_vec) {
+                <span class="kw">if </span>dest != source {
+                    add_node(copy(<span class="kw-2">*</span>dest, <span class="kw-2">*</span>source));
                 }
             }
         }
@@ -185,67 +179,67 @@
     }
 }
 
-<span class="doccomment">/// Specifies how a specific object lays out its runtime memory</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MemoryLayout</span> {
-    <span class="doccomment">/// This type has no runtime memory</span>
-    <span class="ident">Unsized</span>,
-    <span class="doccomment">/// This type has exactly one integer sized field</span>
-    <span class="ident">One</span>(<span class="ident">ItemId</span>),
-    <span class="doccomment">/// This type is spread across multiple fields</span>
-    <span class="ident">Multiple</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span>),
+<span class="doccomment">/// Specifies how a specific object lays out its runtime memory
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+</span><span class="kw">pub enum </span>MemoryLayout {
+    <span class="doccomment">/// This type has no runtime memory
+    </span>Unsized,
+    <span class="doccomment">/// This type has exactly one integer sized field
+    </span>One(ItemId),
+    <span class="doccomment">/// This type is spread across multiple fields
+    </span>Multiple(Vec&lt;ItemId&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">MemoryLayout</span> {
-    <span class="doccomment">/// Returns the amount of words that this layout occupies</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mem_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MemoryLayout::Unsized</span> =&gt; <span class="number">0</span>,
-            <span class="ident">MemoryLayout::One</span>(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
-            <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">words</span>) =&gt; <span class="ident">words</span>.<span class="ident">len</span>(),
+<span class="kw">impl </span>MemoryLayout {
+    <span class="doccomment">/// Returns the amount of words that this layout occupies
+    </span><span class="kw">pub fn </span>mem_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            MemoryLayout::Unsized =&gt; <span class="number">0</span>,
+            MemoryLayout::One(<span class="kw">_</span>) =&gt; <span class="number">1</span>,
+            MemoryLayout::Multiple(words) =&gt; words.len(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ItemId</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">one_iter</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">multiple_iter</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MemoryLayout::Unsized</span> =&gt; {}
-            <span class="ident">MemoryLayout::One</span>(<span class="ident">item_id</span>) =&gt; <span class="ident">one_iter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">item_id</span>),
-            <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">item_ids</span>) =&gt; <span class="ident">multiple_iter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">item_ids</span>.<span class="ident">iter</span>()),
+    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>ItemId&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>one_iter = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>multiple_iter = <span class="prelude-val">None</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            MemoryLayout::Unsized =&gt; {}
+            MemoryLayout::One(item_id) =&gt; one_iter = <span class="prelude-val">Some</span>(item_id),
+            MemoryLayout::Multiple(item_ids) =&gt; multiple_iter = <span class="prelude-val">Some</span>(item_ids.iter()),
         };
-        <span class="ident">one_iter</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">chain</span>(<span class="ident">multiple_iter</span>.<span class="ident">into_iter</span>().<span class="ident">flatten</span>())
+        one_iter
+            .into_iter()
+            .chain(multiple_iter.into_iter().flatten())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MemoryLayout</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">ids</span>.<span class="ident">as_slice</span>() {
-            [] =&gt; <span class="ident">MemoryLayout::Unsized</span>,
-            [<span class="ident">one</span>] =&gt; <span class="ident">MemoryLayout::One</span>(<span class="kw-2">*</span><span class="ident">one</span>),
-            <span class="kw">_</span> =&gt; <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">ids</span>),
+<span class="kw">impl </span>From&lt;Vec&lt;ItemId&gt;&gt; <span class="kw">for </span>MemoryLayout {
+    <span class="kw">fn </span>from(ids: Vec&lt;ItemId&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>ids.as_slice() {
+            [] =&gt; MemoryLayout::Unsized,
+            [one] =&gt; MemoryLayout::One(<span class="kw-2">*</span>one),
+            <span class="kw">_ </span>=&gt; MemoryLayout::Multiple(ids),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryLayout</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MemoryLayout</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MemoryLayout</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_iter</span>();
-        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
-        <span class="kw">match</span> <span class="ident">first</span> {
-            <span class="prelude-val">None</span> =&gt; <span class="ident">MemoryLayout::Unsized</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">first</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>();
-                <span class="kw">match</span> <span class="ident">second</span> {
-                    <span class="prelude-val">None</span> =&gt; <span class="ident">first</span>.<span class="ident">clone</span>(),
-                    <span class="prelude-val">Some</span>(<span class="ident">second</span>) =&gt; {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">first</span>.<span class="ident">mem_size</span>() <span class="op">+</span> <span class="ident">second</span>.<span class="ident">mem_size</span>());
-                        <span class="ident">items</span>.<span class="ident">extend</span>(<span class="ident">first</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
-                        <span class="ident">items</span>.<span class="ident">extend</span>(<span class="ident">second</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
-                        <span class="ident">items</span>.<span class="ident">extend</span>(<span class="ident">iter</span>.<span class="ident">flat_map</span>(<span class="ident">MemoryLayout::iter</span>).<span class="ident">copied</span>());
-                        <span class="ident">MemoryLayout::Multiple</span>(<span class="ident">items</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FromIterator&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryLayout&gt; <span class="kw">for </span>MemoryLayout {
+    <span class="kw">fn </span>from_iter&lt;T: IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MemoryLayout&gt;&gt;(iter: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = iter.into_iter();
+        <span class="kw">let </span>first = iter.next();
+        <span class="kw">match </span>first {
+            <span class="prelude-val">None </span>=&gt; MemoryLayout::Unsized,
+            <span class="prelude-val">Some</span>(first) =&gt; {
+                <span class="kw">let </span>second = iter.next();
+                <span class="kw">match </span>second {
+                    <span class="prelude-val">None </span>=&gt; first.clone(),
+                    <span class="prelude-val">Some</span>(second) =&gt; {
+                        <span class="kw">let </span><span class="kw-2">mut </span>items = Vec::with_capacity(first.mem_size() + second.mem_size());
+                        items.extend(first.iter().copied());
+                        items.extend(second.iter().copied());
+                        items.extend(iter.flat_map(MemoryLayout::iter).copied());
+                        MemoryLayout::Multiple(items)
                     }
                 }
             }
@@ -253,5 +247,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

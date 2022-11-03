@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_function.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_function.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_function.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_function.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -246,248 +240,247 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>},
-    <span class="ident">iter::zip</span>,
-    <span class="ident">rc::Rc</span>,
+</pre><pre class="rust"><code><span class="kw">use </span>std::{
+    fmt::{<span class="self">self</span>, Debug},
+    iter::zip,
+    rc::Rc,
 };
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
-<span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">LangResult</span>, <span class="ident">SingleCompileError</span>};
+<span class="kw">use </span>debris_common::{Span, SpecialIdent};
+<span class="kw">use </span>debris_error::{LangResult, SingleCompileError};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">block_id::BlockId</span>,
-    <span class="ident">function_interface::DebrisFunctionInterface</span>,
-    <span class="ident">impl_class</span>,
-    <span class="ident">item_id</span>::{<span class="ident">ItemId</span>, <span class="ident">ItemIdAllocator</span>},
-    <span class="ident">llir_function_builder</span>::{<span class="ident">FunctionBuilderRuntime</span>, <span class="ident">LlirFunctionBuilder</span>},
-    <span class="ident">llir_nodes::Node</span>,
-    <span class="ident">memory::MemoryLayout</span>,
-    <span class="ident">type_context::TypeContext</span>,
-    <span class="ident">NativeFunctionId</span>, <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
+<span class="kw">use crate</span>::{
+    block_id::BlockId,
+    function_interface::DebrisFunctionInterface,
+    impl_class,
+    item_id::{ItemId, ItemIdAllocator},
+    llir_function_builder::{FunctionBuilderRuntime, LlirFunctionBuilder},
+    llir_nodes::Node,
+    memory::MemoryLayout,
+    type_context::TypeContext,
+    NativeFunctionId, ObjectPayload, ObjectRef, Type,
 };
 
-<span class="doccomment">/// A function object</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Has a map of available signatures.</span>
-<span class="doccomment">/// The call parameters are unique identifiers for every signature</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="kw">pub</span> <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A function object
+///
+/// Has a map of available signatures.
+/// The call parameters are unique identifiers for every signature
+</span><span class="attr">#[derive(Clone)]
+</span><span class="kw">pub struct </span>ObjFunction {
+    <span class="kw">pub </span>name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    <span class="kw">pub </span>callback_function: Rc&lt;DebrisFunctionInterface&gt;,
 }
 
-<span class="macro">impl_class!</span> {<span class="ident">ObjFunction</span>, <span class="ident">Type::Function</span>, {}}
+<span class="macro">impl_class! </span>{ObjFunction, Type::Function, {}}
 
-<span class="kw">impl</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">callback_function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisFunctionInterface</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ObjFunction</span> {
-            <span class="ident">name</span>,
-            <span class="ident">callback_function</span>,
+<span class="kw">impl </span>ObjFunction {
+    <span class="kw">pub fn </span>new(name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, callback_function: Rc&lt;DebrisFunctionInterface&gt;) -&gt; <span class="self">Self </span>{
+        ObjFunction {
+            name,
+            callback_function,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
-        <span class="kw-2">&amp;</span><span class="ident">MemoryLayout::Unsized</span>
+<span class="kw">impl </span>ObjectPayload <span class="kw">for </span>ObjFunction {
+    <span class="kw">fn </span>memory_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MemoryLayout {
+        <span class="kw-2">&amp;</span>MemoryLayout::Unsized
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjFunction</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">Rc::ptr_eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callback_function</span>, <span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">callback_function</span>)
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>ObjFunction {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ObjFunction) -&gt; bool {
+        Rc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.callback_function, <span class="kw-2">&amp;</span>other.callback_function)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>ObjFunction {}
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;ObjectFunction&quot;</span>)
-            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
-            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident">Rc::as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callback_function</span>))
-            .<span class="ident">finish</span>()
+<span class="kw">impl </span>Debug <span class="kw">for </span>ObjFunction {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_tuple(<span class="string">&quot;ObjectFunction&quot;</span>)
+            .field(<span class="kw-2">&amp;</span><span class="self">self</span>.name)
+            .field(<span class="kw-2">&amp;</span>Rc::as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>.callback_function))
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjFunction</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Builtin &#39;{}&#39;&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ObjFunction {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Builtin &#39;{}&#39;&quot;</span>, <span class="self">self</span>.name)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FunctionClassRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionClass</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>FunctionClassRef = Rc&lt;FunctionClass&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionClass</span> {
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">return_class</span>: <span class="ident">ObjectRef</span>,
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>FunctionClass {
+    <span class="kw">pub </span>parameters: Vec&lt;ObjectRef&gt;,
+    <span class="kw">pub </span>return_class: ObjectRef,
 }
 
-<span class="kw">impl</span> <span class="ident">FunctionClass</span> {
-    <span class="doccomment">/// Here a concept of &#39;variance&#39; is required: normal matches on return types,</span>
-    <span class="doccomment">/// however function parameters have to be matched the other way around:</span>
-    <span class="doccomment">/// if a: b, then fn(b): fn(a), but not fn(a): fn(b)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionClass</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">return_class</span>
-            .<span class="ident">downcast_class</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">return_class</span>.<span class="ident">downcast_class</span>().<span class="ident">unwrap</span>())
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">parameters</span>.<span class="ident">len</span>()
-            <span class="op">&amp;&amp;</span> <span class="ident">zip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>, <span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">parameters</span>).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">own</span>, <span class="ident">other</span>)<span class="op">|</span> {
-                <span class="ident">other</span>
-                    .<span class="ident">downcast_class</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">own</span>.<span class="ident">downcast_class</span>().<span class="ident">unwrap</span>())
+<span class="kw">impl </span>FunctionClass {
+    <span class="doccomment">/// Here a concept of &#39;variance&#39; is required: normal matches on return types,
+    /// however function parameters have to be matched the other way around:
+    /// if a: b, then fn(b): fn(a), but not fn(a): fn(b)
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>FunctionClass) -&gt; bool {
+        <span class="self">self</span>.return_class
+            .downcast_class()
+            .unwrap()
+            .matches(<span class="kw-2">&amp;</span>other.return_class.downcast_class().unwrap())
+            &amp;&amp; <span class="self">self</span>.parameters.len() == other.parameters.len()
+            &amp;&amp; zip(<span class="kw-2">&amp;</span><span class="self">self</span>.parameters, <span class="kw-2">&amp;</span>other.parameters).all(|(own, other)| {
+                other
+                    .downcast_class()
+                    .unwrap()
+                    .matches(<span class="kw-2">&amp;</span>own.downcast_class().unwrap())
             })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diverges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">return_class</span>.<span class="ident">downcast_class</span>().<span class="ident">unwrap</span>().<span class="ident">diverges</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>
-                .<span class="ident">parameters</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">any</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">downcast_class</span>().<span class="ident">unwrap</span>().<span class="ident">diverges</span>())
+    <span class="kw">pub fn </span>diverges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.return_class.downcast_class().unwrap().diverges()
+            || <span class="self">self
+                </span>.parameters
+                .iter()
+                .any(|param| param.downcast_class().unwrap().diverges())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">FunctionClass</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;fn(&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{first}&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>FunctionClass {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;fn(&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.parameters.iter();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = iter.next() {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{first}&quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="kw">for</span> <span class="ident">rest</span> <span class="kw">in</span> <span class="ident">iter</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, {rest}&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>rest <span class="kw">in </span>iter {
+            <span class="macro">write!</span>(f, <span class="string">&quot;, {rest}&quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="self">self</span>
-            .<span class="ident">return_class</span>
-            .<span class="ident">downcast_class</span>()
-            .<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">class</span><span class="op">|</span> <span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">typ</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Type::Null</span>)
+        <span class="kw">if </span><span class="self">self
+            </span>.return_class
+            .downcast_class()
+            .map_or(<span class="bool-val">true</span>, |class| class.kind.typ() != Type::Null)
         {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; -&gt; {}&quot;</span>, <span class="self">self</span>.<span class="ident">return_class</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">&quot; -&gt; {}&quot;</span>, <span class="self">self</span>.return_class)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// The context which gets passed to a function</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;params</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The id of the returned value</span>
-    <span class="kw">pub</span> <span class="ident">item_id</span>: <span class="ident">ItemId</span>,
-    <span class="doccomment">/// The parameters for this function call, excluding the self value</span>
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;params</span> [<span class="ident">ObjectRef</span>],
-    <span class="doccomment">/// The self value</span>
-    <span class="kw">pub</span> <span class="ident">self_val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The nodes that are emitted by this function</span>
-    <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">llir_function_builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;params</span> <span class="kw-2">mut</span> <span class="ident">LlirFunctionBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The context which gets passed to a function
+</span><span class="kw">pub struct </span>FunctionContext&lt;<span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;params</span>&gt; {
+    <span class="doccomment">/// The id of the returned value
+    </span><span class="kw">pub </span>item_id: ItemId,
+    <span class="doccomment">/// The parameters for this function call, excluding the self value
+    </span><span class="kw">pub </span>parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;params </span>[ObjectRef],
+    <span class="doccomment">/// The self value
+    </span><span class="kw">pub </span>self_val: <span class="prelude-ty">Option</span>&lt;ObjectRef&gt;,
+    <span class="doccomment">/// The nodes that are emitted by this function
+    </span><span class="kw">pub </span>nodes: Vec&lt;Node&gt;,
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) llir_function_builder: <span class="kw-2">&amp;</span><span class="lifetime">&#39;params </span><span class="kw-2">mut </span>LlirFunctionBuilder&lt;<span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;params</span><span class="op">&gt;</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;params</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Adds a node to the previously emitted nodes</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">emit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="ident">Node</span>) {
-        <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">node</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;params</span>&gt; FunctionContext&lt;<span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;params</span>&gt; {
+    <span class="doccomment">/// Adds a node to the previously emitted nodes
+    </span><span class="kw">pub fn </span>emit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Node) {
+        <span class="self">self</span>.nodes.push(node);
     }
 
-    <span class="doccomment">/// Returns `self_val` downcasted to the desired type or None</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">self_value_as</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">self_val</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">self_val</span><span class="op">|</span> <span class="ident">self_val</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())
+    <span class="doccomment">/// Returns `self_val` downcasted to the desired type or None
+    </span><span class="kw">pub fn </span>self_value_as&lt;T: ObjectPayload&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="self">self</span>.self_val
+            .as_ref()
+            .and_then(|self_val| self_val.downcast_payload::&lt;T&gt;())
     }
 
-    <span class="doccomment">/// Generates a new function context which can be used for calling another function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_new_function_context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>],
-        <span class="ident">self_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
-    ) -&gt; (<span class="ident">T</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_ctx</span> <span class="op">=</span> <span class="ident">FunctionContext</span> {
-            <span class="ident">item_id</span>: <span class="self">self</span>.<span class="ident">item_id_allocator</span>().<span class="ident">next_id</span>(),
-            <span class="ident">parameters</span>,
-            <span class="ident">self_val</span>: <span class="ident">self_value</span>,
-            <span class="ident">nodes</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>,
-            <span class="ident">llir_function_builder</span>: <span class="self">self</span>.<span class="ident">llir_function_builder</span>,
+    <span class="doccomment">/// Generates a new function context which can be used for calling another function.
+    </span><span class="kw">pub fn </span>with_new_function_context&lt;<span class="lifetime">&#39;a</span>, T&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ObjectRef],
+        self_value: <span class="prelude-ty">Option</span>&lt;ObjectRef&gt;,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>FunctionContext&lt;<span class="lifetime">&#39;llir_builder</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;a</span>&gt;) -&gt; T,
+    ) -&gt; (T, Vec&lt;Node&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>inner_ctx = FunctionContext {
+            item_id: <span class="self">self</span>.item_id_allocator().next_id(),
+            parameters,
+            self_val: self_value,
+            nodes: Vec::new(),
+            span: <span class="self">self</span>.span,
+            llir_function_builder: <span class="self">self</span>.llir_function_builder,
         };
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;mut</span> <span class="ident">inner_ctx</span>);
+        <span class="kw">let </span>result = f(<span class="kw-2">&amp;mut </span>inner_ctx);
 
-        (<span class="ident">result</span>, <span class="ident">inner_ctx</span>.<span class="ident">nodes</span>)
+        (result, inner_ctx.nodes)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">item_id_allocator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ItemIdAllocator</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llir_function_builder</span>.<span class="ident">builder</span>.<span class="ident">item_id_allocator</span>
+    <span class="kw">pub fn </span>item_id_allocator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ItemIdAllocator {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.llir_function_builder.builder.item_id_allocator
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_ctx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">TypeContext</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">llir_function_builder</span>.<span class="ident">builder</span>.<span class="ident">type_context</span>
+    <span class="kw">pub fn </span>type_ctx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TypeContext {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.llir_function_builder.builder.type_context
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">FunctionBuilderRuntime</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">llir_function_builder</span>.<span class="ident">pending_runtime_functions</span>
+    <span class="kw">pub fn </span>runtime_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>FunctionBuilderRuntime {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.llir_function_builder.pending_runtime_functions
     }
 
-    <span class="comment">// TODO: Turn into proper result</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_native_function</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">function_id</span>: <span class="ident">NativeFunctionId</span>,
-    ) -&gt; <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>
-            .<span class="ident">llir_function_builder</span>
-            .<span class="ident">compile_null_function</span>(<span class="ident">function_id</span>, <span class="self">self</span>.<span class="ident">span</span>)
+    <span class="comment">// TODO: Turn into proper result
+    </span><span class="kw">pub fn </span>compile_native_function(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        function_id: NativeFunctionId,
+    ) -&gt; LangResult&lt;BlockId&gt; {
+        <span class="kw">match </span><span class="self">self
+            </span>.llir_function_builder
+            .compile_null_function(function_id, <span class="self">self</span>.span)
         {
-            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">result</span>),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">match</span> <span class="ident">err</span> {
-                <span class="ident">SingleCompileError::LangError</span>(<span class="ident">lang_error</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">lang_error</span>.<span class="ident">kind</span>),
-                <span class="ident">SingleCompileError::ParseError</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;(I hope)&quot;</span>),
+            <span class="prelude-val">Ok</span>(result) =&gt; <span class="prelude-val">Ok</span>(result),
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">match </span>err {
+                SingleCompileError::LangError(lang_error) =&gt; <span class="prelude-val">Err</span>(lang_error.kind),
+                SingleCompileError::ParseError(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;(I hope)&quot;</span>),
             },
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">ObjFunction</span>,
-        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>],
-        <span class="ident">self_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">raw_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">call_function_raw</span>(<span class="ident">function</span>, <span class="ident">parameters</span>, <span class="ident">self_value</span>);
-        <span class="ident">function</span>
-            .<span class="ident">callback_function</span>
-            .<span class="ident">handle_raw_result</span>(<span class="self">self</span>, <span class="ident">raw_result</span>)
+    <span class="kw">pub fn </span>call_function&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        function: <span class="kw-2">&amp;</span>ObjFunction,
+        parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ObjectRef],
+        self_value: <span class="prelude-ty">Option</span>&lt;ObjectRef&gt;,
+    ) -&gt; LangResult&lt;ObjectRef&gt; {
+        <span class="kw">let </span>raw_result = <span class="self">self</span>.call_function_raw(function, parameters, self_value);
+        function
+            .callback_function
+            .handle_raw_result(<span class="self">self</span>, raw_result)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_function_raw</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">ObjFunction</span>,
-        <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ObjectRef</span>],
-        <span class="ident">self_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">nodes</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">with_new_function_context</span>(<span class="ident">parameters</span>, <span class="ident">self_value</span>, <span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="ident">function</span>.<span class="ident">callback_function</span>.<span class="ident">call_raw</span>(<span class="ident">ctx</span>)
+    <span class="kw">pub fn </span>call_function_raw&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        function: <span class="kw-2">&amp;</span>ObjFunction,
+        parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[ObjectRef],
+        self_value: <span class="prelude-ty">Option</span>&lt;ObjectRef&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="kw">let </span>(result, nodes) = <span class="self">self</span>.with_new_function_context(parameters, self_value, |ctx| {
+            function.callback_function.call_raw(ctx)
         });
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">result</span> {
-            <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">extend</span>(<span class="ident">nodes</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) = result {
+            <span class="self">self</span>.nodes.extend(nodes);
         }
-        <span class="ident">result</span>
+        result
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">promote_obj</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">value</span>: <span class="ident">ObjectRef</span>,
-        <span class="ident">target</span>: <span class="ident">ObjectRef</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">obj_fn</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">get_property</span>(<span class="self">self</span>.<span class="ident">type_ctx</span>(), <span class="kw-2">&amp;</span><span class="ident">SpecialIdent::Promote</span>.<span class="ident">into</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">promote_fn</span> <span class="op">=</span> <span class="ident">obj_fn</span>.<span class="ident">downcast_payload</span>()<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">call_function_raw</span>(<span class="ident">promote_fn</span>, <span class="kw-2">&amp;</span>[<span class="ident">value</span>, <span class="ident">target</span>], <span class="prelude-val">None</span>)
+    <span class="kw">pub fn </span>promote_obj(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        value: ObjectRef,
+        target: ObjectRef,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="kw">let </span>obj_fn = value.get_property(<span class="self">self</span>.type_ctx(), <span class="kw-2">&amp;</span>SpecialIdent::Promote.into())<span class="question-mark">?</span>;
+        <span class="kw">let </span>promote_fn = obj_fn.downcast_payload()<span class="question-mark">?</span>;
+        <span class="self">self</span>.call_function_raw(promote_fn, <span class="kw-2">&amp;</span>[value, target], <span class="prelude-val">None</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimizers/arithmetic_optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arithmetic_optimizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../debris_llir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimizers/arithmetic_optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arithmetic_optimizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../debris_llir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -234,165 +228,165 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Mul</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::ops::Mul;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">llir_nodes</span>::{<span class="ident">BinaryOperation</span>, <span class="ident">Node</span>},
-    <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
-    <span class="ident">opt</span>::{
-        <span class="ident">global_opt::Commands</span>,
-        <span class="ident">optimize_commands</span>::{<span class="ident">OptimizeCommand</span>, <span class="ident">OptimizeCommandKind</span>},
+<span class="kw">use crate</span>::{
+    llir_nodes::{BinaryOperation, Node},
+    minecraft_utils::{ScoreboardOperation, ScoreboardValue},
+    opt::{
+        global_opt::Commands,
+        optimize_commands::{OptimizeCommand, OptimizeCommandKind},
     },
 };
 
-<span class="doccomment">/// Optimizes basic arithmetic expressions with the shape</span>
-<span class="doccomment">/// x OP constant OP constant ...</span>
-<span class="doccomment">/// NOTE: This optimizer changes the runtime behavior!</span>
-<span class="doccomment">/// An operation like `a * 2000 / 1000` can cause an overflow,</span>
-<span class="doccomment">/// while the optimized version `a * 2` might not.</span>
-<span class="doccomment">/// For this reason it is **very important** that this optimizer is</span>
-<span class="doccomment">/// not toggled between release and debug mode.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simple_arithmetic_optimization</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>) {
-    <span class="lifetime">&#39;functions</span>: <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_functions</span>() {
-        <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">function</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                <span class="ident">scoreboard</span>,
-                <span class="ident">id</span>: <span class="ident">target</span>,
-                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">lhs_scoreboard</span>, <span class="ident">lhs_id</span>),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
-                <span class="ident">operation</span>,
-            }) <span class="op">=</span> <span class="ident">node</span>
+<span class="doccomment">/// Optimizes basic arithmetic expressions with the shape
+/// x OP constant OP constant ...
+/// NOTE: This optimizer changes the runtime behavior!
+/// An operation like `a * 2000 / 1000` can cause an overflow,
+/// while the optimized version `a * 2` might not.
+/// For this reason it is **very important** that this optimizer is
+/// not toggled between release and debug mode.
+</span><span class="kw">pub fn </span>simple_arithmetic_optimization(commands: <span class="kw-2">&amp;mut </span>Commands) {
+    <span class="lifetime">&#39;functions</span>: <span class="kw">for </span>function <span class="kw">in </span>commands.optimizer.iter_functions() {
+        <span class="kw">for </span>(node_id, node) <span class="kw">in </span>function {
+            <span class="kw">if let </span>Node::BinaryOperation(BinaryOperation {
+                scoreboard,
+                id: target,
+                lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
+                rhs: ScoreboardValue::Static(value),
+                operation,
+            }) = node
             {
-                <span class="kw">if</span> <span class="macro">matches!</span>(
-                    <span class="ident">operation</span>,
-                    <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>
+                <span class="kw">if </span><span class="macro">matches!</span>(
+                    operation,
+                    ScoreboardOperation::Plus | ScoreboardOperation::Minus
                 ) {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subsequent_nodes</span> <span class="op">=</span> <span class="ident">commands</span>
-                        .<span class="ident">optimizer</span>
-                        .<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>)
-                        .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">other_node</span>)<span class="op">|</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                                <span class="ident">id</span>: <span class="ident">new_target</span>,
-                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">also_new_target</span>),
-                                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">new_value</span>),
-                                <span class="ident">operation</span>,
-                            }) <span class="op">=</span> <span class="ident">other_node</span>
+                    <span class="kw">let </span><span class="kw-2">mut </span>subsequent_nodes = commands
+                        .optimizer
+                        .iter_at(<span class="kw-2">&amp;</span>node_id)
+                        .map(|(<span class="kw">_</span>, other_node)| {
+                            <span class="kw">if let </span>Node::BinaryOperation(BinaryOperation {
+                                scoreboard: <span class="kw">_</span>,
+                                id: new_target,
+                                lhs: ScoreboardValue::Scoreboard(<span class="kw">_</span>, also_new_target),
+                                rhs: ScoreboardValue::Static(new_value),
+                                operation,
+                            }) = other_node
                             {
-                                <span class="kw">if</span> <span class="ident">new_target</span> <span class="op">==</span> <span class="ident">also_new_target</span>
-                                    <span class="op">&amp;&amp;</span> <span class="ident">new_target</span> <span class="op">==</span> <span class="ident">target</span>
-                                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
-                                        <span class="ident">operation</span>,
-                                        <span class="ident">ScoreboardOperation::Plus</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Minus</span>
+                                <span class="kw">if </span>new_target == also_new_target
+                                    &amp;&amp; new_target == target
+                                    &amp;&amp; <span class="macro">matches!</span>(
+                                        operation,
+                                        ScoreboardOperation::Plus | ScoreboardOperation::Minus
                                     )
                                 {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">operation</span> {
-                                        <span class="ident">ScoreboardOperation::Plus</span> =&gt; <span class="kw-2">*</span><span class="ident">new_value</span>,
-                                        <span class="ident">ScoreboardOperation::Minus</span> =&gt; <span class="op">-</span><span class="ident">new_value</span>,
-                                        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+                                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw">match </span>operation {
+                                        ScoreboardOperation::Plus =&gt; <span class="kw-2">*</span>new_value,
+                                        ScoreboardOperation::Minus =&gt; -new_value,
+                                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                                     });
                                 }
                             }
-                            <span class="prelude-val">None</span>
-                        })
-                        .<span class="ident">take_while</span>(<span class="ident">Option::is_some</span>)
-                        .<span class="ident">map</span>(<span class="ident">Option::unwrap</span>)
-                        .<span class="ident">peekable</span>();
-                    <span class="kw">if</span> <span class="ident">subsequent_nodes</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>() {
-                        <span class="kw">let</span> (<span class="ident">optimized_value</span>, <span class="ident">len</span>) <span class="op">=</span>
-                            <span class="ident">optimize_additive</span>(<span class="ident">std::iter::once</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">chain</span>(<span class="ident">subsequent_nodes</span>));
-                        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..((<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>) {
-                            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                (<span class="ident">node_id</span>.<span class="number">0</span>, <span class="ident">node_id</span>.<span class="number">1</span> <span class="op">+</span> <span class="ident">i</span>),
-                                <span class="ident">OptimizeCommandKind::Delete</span>,
+                            <span class="prelude-val">None
+                        </span>})
+                        .take_while(Option::is_some)
+                        .map(Option::unwrap)
+                        .peekable();
+                    <span class="kw">if </span>subsequent_nodes.peek().is_some() {
+                        <span class="kw">let </span>(optimized_value, len) =
+                            optimize_additive(std::iter::once(<span class="kw-2">*</span>value).chain(subsequent_nodes));
+                        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..((len - <span class="number">1</span>) <span class="kw">as </span>usize) {
+                            commands.commands.push(OptimizeCommand::new(
+                                (node_id.<span class="number">0</span>, node_id.<span class="number">1 </span>+ i),
+                                OptimizeCommandKind::Delete,
                             ));
                         }
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                            <span class="ident">node_id</span>,
-                            <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                                <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                                <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">target</span>,
-                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">lhs_id</span>),
-                                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">optimized_value</span>),
-                                <span class="ident">operation</span>: <span class="kw-2">*</span><span class="ident">operation</span>,
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::Replace(Node::BinaryOperation(BinaryOperation {
+                                scoreboard: <span class="kw-2">*</span>scoreboard,
+                                id: <span class="kw-2">*</span>target,
+                                lhs: ScoreboardValue::Scoreboard(<span class="kw-2">*</span>lhs_scoreboard, <span class="kw-2">*</span>lhs_id),
+                                rhs: ScoreboardValue::Static(optimized_value),
+                                operation: <span class="kw-2">*</span>operation,
                             })),
                         ));
-                        <span class="kw">continue</span> <span class="lifetime">&#39;functions</span>;
+                        <span class="kw">continue </span><span class="lifetime">&#39;functions</span>;
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="macro">matches!</span>(
-                    <span class="ident">operation</span>,
-                    <span class="ident">ScoreboardOperation::Times</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Divide</span>
+                } <span class="kw">else if </span><span class="macro">matches!</span>(
+                    operation,
+                    ScoreboardOperation::Times | ScoreboardOperation::Divide
                 ) {
-                    <span class="kw">let</span> <span class="ident">original_fraction</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">operation</span> {
-                        <span class="ident">ScoreboardOperation::Times</span> =&gt; <span class="ident">Fraction::from</span>(<span class="kw-2">*</span><span class="ident">value</span>),
-                        <span class="ident">ScoreboardOperation::Divide</span> =&gt; <span class="ident">Fraction::from</span>(<span class="kw-2">*</span><span class="ident">value</span>).<span class="ident">inverse</span>(),
-                        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+                    <span class="kw">let </span>original_fraction = <span class="kw">match </span>operation {
+                        ScoreboardOperation::Times =&gt; Fraction::from(<span class="kw-2">*</span>value),
+                        ScoreboardOperation::Divide =&gt; Fraction::from(<span class="kw-2">*</span>value).inverse(),
+                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                     };
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subsequent_nodes</span> <span class="op">=</span> <span class="ident">commands</span>
-                        .<span class="ident">optimizer</span>
-                        .<span class="ident">iter_at</span>(<span class="kw-2">&amp;</span><span class="ident">node_id</span>)
-                        .<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">other_node</span>)<span class="op">|</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                                <span class="ident">id</span>: <span class="ident">new_target</span>,
-                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">also_new_target</span>),
-                                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">new_value</span>),
-                                <span class="ident">operation</span>,
-                            }) <span class="op">=</span> <span class="ident">other_node</span>
+                    <span class="kw">let </span><span class="kw-2">mut </span>subsequent_nodes = commands
+                        .optimizer
+                        .iter_at(<span class="kw-2">&amp;</span>node_id)
+                        .map(|(<span class="kw">_</span>, other_node)| {
+                            <span class="kw">if let </span>Node::BinaryOperation(BinaryOperation {
+                                scoreboard: <span class="kw">_</span>,
+                                id: new_target,
+                                lhs: ScoreboardValue::Scoreboard(<span class="kw">_</span>, also_new_target),
+                                rhs: ScoreboardValue::Static(new_value),
+                                operation,
+                            }) = other_node
                             {
-                                <span class="kw">if</span> <span class="ident">new_target</span> <span class="op">==</span> <span class="ident">also_new_target</span>
-                                    <span class="op">&amp;&amp;</span> <span class="ident">new_target</span> <span class="op">==</span> <span class="ident">target</span>
-                                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
-                                        <span class="ident">operation</span>,
-                                        <span class="ident">ScoreboardOperation::Times</span> <span class="op">|</span> <span class="ident">ScoreboardOperation::Divide</span>
+                                <span class="kw">if </span>new_target == also_new_target
+                                    &amp;&amp; new_target == target
+                                    &amp;&amp; <span class="macro">matches!</span>(
+                                        operation,
+                                        ScoreboardOperation::Times | ScoreboardOperation::Divide
                                     )
                                 {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">operation</span> {
-                                        <span class="ident">ScoreboardOperation::Times</span> =&gt; <span class="ident">Fraction::from</span>(<span class="kw-2">*</span><span class="ident">new_value</span>),
-                                        <span class="ident">ScoreboardOperation::Divide</span> =&gt; {
-                                            <span class="ident">Fraction::from</span>(<span class="kw-2">*</span><span class="ident">new_value</span>).<span class="ident">inverse</span>()
+                                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw">match </span>operation {
+                                        ScoreboardOperation::Times =&gt; Fraction::from(<span class="kw-2">*</span>new_value),
+                                        ScoreboardOperation::Divide =&gt; {
+                                            Fraction::from(<span class="kw-2">*</span>new_value).inverse()
                                         }
-                                        <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+                                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                                     });
                                 }
                             }
-                            <span class="prelude-val">None</span>
-                        })
-                        .<span class="ident">take_while</span>(<span class="ident">Option::is_some</span>)
-                        .<span class="ident">map</span>(<span class="ident">Option::unwrap</span>)
-                        .<span class="ident">peekable</span>();
-                    <span class="kw">if</span> <span class="ident">subsequent_nodes</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>() {
-                        <span class="kw">let</span> (<span class="ident">optimized_value</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="ident">optimize_multiplicative</span>(
-                            <span class="ident">std::iter::once</span>(<span class="ident">original_fraction</span>).<span class="ident">chain</span>(<span class="ident">subsequent_nodes</span>),
+                            <span class="prelude-val">None
+                        </span>})
+                        .take_while(Option::is_some)
+                        .map(Option::unwrap)
+                        .peekable();
+                    <span class="kw">if </span>subsequent_nodes.peek().is_some() {
+                        <span class="kw">let </span>(optimized_value, len) = optimize_multiplicative(
+                            std::iter::once(original_fraction).chain(subsequent_nodes),
                         );
-                        <span class="kw">let</span> (<span class="ident">new_operation</span>, <span class="ident">new_value</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">optimized_value</span> {
-                            <span class="ident">Fraction</span> {
-                                <span class="ident">numerator</span>,
-                                <span class="ident">denominator</span>: <span class="number">1</span>,
-                            } =&gt; (<span class="ident">ScoreboardOperation::Times</span>, <span class="ident">numerator</span>),
-                            <span class="ident">Fraction</span> {
-                                <span class="ident">numerator</span>: <span class="number">1</span>,
-                                <span class="ident">denominator</span>,
-                            } =&gt; (<span class="ident">ScoreboardOperation::Divide</span>, <span class="ident">denominator</span>),
-                            <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+                        <span class="kw">let </span>(new_operation, new_value) = <span class="kw">match </span>optimized_value {
+                            Fraction {
+                                numerator,
+                                denominator: <span class="number">1</span>,
+                            } =&gt; (ScoreboardOperation::Times, numerator),
+                            Fraction {
+                                numerator: <span class="number">1</span>,
+                                denominator,
+                            } =&gt; (ScoreboardOperation::Divide, denominator),
+                            <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
                         };
-                        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..((<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>) {
-                            <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                (<span class="ident">node_id</span>.<span class="number">0</span>, <span class="ident">node_id</span>.<span class="number">1</span> <span class="op">+</span> <span class="ident">i</span>),
-                                <span class="ident">OptimizeCommandKind::Delete</span>,
+                        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..((len - <span class="number">1</span>) <span class="kw">as </span>usize) {
+                            commands.commands.push(OptimizeCommand::new(
+                                (node_id.<span class="number">0</span>, node_id.<span class="number">1 </span>+ i),
+                                OptimizeCommandKind::Delete,
                             ));
                         }
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                            <span class="ident">node_id</span>,
-                            <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                                <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                                <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">target</span>,
-                                <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw-2">*</span><span class="ident">lhs_scoreboard</span>, <span class="kw-2">*</span><span class="ident">lhs_id</span>),
-                                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">new_value</span>),
-                                <span class="ident">operation</span>: <span class="ident">new_operation</span>,
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::Replace(Node::BinaryOperation(BinaryOperation {
+                                scoreboard: <span class="kw-2">*</span>scoreboard,
+                                id: <span class="kw-2">*</span>target,
+                                lhs: ScoreboardValue::Scoreboard(<span class="kw-2">*</span>lhs_scoreboard, <span class="kw-2">*</span>lhs_id),
+                                rhs: ScoreboardValue::Static(new_value),
+                                operation: new_operation,
                             })),
                         ));
-                        <span class="kw">continue</span> <span class="lifetime">&#39;functions</span>;
+                        <span class="kw">continue </span><span class="lifetime">&#39;functions</span>;
                     }
                 }
             }
@@ -400,70 +394,69 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Fraction</span> {
-    <span class="ident">numerator</span>: <span class="ident">i32</span>,
-    <span class="ident">denominator</span>: <span class="ident">i32</span>,
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>Fraction {
+    numerator: i32,
+    denominator: i32,
 }
 
-<span class="kw">impl</span> <span class="ident">Fraction</span> {
-    <span class="kw">const</span> <span class="ident">ONE</span>: <span class="ident">Fraction</span> <span class="op">=</span> <span class="ident">Fraction</span> {
-        <span class="ident">numerator</span>: <span class="number">1</span>,
-        <span class="ident">denominator</span>: <span class="number">1</span>,
+<span class="kw">impl </span>Fraction {
+    <span class="kw">const </span>ONE: Fraction = Fraction {
+        numerator: <span class="number">1</span>,
+        denominator: <span class="number">1</span>,
     };
 
-    <span class="kw">fn</span> <span class="ident">simplify</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">numerator</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">denominator</span>;
-        <span class="kw">while</span> <span class="ident">b</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">b</span>;
-            <span class="ident">b</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">%</span> <span class="ident">b</span>;
-            <span class="ident">a</span> <span class="op">=</span> <span class="ident">temp</span>;
+    <span class="kw">fn </span>simplify(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span><span class="kw-2">mut </span>a = <span class="self">self</span>.numerator;
+        <span class="kw">let </span><span class="kw-2">mut </span>b = <span class="self">self</span>.denominator;
+        <span class="kw">while </span>b != <span class="number">0 </span>{
+            <span class="kw">let </span>temp = b;
+            b = a % b;
+            a = temp;
         }
 
-        <span class="self">self</span>.<span class="ident">numerator</span> <span class="op">/</span><span class="op">=</span> <span class="ident">a</span>;
-        <span class="self">self</span>.<span class="ident">denominator</span> <span class="op">/</span><span class="op">=</span> <span class="ident">a</span>;
+        <span class="self">self</span>.numerator /= a;
+        <span class="self">self</span>.denominator /= a;
     }
 
-    <span class="kw">fn</span> <span class="ident">inverse</span>(<span class="self">self</span>) -&gt; <span class="ident">Fraction</span> {
-        <span class="ident">Fraction</span> {
-            <span class="ident">numerator</span>: <span class="self">self</span>.<span class="ident">denominator</span>,
-            <span class="ident">denominator</span>: <span class="self">self</span>.<span class="ident">numerator</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Fraction</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Fraction</span> {
-            <span class="ident">numerator</span>: <span class="ident">val</span>,
-            <span class="ident">denominator</span>: <span class="number">1</span>,
+    <span class="kw">fn </span>inverse(<span class="self">self</span>) -&gt; Fraction {
+        Fraction {
+            numerator: <span class="self">self</span>.denominator,
+            denominator: <span class="self">self</span>.numerator,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Mul</span> <span class="kw">for</span> <span class="ident">Fraction</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
+<span class="kw">impl </span>From&lt;i32&gt; <span class="kw">for </span>Fraction {
+    <span class="kw">fn </span>from(val: i32) -&gt; <span class="self">Self </span>{
+        Fraction {
+            numerator: val,
+            denominator: <span class="number">1</span>,
+        }
+    }
+}
 
-    <span class="kw">fn</span> <span class="ident">mul</span>(<span class="self">self</span>, <span class="ident">rhs</span>: <span class="self">Self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Fraction</span> {
-            <span class="ident">numerator</span>: <span class="ident">ScoreboardOperation::Times</span>.<span class="ident">evaluate</span>(<span class="self">self</span>.<span class="ident">numerator</span>, <span class="ident">rhs</span>.<span class="ident">numerator</span>),
-            <span class="ident">denominator</span>: <span class="ident">ScoreboardOperation::Times</span>.<span class="ident">evaluate</span>(<span class="self">self</span>.<span class="ident">denominator</span>, <span class="ident">rhs</span>.<span class="ident">denominator</span>),
+<span class="kw">impl </span>Mul <span class="kw">for </span>Fraction {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Fraction {
+            numerator: ScoreboardOperation::Times.evaluate(<span class="self">self</span>.numerator, rhs.numerator),
+            denominator: ScoreboardOperation::Times.evaluate(<span class="self">self</span>.denominator, rhs.denominator),
         };
-        <span class="ident">result</span>.<span class="ident">simplify</span>();
-        <span class="ident">result</span>
+        result.simplify();
+        result
     }
 }
 
-<span class="kw">fn</span> <span class="ident">optimize_additive</span>(<span class="ident">operations</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">i32</span><span class="op">&gt;</span>) -&gt; (<span class="ident">i32</span>, <span class="ident">u32</span>) {
-    <span class="ident">operations</span>.<span class="ident">fold</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="op">|</span>(<span class="ident">acc</span>, <span class="ident">len</span>), <span class="ident">x</span><span class="op">|</span> {
-        (<span class="ident">ScoreboardOperation::Plus</span>.<span class="ident">evaluate</span>(<span class="ident">acc</span>, <span class="ident">x</span>), <span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>)
+<span class="kw">fn </span>optimize_additive(operations: <span class="kw">impl </span>Iterator&lt;Item = i32&gt;) -&gt; (i32, u32) {
+    operations.fold((<span class="number">0</span>, <span class="number">0</span>), |(acc, len), x| {
+        (ScoreboardOperation::Plus.evaluate(acc, x), len + <span class="number">1</span>)
     })
 }
 
-<span class="kw">fn</span> <span class="ident">optimize_multiplicative</span>(<span class="ident">operations</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Fraction</span><span class="op">&gt;</span>) -&gt; (<span class="ident">Fraction</span>, <span class="ident">u32</span>) {
-    <span class="ident">operations</span>.<span class="ident">fold</span>((<span class="ident">Fraction::ONE</span>, <span class="number">0</span>), <span class="op">|</span>(<span class="ident">acc</span>, <span class="ident">len</span>), <span class="ident">x</span><span class="op">|</span> (<span class="ident">acc</span> <span class="op">*</span> <span class="ident">x</span>, <span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>))
+<span class="kw">fn </span>optimize_multiplicative(operations: <span class="kw">impl </span>Iterator&lt;Item = Fraction&gt;) -&gt; (Fraction, u32) {
+    operations.fold((Fraction::ONE, <span class="number">0</span>), |(acc, len), x| (acc * x, len + <span class="number">1</span>))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

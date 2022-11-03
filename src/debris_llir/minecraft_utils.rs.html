@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/minecraft_utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>minecraft_utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/minecraft_utils.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>minecraft_utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -190,194 +184,191 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
-<span id="187">187</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::item_id::ItemId</span>;
+<span class="kw">use </span><span class="kw">crate</span>::item_id::ItemId;
 
-<span class="doccomment">/// Identifies a specific scoreboard</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Debris has one main scoreboard and an arbitrary amount of custom scoreboards</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Scoreboard</span> {
-    <span class="doccomment">/// The Main scoreboard, where all operations are per default</span>
-    <span class="ident">Main</span>,
-    <span class="doccomment">/// Custom scoreboards, each with a unique identifier</span>
-    <span class="ident">Custom</span>(<span class="ident">usize</span>),
-    <span class="doccomment">/// Special scoreboards used for internal tracking</span>
-    <span class="ident">Internal</span>(<span class="ident">usize</span>),
+<span class="doccomment">/// Identifies a specific scoreboard
+///
+/// Debris has one main scoreboard and an arbitrary amount of custom scoreboards
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Copy, Clone, Hash)]
+</span><span class="kw">pub enum </span>Scoreboard {
+    <span class="doccomment">/// The Main scoreboard, where all operations are per default
+    </span>Main,
+    <span class="doccomment">/// Custom scoreboards, each with a unique identifier
+    </span>Custom(usize),
+    <span class="doccomment">/// Special scoreboards used for internal tracking
+    </span>Internal(usize),
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Scoreboard</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Scoreboard::Main</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Main&quot;</span>),
-            <span class="ident">Scoreboard::Custom</span>(<span class="ident">id</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{id}&quot;</span>),
-            <span class="ident">Scoreboard::Internal</span>(<span class="ident">id</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;internal({id})&quot;</span>),
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Scoreboard {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Scoreboard::Main =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Main&quot;</span>),
+            Scoreboard::Custom(id) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id}&quot;</span>),
+            Scoreboard::Internal(id) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;internal({id})&quot;</span>),
         }
     }
 }
 
-<span class="doccomment">/// A Value that can be stored on a scoreboard</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Either a real scoreboard value or a static number</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ScoreboardValue</span> {
-    <span class="ident">Static</span>(<span class="ident">i32</span>),
-    <span class="ident">Scoreboard</span>(<span class="ident">Scoreboard</span>, <span class="ident">ItemId</span>),
+<span class="doccomment">/// A Value that can be stored on a scoreboard
+///
+/// Either a real scoreboard value or a static number
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+</span><span class="kw">pub enum </span>ScoreboardValue {
+    Static(i32),
+    Scoreboard(Scoreboard, ItemId),
 }
 
-<span class="kw">impl</span> <span class="ident">ScoreboardValue</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ItemId</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScoreboardValue::Static</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">id</span>),
+<span class="kw">impl </span>ScoreboardValue {
+    <span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ItemId&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            ScoreboardValue::Static(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) =&gt; <span class="prelude-val">Some</span>(id),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">ScoreboardValue</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScoreboardValue::Static</span>(<span class="ident">static_value</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{static_value}&quot;</span>),
-            <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{id}&quot;</span>),
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ScoreboardValue {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            ScoreboardValue::Static(static_value) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{static_value}&quot;</span>),
+            ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id}&quot;</span>),
         }
     }
 }
 
-<span class="doccomment">/// Any operation that can be executed on a scoreboard-</span>
-<span class="doccomment">/// This excludes copy, because scoreboard operations are assumed</span>
-<span class="doccomment">/// to be trinary (a = b OP c), but copy is only a binary</span>
-<span class="doccomment">/// Operation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ScoreboardOperation</span> {
-    <span class="ident">Plus</span>,
-    <span class="ident">Minus</span>,
-    <span class="ident">Times</span>,
-    <span class="ident">Divide</span>,
-    <span class="ident">Modulo</span>,
-    <span class="ident">Min</span>,
-    <span class="ident">Max</span>,
+<span class="doccomment">/// Any operation that can be executed on a scoreboard-
+/// This excludes copy, because scoreboard operations are assumed
+/// to be trinary (a = b OP c), but copy is only a binary
+/// Operation.
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+</span><span class="kw">pub enum </span>ScoreboardOperation {
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Modulo,
+    Min,
+    Max,
 }
 
-<span class="kw">impl</span> <span class="ident">ScoreboardOperation</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">use</span> <span class="ident">ScoreboardOperation</span>::<span class="kw-2">*</span>;
+<span class="kw">impl </span>ScoreboardOperation {
+    <span class="kw">pub fn </span>str_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">use </span>ScoreboardOperation::<span class="kw-2">*</span>;
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Plus</span> =&gt; <span class="string">&quot;+&quot;</span>,
-            <span class="ident">Minus</span> =&gt; <span class="string">&quot;-&quot;</span>,
-            <span class="ident">Times</span> =&gt; <span class="string">&quot;*&quot;</span>,
-            <span class="ident">Divide</span> =&gt; <span class="string">&quot;/&quot;</span>,
-            <span class="ident">Modulo</span> =&gt; <span class="string">&quot;%&quot;</span>,
-            <span class="ident">Min</span> =&gt; <span class="string">&quot;min&quot;</span>,
-            <span class="ident">Max</span> =&gt; <span class="string">&quot;max&quot;</span>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Plus =&gt; <span class="string">&quot;+&quot;</span>,
+            Minus =&gt; <span class="string">&quot;-&quot;</span>,
+            Times =&gt; <span class="string">&quot;*&quot;</span>,
+            Divide =&gt; <span class="string">&quot;/&quot;</span>,
+            Modulo =&gt; <span class="string">&quot;%&quot;</span>,
+            Min =&gt; <span class="string">&quot;min&quot;</span>,
+            Max =&gt; <span class="string">&quot;max&quot;</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ScoreboardOperation</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lhs</span>: <span class="ident">i32</span>, <span class="ident">rhs</span>: <span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
-        <span class="kw">use</span> <span class="ident">ScoreboardOperation</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Min</span> =&gt; <span class="ident">i32::min</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>),
-            <span class="ident">Max</span> =&gt; <span class="ident">i32::max</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>),
-            <span class="ident">Plus</span> =&gt; <span class="ident">lhs</span>.<span class="ident">wrapping_add</span>(<span class="ident">rhs</span>),
-            <span class="ident">Minus</span> =&gt; <span class="ident">lhs</span>.<span class="ident">wrapping_sub</span>(<span class="ident">rhs</span>),
-            <span class="ident">Times</span> =&gt; <span class="ident">lhs</span>.<span class="ident">wrapping_mul</span>(<span class="ident">rhs</span>),
-            <span class="ident">Divide</span> =&gt; {
-                <span class="comment">// Minecraft does not modify the lhs value on division by zero</span>
-                <span class="kw">if</span> <span class="ident">rhs</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="ident">lhs</span>
-                } <span class="kw">else</span> {
-                    <span class="comment">// Minecraft rounds towards -infinity, while rust rounds towards 0</span>
-                    <span class="kw">let</span> <span class="ident">nat_div</span> <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">wrapping_div</span>(<span class="ident">rhs</span>);
-                    <span class="kw">let</span> <span class="ident">prod</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rhs</span>.<span class="ident">checked_mul</span>(<span class="ident">nat_div</span>) {
-                        <span class="prelude-val">Some</span>(<span class="ident">prod</span>) =&gt; <span class="ident">prod</span>,
-                        <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">nat_div</span>,
+<span class="kw">impl </span>ScoreboardOperation {
+    <span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: i32, rhs: i32) -&gt; i32 {
+        <span class="kw">use </span>ScoreboardOperation::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Min =&gt; i32::min(lhs, rhs),
+            Max =&gt; i32::max(lhs, rhs),
+            Plus =&gt; lhs.wrapping_add(rhs),
+            Minus =&gt; lhs.wrapping_sub(rhs),
+            Times =&gt; lhs.wrapping_mul(rhs),
+            Divide =&gt; {
+                <span class="comment">// Minecraft does not modify the lhs value on division by zero
+                </span><span class="kw">if </span>rhs == <span class="number">0 </span>{
+                    lhs
+                } <span class="kw">else </span>{
+                    <span class="comment">// Minecraft rounds towards -infinity, while rust rounds towards 0
+                    </span><span class="kw">let </span>nat_div = lhs.wrapping_div(rhs);
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(prod) = rhs.checked_mul(nat_div) <span class="kw">else </span>{
+                        <span class="kw">return </span>nat_div;
                     };
-                    <span class="kw">if</span> <span class="ident">lhs</span> <span class="op">!</span><span class="op">=</span> <span class="ident">prod</span> <span class="op">&amp;&amp;</span> (<span class="ident">lhs</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>) <span class="op">!</span><span class="op">=</span> (<span class="ident">rhs</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>) {
-                        <span class="ident">nat_div</span> <span class="op">-</span> <span class="number">1</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">nat_div</span>
+                    <span class="kw">if </span>lhs != prod &amp;&amp; (lhs &gt;= <span class="number">0</span>) != (rhs &gt;= <span class="number">0</span>) {
+                        nat_div - <span class="number">1
+                    </span>} <span class="kw">else </span>{
+                        nat_div
                     }
                 }
             }
-            <span class="ident">Modulo</span> =&gt; {
-                <span class="comment">// If b is 0 minecraft throws an exception and does nothing to a</span>
-                <span class="kw">if</span> <span class="ident">rhs</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="ident">lhs</span>
-                } <span class="kw">else</span> {
-                    <span class="comment">// Minecraft rounds towards -infinity, while rust rounds towards 0</span>
-                    <span class="ident">lhs</span>.<span class="ident">checked_rem</span>(<span class="ident">rhs</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>).<span class="ident">abs</span>()
+            Modulo =&gt; {
+                <span class="comment">// If b is 0 minecraft throws an exception and does nothing to a
+                </span><span class="kw">if </span>rhs == <span class="number">0 </span>{
+                    lhs
+                } <span class="kw">else </span>{
+                    <span class="comment">// Minecraft rounds towards -infinity, while rust rounds towards 0
+                    </span>lhs.checked_rem(rhs).unwrap_or(<span class="number">0</span>).abs()
                 }
             }
         }
     }
 }
 
-<span class="doccomment">/// Any comparison that can be executed on two scoreboard values</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ScoreboardComparison</span> {
-    <span class="ident">Equal</span>,
-    <span class="ident">NotEqual</span>,
-    <span class="ident">Greater</span>,
-    <span class="ident">GreaterOrEqual</span>,
-    <span class="ident">Less</span>,
-    <span class="ident">LessOrEqual</span>,
+<span class="doccomment">/// Any comparison that can be executed on two scoreboard values
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+</span><span class="kw">pub enum </span>ScoreboardComparison {
+    Equal,
+    NotEqual,
+    Greater,
+    GreaterOrEqual,
+    Less,
+    LessOrEqual,
 }
 
-<span class="kw">impl</span> <span class="ident">ScoreboardComparison</span> {
-    <span class="doccomment">/// Flips the comparison (converts OP such that `a OP b == b OP.flip_sides() a`)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flip_sides</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ScoreboardComparison</span> {
-        <span class="kw">use</span> <span class="ident">ScoreboardComparison</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Equal</span> =&gt; <span class="ident">Equal</span>,
-            <span class="ident">NotEqual</span> =&gt; <span class="ident">NotEqual</span>,
-            <span class="ident">Greater</span> =&gt; <span class="ident">Less</span>,
-            <span class="ident">GreaterOrEqual</span> =&gt; <span class="ident">LessOrEqual</span>,
-            <span class="ident">Less</span> =&gt; <span class="ident">Greater</span>,
-            <span class="ident">LessOrEqual</span> =&gt; <span class="ident">GreaterOrEqual</span>,
+<span class="kw">impl </span>ScoreboardComparison {
+    <span class="doccomment">/// Flips the comparison (converts OP such that `a OP b == b OP.flip_sides() a`)
+    </span><span class="kw">pub fn </span>flip_sides(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ScoreboardComparison {
+        <span class="kw">use </span>ScoreboardComparison::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Equal =&gt; Equal,
+            NotEqual =&gt; NotEqual,
+            Greater =&gt; Less,
+            GreaterOrEqual =&gt; LessOrEqual,
+            Less =&gt; Greater,
+            LessOrEqual =&gt; GreaterOrEqual,
         }
     }
 
-    <span class="doccomment">/// Inverts the comparison, such that it is exactly and only then true</span>
-    <span class="doccomment">/// when the original comparison is false</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ScoreboardComparison</span> {
-        <span class="kw">use</span> <span class="ident">ScoreboardComparison</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Equal</span> =&gt; <span class="ident">NotEqual</span>,
-            <span class="ident">NotEqual</span> =&gt; <span class="ident">Equal</span>,
-            <span class="ident">Greater</span> =&gt; <span class="ident">LessOrEqual</span>,
-            <span class="ident">GreaterOrEqual</span> =&gt; <span class="ident">Less</span>,
-            <span class="ident">Less</span> =&gt; <span class="ident">GreaterOrEqual</span>,
-            <span class="ident">LessOrEqual</span> =&gt; <span class="ident">Greater</span>,
+    <span class="doccomment">/// Inverts the comparison, such that it is exactly and only then true
+    /// when the original comparison is false
+    </span><span class="kw">pub fn </span>invert(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ScoreboardComparison {
+        <span class="kw">use </span>ScoreboardComparison::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Equal =&gt; NotEqual,
+            NotEqual =&gt; Equal,
+            Greater =&gt; LessOrEqual,
+            GreaterOrEqual =&gt; Less,
+            Less =&gt; GreaterOrEqual,
+            LessOrEqual =&gt; Greater,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lhs</span>: <span class="ident">i32</span>, <span class="ident">rhs</span>: <span class="ident">i32</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">use</span> <span class="ident">ScoreboardComparison</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Equal</span> =&gt; <span class="ident">lhs</span> <span class="op">==</span> <span class="ident">rhs</span>,
-            <span class="ident">NotEqual</span> =&gt; <span class="ident">lhs</span> <span class="op">!</span><span class="op">=</span> <span class="ident">rhs</span>,
-            <span class="ident">Greater</span> =&gt; <span class="ident">lhs</span> <span class="op">&gt;</span> <span class="ident">rhs</span>,
-            <span class="ident">GreaterOrEqual</span> =&gt; <span class="ident">lhs</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">rhs</span>,
-            <span class="ident">Less</span> =&gt; <span class="ident">lhs</span> <span class="op">&lt;</span> <span class="ident">rhs</span>,
-            <span class="ident">LessOrEqual</span> =&gt; <span class="ident">lhs</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">rhs</span>,
+    <span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, lhs: i32, rhs: i32) -&gt; bool {
+        <span class="kw">use </span>ScoreboardComparison::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Equal =&gt; lhs == rhs,
+            NotEqual =&gt; lhs != rhs,
+            Greater =&gt; lhs &gt; rhs,
+            GreaterOrEqual =&gt; lhs &gt;= rhs,
+            Less =&gt; lhs &lt; rhs,
+            LessOrEqual =&gt; lhs &lt;= rhs,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ScoreboardComparison::Equal</span> =&gt; <span class="string">&quot;==&quot;</span>,
-            <span class="ident">ScoreboardComparison::NotEqual</span> =&gt; <span class="string">&quot;!=&quot;</span>,
-            <span class="ident">ScoreboardComparison::Greater</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
-            <span class="ident">ScoreboardComparison::GreaterOrEqual</span> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
-            <span class="ident">ScoreboardComparison::Less</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
-            <span class="ident">ScoreboardComparison::LessOrEqual</span> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
+    <span class="kw">pub fn </span>str_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            ScoreboardComparison::Equal =&gt; <span class="string">&quot;==&quot;</span>,
+            ScoreboardComparison::NotEqual =&gt; <span class="string">&quot;!=&quot;</span>,
+            ScoreboardComparison::Greater =&gt; <span class="string">&quot;&gt;&quot;</span>,
+            ScoreboardComparison::GreaterOrEqual =&gt; <span class="string">&quot;&gt;=&quot;</span>,
+            ScoreboardComparison::Less =&gt; <span class="string">&quot;&lt;&quot;</span>,
+            ScoreboardComparison::LessOrEqual =&gt; <span class="string">&quot;&lt;=&quot;</span>,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

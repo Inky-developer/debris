@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/parser/src/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_parser/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_parser/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_parser/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/parser/src/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_parser/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1166,1168 +1160,1167 @@
 <span id="1160">1160</span>
 <span id="1161">1161</span>
 <span id="1162">1162</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ops::Deref</span>, <span class="ident">rc::Rc</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
+<span class="kw">use </span>std::{ops::Deref, rc::Rc};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">node</span>::{<span class="ident">Node</span>, <span class="ident">NodeChild</span>, <span class="ident">NodeId</span>, <span class="ident">NodeKind</span>},
-    <span class="ident">syntax_tree::SyntaxTree</span>,
-    <span class="ident">token</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">LocalSpan</span>,
+<span class="kw">use crate</span>::{
+    node::{Node, NodeChild, NodeId, NodeKind},
+    syntax_tree::SyntaxTree,
+    token::{Token, TokenKind},
+    LocalSpan,
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ast</span> {
-    <span class="kw">pub</span> <span class="ident">program</span>: <span class="ident">Program</span>,
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Ast {
+    <span class="kw">pub </span>program: Program,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">SyntaxTree</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Ast</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">tree</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">SyntaxTree</span><span class="op">&gt;</span>) -&gt; <span class="ident">Ast</span> {
-        <span class="kw">let</span> <span class="ident">root_node</span> <span class="op">=</span> <span class="ident">AstNode::new</span>(
-            <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">tree</span>),
-            <span class="ident">tree</span>.<span class="ident">root</span>.<span class="ident">expect</span>(<span class="string">&quot;Tree must be initialized&quot;</span>),
+<span class="kw">impl </span>From&lt;Rc&lt;SyntaxTree&gt;&gt; <span class="kw">for </span>Ast {
+    <span class="kw">fn </span>from(tree: Rc&lt;SyntaxTree&gt;) -&gt; Ast {
+        <span class="kw">let </span>root_node = AstNode::new(
+            Rc::clone(<span class="kw-2">&amp;</span>tree),
+            tree.root.expect(<span class="string">&quot;Tree must be initialized&quot;</span>),
         );
-        <span class="kw">let</span> <span class="ident">program</span> <span class="op">=</span> <span class="ident">Program</span>(<span class="ident">root_node</span>);
-        <span class="ident">Ast</span> { <span class="ident">program</span> }
+        <span class="kw">let </span>program = Program(root_node);
+        Ast { program }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AstNode</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">AstNodeInner</span><span class="op">&gt;</span>);
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>AstNode(Rc&lt;AstNodeInner&gt;);
 
-<span class="kw">impl</span> <span class="ident">AstNode</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">syntax_tree</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">SyntaxTree</span><span class="op">&gt;</span>, <span class="ident">syntax_node</span>: <span class="ident">NodeId</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">AstNode</span>(<span class="ident">Rc::new</span>(<span class="ident">AstNodeInner</span> {
-            <span class="ident">syntax_tree</span>,
-            <span class="ident">syntax_node</span>,
+<span class="kw">impl </span>AstNode {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(syntax_tree: Rc&lt;SyntaxTree&gt;, syntax_node: NodeId) -&gt; <span class="self">Self </span>{
+        AstNode(Rc::new(AstNodeInner {
+            syntax_tree,
+            syntax_node,
         }))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_token</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AstToken</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">tokens</span>().<span class="ident">next</span>()
+    <span class="kw">pub fn </span>find_token&lt;T: AstToken + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.tokens().next()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tokens</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AstToken</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">all_tokens</span>().<span class="ident">filter_map</span>(<span class="ident">T::from_token</span>)
+    <span class="kw">pub fn </span>tokens&lt;T: AstToken + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = T&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.all_tokens().filter_map(T::from_token)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Token</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">all_children</span>().<span class="ident">filter_map</span>(<span class="ident">AstNodeOrToken::token</span>)
+    <span class="kw">pub fn </span>all_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Token&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.all_children().filter_map(AstNodeOrToken::token)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_node</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AstItem</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">nodes</span>().<span class="ident">next</span>()
+    <span class="kw">pub fn </span>find_node&lt;T: AstItem + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.nodes().next()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nodes</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AstItem</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">all_nodes</span>().<span class="ident">filter_map</span>(<span class="ident">T::from_node</span>)
+    <span class="kw">pub fn </span>nodes&lt;T: AstItem + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = T&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.all_nodes().filter_map(T::from_node)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_nodes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">AstNode</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">all_children</span>().<span class="ident">filter_map</span>(<span class="ident">AstNodeOrToken::node</span>)
+    <span class="kw">pub fn </span>all_nodes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = AstNode&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.all_children().filter_map(AstNodeOrToken::node)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">all_children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">AstNodeOrToken</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">syntax</span>().<span class="ident">children</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">child</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">child</span> {
-            <span class="ident">NodeChild::Token</span>(<span class="ident">token</span>) =&gt; <span class="ident">AstNodeOrToken::Token</span>(<span class="kw-2">*</span><span class="ident">token</span>),
-            <span class="ident">NodeChild::Node</span>(<span class="ident">node_id</span>) =&gt; {
-                <span class="ident">AstNodeOrToken::Node</span>(<span class="ident">AstNode::new</span>(<span class="self">self</span>.<span class="ident">syntax_tree</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">node_id</span>))
+    <span class="kw">pub fn </span>all_children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = AstNodeOrToken&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.syntax().children.iter().map(|child| <span class="kw">match </span>child {
+            NodeChild::Token(token) =&gt; AstNodeOrToken::Token(<span class="kw-2">*</span>token),
+            NodeChild::Node(node_id) =&gt; {
+                AstNodeOrToken::Node(AstNode::new(<span class="self">self</span>.syntax_tree.clone(), <span class="kw-2">*</span>node_id))
             }
         })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">AstNode</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">AstNodeInner</span>;
+<span class="kw">impl </span>Deref <span class="kw">for </span>AstNode {
+    <span class="kw">type </span>Target = AstNodeInner;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>()
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AstNodeInner</span> {
-    <span class="kw">pub</span> <span class="ident">syntax_tree</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">SyntaxTree</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">syntax_node</span>: <span class="ident">NodeId</span>,
+<span class="kw">pub struct </span>AstNodeInner {
+    <span class="kw">pub </span>syntax_tree: Rc&lt;SyntaxTree&gt;,
+    <span class="kw">pub </span>syntax_node: NodeId,
 }
 
-<span class="kw">impl</span> <span class="ident">AstNodeInner</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">syntax</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Node</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">syntax_tree</span>[<span class="self">self</span>.<span class="ident">syntax_node</span>]
+<span class="kw">impl </span>AstNodeInner {
+    <span class="kw">pub fn </span>syntax(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Node {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.syntax_tree[<span class="self">self</span>.syntax_node]
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">AstNodeInner</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">syntax</span>(), <span class="ident">f</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>AstNodeInner {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.syntax(), f)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AstNodeOrToken</span> {
-    <span class="ident">Token</span>(<span class="ident">Token</span>),
-    <span class="ident">Node</span>(<span class="ident">AstNode</span>),
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>AstNodeOrToken {
+    Token(Token),
+    Node(AstNode),
 }
 
-<span class="kw">impl</span> <span class="ident">AstNodeOrToken</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">token</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AstNodeOrToken::Node</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">AstNodeOrToken::Token</span>(<span class="ident">token</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">token</span>),
+<span class="kw">impl </span>AstNodeOrToken {
+    <span class="kw">pub fn </span>token(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            AstNodeOrToken::Node(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            AstNodeOrToken::Token(token) =&gt; <span class="prelude-val">Some</span>(token),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">node</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AstNode</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AstNodeOrToken::Node</span>(<span class="ident">node</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">node</span>),
-            <span class="ident">AstNodeOrToken::Token</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>node(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            AstNodeOrToken::Node(node) =&gt; <span class="prelude-val">Some</span>(node),
+            AstNodeOrToken::Token(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LocalSpan</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AstNodeOrToken::Node</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">span</span>,
-            <span class="ident">AstNodeOrToken::Token</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AstNodeOrToken</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">AstNodeOrToken::Token</span>(<span class="ident">token</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AstNode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AstNodeOrToken</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">AstNodeOrToken::Node</span>(<span class="ident">node</span>)
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AstItem</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span>;
-}
-
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AstToken</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span>;
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Program</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Program</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Root</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Program</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Statement</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AttributeList</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">AttributeList</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::AttributeList</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">AttributeList</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Expression</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Struct</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Struct</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::StructDef</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Struct</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variables</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StructVars</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">items</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Function</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StructVars</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">StructVars</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::StructVariables</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">StructVars</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vars</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">StructVar</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StructVar</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">StructVar</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::StructVar</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">StructVar</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Path</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Function</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Function</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">attributes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AttributeList</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ComptimeToken</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">param_declaration_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ParamListDecl</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ret_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pattern</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Block</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParamListDecl</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">ParamListDecl</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::ParamListDeclaration</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">ParamListDecl</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">declarations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ParamDecl</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParamDecl</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">ParamDecl</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::ParamDeclaration</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">ParamDecl</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lhs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pattern</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rhs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pattern</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>().<span class="ident">nth</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Module</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Module</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Module</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Module</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Block</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Import</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Import</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Import</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Import</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Path</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Block</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Block</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Block</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Block</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Statement</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Statement</span> {
-    <span class="ident">Assignment</span>(<span class="ident">Assignment</span>),
-    <span class="ident">Block</span>(<span class="ident">Block</span>),
-    <span class="ident">Branch</span>(<span class="ident">Branch</span>),
-    <span class="ident">Expression</span>(<span class="ident">Expression</span>),
-    <span class="ident">Function</span>(<span class="ident">Function</span>),
-    <span class="ident">Import</span>(<span class="ident">Import</span>),
-    <span class="ident">InfLoop</span>(<span class="ident">InfLoop</span>),
-    <span class="ident">Module</span>(<span class="ident">Module</span>),
-    <span class="ident">Update</span>(<span class="ident">Update</span>),
-    <span class="ident">Struct</span>(<span class="ident">Struct</span>),
-    <span class="ident">WhileLoop</span>(<span class="ident">WhileLoop</span>),
-}
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Statement</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NodeKind::Statement</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        }
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">node</span>
-            .<span class="ident">find_node</span>()
-            .<span class="ident">map</span>(<span class="ident">Statement::Assignment</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Block</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Update</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Expression</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::InfLoop</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::WhileLoop</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Function</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Module</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Import</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Branch</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Statement::Struct</span>))
-            .<span class="ident">unwrap</span>();
-        <span class="prelude-val">Some</span>(<span class="ident">value</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Statement::Assignment</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Block</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Branch</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Expression</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Function</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Import</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::InfLoop</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Module</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Update</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::Struct</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Statement::WhileLoop</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LocalSpan {
+        <span class="kw">match </span><span class="self">self </span>{
+            AstNodeOrToken::Node(node) =&gt; node.syntax().span,
+            AstNodeOrToken::Token(token) =&gt; token.span,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Branch</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Branch</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Branch</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-            .<span class="ident">all_tokens</span>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::KwComptime</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Block</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">else_branch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BranchElse</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
+<span class="kw">impl </span>From&lt;Token&gt; <span class="kw">for </span>AstNodeOrToken {
+    <span class="kw">fn </span>from(token: Token) -&gt; <span class="self">Self </span>{
+        AstNodeOrToken::Token(token)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BranchElse</span> {
-    <span class="ident">Block</span>(<span class="ident">Block</span>),
-    <span class="ident">Branch</span>(<span class="ident">Branch</span>),
+<span class="kw">impl </span>From&lt;AstNode&gt; <span class="kw">for </span>AstNodeOrToken {
+    <span class="kw">fn </span>from(node: AstNode) -&gt; <span class="self">Self </span>{
+        AstNodeOrToken::Node(node)
+    }
 }
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">BranchElse</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NodeKind::BranchElse</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+
+<span class="kw">pub trait </span>AstItem: Sized {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken;
+}
+
+<span class="kw">pub trait </span>AstToken: Sized {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token;
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Program(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Program {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Root).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Program {
+    <span class="kw">pub fn </span>statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Statement&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>AttributeList(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>AttributeList {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::AttributeList).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>AttributeList {
+    <span class="kw">pub fn </span>attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Expression&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Struct(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Struct {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::StructDef).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Struct {
+    <span class="kw">pub fn </span>ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ident&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_token()
+    }
+
+    <span class="kw">pub fn </span>variables(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;StructVars&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
+    }
+
+    <span class="kw">pub fn </span>items(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Function&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>StructVars(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>StructVars {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::StructVariables).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>StructVars {
+    <span class="kw">pub fn </span>vars(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = StructVar&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>StructVar(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>StructVar {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::StructVar).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>StructVar {
+    <span class="kw">pub fn </span>ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ident {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
+    }
+
+    <span class="kw">pub fn </span>typ(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Path {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Function(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Function {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Function).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Function {
+    <span class="kw">pub fn </span>attributes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AttributeList&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
+    }
+
+    <span class="kw">pub fn </span>comptime_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ComptimeToken&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_token()
+    }
+
+    <span class="kw">pub fn </span>ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ident&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_token()
+    }
+
+    <span class="kw">pub fn </span>param_declaration_list(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ParamListDecl {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+
+    <span class="kw">pub fn </span>ret_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pattern&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
+    }
+
+    <span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Block {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ParamListDecl(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>ParamListDecl {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::ParamListDeclaration).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>ParamListDecl {
+    <span class="kw">pub fn </span>declarations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = ParamDecl&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ParamDecl(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>ParamDecl {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::ParamDeclaration).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>ParamDecl {
+    <span class="kw">pub fn </span>lhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pattern {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+
+    <span class="kw">pub fn </span>rhs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pattern {
+        <span class="self">self</span>.<span class="number">0</span>.nodes().nth(<span class="number">1</span>).unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Module(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Module {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Module).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Module {
+    <span class="kw">pub fn </span>ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ident {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
+    }
+
+    <span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Block {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Import(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Import {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Import).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Import {
+    <span class="kw">pub fn </span>ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Path {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Block(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Block {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Block).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Block {
+    <span class="kw">pub fn </span>statements(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Statement&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+
+    <span class="kw">pub fn </span>last_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Expression&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Statement {
+    Assignment(Assignment),
+    Block(Block),
+    Branch(Branch),
+    Expression(Expression),
+    Function(Function),
+    Import(Import),
+    InfLoop(InfLoop),
+    Module(Module),
+    Update(Update),
+    Struct(Struct),
+    WhileLoop(WhileLoop),
+}
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Statement {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>node.syntax().kind != NodeKind::Statement {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
-        <span class="ident">node</span>.<span class="ident">find_node</span>()
-            .<span class="ident">map</span>(<span class="ident">BranchElse::Block</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">BranchElse::Branch</span>))
+        <span class="kw">let </span>value = node
+            .find_node()
+            .map(Statement::Assignment)
+            .or_else(|| node.find_node().map(Statement::Block))
+            .or_else(|| node.find_node().map(Statement::Update))
+            .or_else(|| node.find_node().map(Statement::Expression))
+            .or_else(|| node.find_node().map(Statement::InfLoop))
+            .or_else(|| node.find_node().map(Statement::WhileLoop))
+            .or_else(|| node.find_node().map(Statement::Function))
+            .or_else(|| node.find_node().map(Statement::Module))
+            .or_else(|| node.find_node().map(Statement::Import))
+            .or_else(|| node.find_node().map(Statement::Branch))
+            .or_else(|| node.find_node().map(Statement::Struct))
+            .unwrap();
+        <span class="prelude-val">Some</span>(value)
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">BranchElse::Block</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">BranchElse::Branch</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="kw">match </span><span class="self">self </span>{
+            Statement::Assignment(node) =&gt; node.to_item(),
+            Statement::Block(node) =&gt; node.to_item(),
+            Statement::Branch(node) =&gt; node.to_item(),
+            Statement::Expression(node) =&gt; node.to_item(),
+            Statement::Function(node) =&gt; node.to_item(),
+            Statement::Import(node) =&gt; node.to_item(),
+            Statement::InfLoop(node) =&gt; node.to_item(),
+            Statement::Module(node) =&gt; node.to_item(),
+            Statement::Update(node) =&gt; node.to_item(),
+            Statement::Struct(node) =&gt; node.to_item(),
+            Statement::WhileLoop(node) =&gt; node.to_item(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfLoop</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">InfLoop</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::InfLoop</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Branch(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Branch {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Branch).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">InfLoop</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Block</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WhileLoop</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">WhileLoop</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::WhileLoop</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="kw">impl </span>Branch {
+    <span class="kw">pub fn </span>comptime_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
+        <span class="self">self</span>.<span class="number">0
+            </span>.all_tokens()
+            .find(|token| token.kind == TokenKind::KwComptime)
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">WhileLoop</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Block</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Block {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+
+    <span class="kw">pub fn </span>else_branch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BranchElse&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Assignment</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Assignment</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Assignment</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>BranchElse {
+    Block(Block),
+    Branch(Branch),
 }
-<span class="kw">impl</span> <span class="ident">Assignment</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assign_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AssignMode</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
+<span class="kw">impl </span>AstItem <span class="kw">for </span>BranchElse {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>node.syntax().kind != NodeKind::BranchElse {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+        node.find_node()
+            .map(BranchElse::Block)
+            .or_else(|| node.find_node().map(BranchElse::Branch))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pattern</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="kw">match </span><span class="self">self </span>{
+            BranchElse::Block(node) =&gt; node.to_item(),
+            BranchElse::Branch(node) =&gt; node.to_item(),
+        }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignMode</span> {
-    <span class="ident">Let</span>(<span class="ident">Token</span>),
-    <span class="ident">Comptime</span>(<span class="ident">Token</span>),
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>InfLoop(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>InfLoop {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::InfLoop).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
 }
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">AssignMode</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span> {
-            <span class="ident">TokenKind::KwLet</span> =&gt; <span class="ident"><span class="self">Self</span>::Let</span>(<span class="ident">token</span>),
-            <span class="ident">TokenKind::KwComptime</span> =&gt; <span class="ident"><span class="self">Self</span>::Comptime</span>(<span class="ident">token</span>),
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+<span class="kw">impl </span>InfLoop {
+    <span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Block {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>WhileLoop(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>WhileLoop {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::WhileLoop).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>WhileLoop {
+    <span class="kw">pub fn </span>condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+
+    <span class="kw">pub fn </span>block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Block {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Assignment(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Assignment {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Assignment).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Assignment {
+    <span class="kw">pub fn </span>assign_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AssignMode {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
+    }
+
+    <span class="kw">pub fn </span>pattern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pattern {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+
+    <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>AssignMode {
+    Let(Token),
+    Comptime(Token),
+}
+<span class="kw">impl </span>AstToken <span class="kw">for </span>AssignMode {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span>token.kind {
+            TokenKind::KwLet =&gt; <span class="self">Self</span>::Let(token),
+            TokenKind::KwComptime =&gt; <span class="self">Self</span>::Comptime(token),
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="prelude-val">Some</span>(<span class="ident">value</span>)
+        <span class="prelude-val">Some</span>(value)
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AssignMode::Let</span>(<span class="ident">token</span>) <span class="op">|</span> <span class="ident">AssignMode::Comptime</span>(<span class="ident">token</span>) =&gt; <span class="kw-2">*</span><span class="ident">token</span>,
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="kw">match </span><span class="self">self </span>{
+            AssignMode::Let(token) | AssignMode::Comptime(token) =&gt; <span class="kw-2">*</span>token,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Update</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Update</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Update</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Update(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Update {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Update).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">Update</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pattern</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+<span class="kw">impl </span>Update {
+    <span class="kw">pub fn </span>pattern(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pattern {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AssignOperator</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AssignOperator {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssignOperator</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">AssignOperator</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">token</span>
-            .<span class="ident">kind</span>
-            .<span class="ident">assign_operator</span>()
-            .<span class="ident">is_some</span>()
-            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AssignOperator</span>(<span class="ident">token</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
+    <span class="kw">pub fn </span>expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Pattern</span> {
-    <span class="ident">Function</span>(<span class="ident">FunctionPattern</span>),
-    <span class="ident">Path</span>(<span class="ident">Path</span>),
-    <span class="ident">Tuple</span>(<span class="ident">TuplePattern</span>),
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>AssignOperator(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>AssignOperator {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        token
+            .kind
+            .assign_operator()
+            .is_some()
+            .then_some(AssignOperator(token))
+    }
+
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
 }
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NodeKind::Pattern</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Pattern {
+    Function(FunctionPattern),
+    Path(Path),
+    Tuple(TuplePattern),
+}
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Pattern {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>node.syntax().kind != NodeKind::Pattern {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
         }
 
-        <span class="ident">node</span>.<span class="ident">find_node</span>()
-            .<span class="ident">map</span>(<span class="ident">Pattern::Path</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Pattern::Function</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>).<span class="ident">map</span>(<span class="ident">Pattern::Tuple</span>))
+        node.find_node()
+            .map(Pattern::Path)
+            .or_else(|| node.find_node().map(Pattern::Function))
+            .or_else(|| AstItem::from_node(node).map(Pattern::Tuple))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Pattern::Function</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Pattern::Path</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Pattern::Tuple</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-        }
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TuplePattern</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">TuplePattern</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Pattern</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">TuplePattern</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sub_patterns</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Pattern</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionPattern</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">FunctionPattern</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::FunctionPattern</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">FunctionPattern</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FunctionPatternParams</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ret</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pattern</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionPatternParams</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">FunctionPatternParams</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::FunctionPatternParams</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">FunctionPatternParams</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">items</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Pattern</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Path</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Path</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NodeKind::Path</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        }
-
-        <span class="prelude-val">Some</span>(<span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Path</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">segments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Ident</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">tokens</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Expression</span> {
-    <span class="ident">InfixOp</span>(<span class="ident">InfixOp</span>),
-    <span class="ident">PrefixOp</span>(<span class="ident">PrefixOp</span>),
-    <span class="ident">PostfixOp</span>(<span class="ident">PostfixOp</span>),
-    <span class="ident">Value</span>(<span class="ident">Value</span>),
-}
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Expression</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">InfixOp::from_node</span>(<span class="ident">node</span>.<span class="ident">clone</span>())
-            .<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::InfixOp</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>.<span class="ident">clone</span>()).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::PrefixOp</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>.<span class="ident">clone</span>()).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::PostfixOp</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>.<span class="ident">clone</span>()).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Value</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Expression::InfixOp</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Expression::PrefixOp</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Expression::PostfixOp</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Expression::Value</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="kw">match </span><span class="self">self </span>{
+            Pattern::Function(node) =&gt; node.to_item(),
+            Pattern::Path(node) =&gt; node.to_item(),
+            Pattern::Tuple(node) =&gt; node.to_item(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfixOp</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">InfixOp</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::InfixOp</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>TuplePattern(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>TuplePattern {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Pattern).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">InfixOp</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>().<span class="ident">nth</span>(<span class="number">1</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">operator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InfixOperator</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>()
+<span class="kw">impl </span>TuplePattern {
+    <span class="kw">pub fn </span>sub_patterns(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Pattern&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PostfixOp</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">PostfixOp</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::PostfixOp</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>FunctionPattern(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>FunctionPattern {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::FunctionPattern).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">PostfixOp</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+<span class="kw">impl </span>FunctionPattern {
+    <span class="kw">pub fn </span>parameters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FunctionPatternParams {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PostfixOperator</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>ret(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pattern&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PostfixOperator</span> {
-    <span class="ident">ParamList</span>(<span class="ident">ParamList</span>),
-    <span class="ident">StructLiteral</span>(<span class="ident">StructLiteral</span>),
-}
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">PostfixOperator</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>.<span class="ident">clone</span>())
-            .<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::ParamList</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::StructLiteral</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>FunctionPatternParams(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>FunctionPatternParams {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::FunctionPatternParams).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PostfixOperator::ParamList</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">PostfixOperator::StructLiteral</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>FunctionPatternParams {
+    <span class="kw">pub fn </span>items(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Pattern&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Path(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Path {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>node.syntax().kind != NodeKind::Path {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+
+        <span class="prelude-val">Some</span>(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Path {
+    <span class="kw">pub fn </span>segments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Ident&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.tokens()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Expression {
+    InfixOp(InfixOp),
+    PrefixOp(PrefixOp),
+    PostfixOp(PostfixOp),
+    Value(Value),
+}
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Expression {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        InfixOp::from_node(node.clone())
+            .map(<span class="self">Self</span>::InfixOp)
+            .or_else(|| AstItem::from_node(node.clone()).map(<span class="self">Self</span>::PrefixOp))
+            .or_else(|| AstItem::from_node(node.clone()).map(<span class="self">Self</span>::PostfixOp))
+            .or_else(|| AstItem::from_node(node.clone()).map(<span class="self">Self</span>::Value))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="kw">match </span><span class="self">self </span>{
+            Expression::InfixOp(node) =&gt; node.to_item(),
+            Expression::PrefixOp(node) =&gt; node.to_item(),
+            Expression::PostfixOp(node) =&gt; node.to_item(),
+            Expression::Value(node) =&gt; node.to_item(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrefixOp</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">PrefixOp</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::PrefixOp</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>InfixOp(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>InfixOp {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::InfixOp).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">PrefixOp</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+<span class="kw">impl </span>InfixOp {
+    <span class="kw">pub fn </span>left(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.nodes().next().unwrap()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PrefixOperator</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrefixOperator</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">PrefixOperator</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">token</span>.<span class="ident">kind</span>.<span class="ident">prefix_operator</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
+    <span class="kw">pub fn </span>right(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Expression&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.nodes().nth(<span class="number">1</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
+    <span class="kw">pub fn </span>operator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;InfixOperator&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_token()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParamList</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">ParamList</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::ParamList</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PostfixOp(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>PostfixOp {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::PostfixOp).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">ParamList</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Expression</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lambda</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Value</span> {
-    <span class="ident">Block</span>(<span class="ident">Block</span>),
-    <span class="ident">Bool</span>(<span class="ident">Bool</span>),
-    <span class="ident">Branch</span>(<span class="ident">Branch</span>),
-    <span class="ident">ControlFlow</span>(<span class="ident">ControlFlowOperation</span>),
-    <span class="ident">FormatString</span>(<span class="ident">FormatString</span>),
-    <span class="ident">Function</span>(<span class="ident">Function</span>),
-    <span class="ident">Ident</span>(<span class="ident">Ident</span>),
-    <span class="ident">Int</span>(<span class="ident">Int</span>),
-    <span class="ident">InfLoop</span>(<span class="ident">InfLoop</span>),
-    <span class="ident">ParenthesisValue</span>(<span class="ident">ParensValue</span>),
-    <span class="ident">String</span>(<span class="ident">String</span>),
-    <span class="ident">Tuple</span>(<span class="ident">Tuple</span>),
-    <span class="ident">WhileLoop</span>(<span class="ident">WhileLoop</span>),
-}
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Value</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">!</span><span class="op">=</span> <span class="ident">NodeKind::Value</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        }
-
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">node</span>
-            .<span class="ident">find_node</span>()
-            .<span class="ident">map</span>(<span class="ident">Value::Block</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::Function</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::ParenthesisValue</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::Tuple</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::InfLoop</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::WhileLoop</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::ControlFlow</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::Branch</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_node</span>().<span class="ident">map</span>(<span class="ident">Value::FormatString</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_token</span>().<span class="ident">map</span>(<span class="ident">Value::Bool</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_token</span>().<span class="ident">map</span>(<span class="ident">Value::Int</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_token</span>().<span class="ident">map</span>(<span class="ident">Value::Ident</span>))
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">find_token</span>().<span class="ident">map</span>(<span class="ident">Value::String</span>))
-            .<span class="ident">unwrap</span>();
-
-        <span class="prelude-val">Some</span>(<span class="ident">value</span>)
+<span class="kw">impl </span>PostfixOp {
+    <span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Block</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::Bool</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">to_token</span>().<span class="ident">into</span>(),
-            <span class="ident">Value::Branch</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::ControlFlow</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::FormatString</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::Function</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::Ident</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">to_token</span>().<span class="ident">into</span>(),
-            <span class="ident">Value::Int</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">to_token</span>().<span class="ident">into</span>(),
-            <span class="ident">Value::InfLoop</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::ParenthesisValue</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::String</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">to_token</span>().<span class="ident">into</span>(),
-            <span class="ident">Value::Tuple</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
-            <span class="ident">Value::WhileLoop</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="ident">to_item</span>(),
+    <span class="kw">pub fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PostfixOperator {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>PostfixOperator {
+    ParamList(ParamList),
+    StructLiteral(StructLiteral),
+}
+<span class="kw">impl </span>AstItem <span class="kw">for </span>PostfixOperator {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        AstItem::from_node(node.clone())
+            .map(<span class="self">Self</span>::ParamList)
+            .or_else(|| AstItem::from_node(node).map(<span class="self">Self</span>::StructLiteral))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="kw">match </span><span class="self">self </span>{
+            PostfixOperator::ParamList(node) =&gt; node.to_item(),
+            PostfixOperator::StructLiteral(node) =&gt; node.to_item(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StructLiteral</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">StructLiteral</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::StructLiteral</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PrefixOp(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>PrefixOp {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::PrefixOp).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">StructLiteral</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">items</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">StructLiteralItem</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StructLiteralItem</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">StructLiteralItem</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::StructLiteralItem</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="kw">impl </span>PrefixOp {
+    <span class="kw">pub fn </span>expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">StructLiteralItem</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PrefixOperator {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ControlFlowOperation</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">ControlFlowOperation</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::ControlFlow</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>PrefixOperator(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>PrefixOperator {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        token.kind.prefix_operator().map(|<span class="kw">_</span>| <span class="self">Self</span>(token))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">ControlFlowOperation</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ControlFlowOperator</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_token</span>().<span class="ident">unwrap</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>()
-    }
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ControlFlowOperator</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">ControlFlowOperator</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">token</span>
-            .<span class="ident">kind</span>
-            .<span class="ident">control_flow_operator</span>()
-            .<span class="ident">is_some</span>()
-            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ParamList(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>ParamList {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::ParamList).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>ParamList {
+    <span class="kw">pub fn </span>arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Expression&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+
+    <span class="kw">pub fn </span>lambda(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Block&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParensValue</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">ParensValue</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::ParensValue</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Value {
+    Block(Block),
+    Bool(Bool),
+    Branch(Branch),
+    ControlFlow(ControlFlowOperation),
+    FormatString(FormatString),
+    Function(Function),
+    Ident(Ident),
+    Int(Int),
+    InfLoop(InfLoop),
+    ParenthesisValue(ParensValue),
+    String(String),
+    Tuple(Tuple),
+    WhileLoop(WhileLoop),
 }
-<span class="kw">impl</span> <span class="ident">ParensValue</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">find_node</span>().<span class="ident">unwrap</span>()
-    }
-}
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Value {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>node.syntax().kind != NodeKind::Value {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tuple</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">Tuple</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::Tuple</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
-    }
+        <span class="kw">let </span>value = node
+            .find_node()
+            .map(Value::Block)
+            .or_else(|| node.find_node().map(Value::Function))
+            .or_else(|| node.find_node().map(Value::ParenthesisValue))
+            .or_else(|| node.find_node().map(Value::Tuple))
+            .or_else(|| node.find_node().map(Value::InfLoop))
+            .or_else(|| node.find_node().map(Value::WhileLoop))
+            .or_else(|| node.find_node().map(Value::ControlFlow))
+            .or_else(|| node.find_node().map(Value::Branch))
+            .or_else(|| node.find_node().map(Value::FormatString))
+            .or_else(|| node.find_token().map(Value::Bool))
+            .or_else(|| node.find_token().map(Value::Int))
+            .or_else(|| node.find_token().map(Value::Ident))
+            .or_else(|| node.find_token().map(Value::String))
+            .unwrap();
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
-    }
-}
-<span class="kw">impl</span> <span class="ident">Tuple</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">items</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Expression</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">nodes</span>()
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Int</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">Int</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::Int</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
+        <span class="prelude-val">Some</span>(value)
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ident</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::Ident</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">String</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">String</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::String</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="kw">match </span><span class="self">self </span>{
+            Value::Block(node) =&gt; node.to_item(),
+            Value::Bool(token) =&gt; token.to_token().into(),
+            Value::Branch(node) =&gt; node.to_item(),
+            Value::ControlFlow(node) =&gt; node.to_item(),
+            Value::FormatString(node) =&gt; node.to_item(),
+            Value::Function(node) =&gt; node.to_item(),
+            Value::Ident(token) =&gt; token.to_token().into(),
+            Value::Int(token) =&gt; token.to_token().into(),
+            Value::InfLoop(node) =&gt; node.to_item(),
+            Value::ParenthesisValue(node) =&gt; node.to_item(),
+            Value::String(token) =&gt; token.to_token().into(),
+            Value::Tuple(node) =&gt; node.to_item(),
+            Value::WhileLoop(node) =&gt; node.to_item(),
+        }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormatString</span>(<span class="ident">AstNode</span>);
-<span class="kw">impl</span> <span class="ident">AstItem</span> <span class="kw">for</span> <span class="ident">FormatString</span> {
-    <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="ident">AstNode</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">node</span>.<span class="ident">syntax</span>().<span class="ident">kind</span> <span class="op">==</span> <span class="ident">NodeKind::FormatString</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">node</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>StructLiteral(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>StructLiteral {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::StructLiteral).then_some(<span class="self">Self</span>(node))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AstNodeOrToken</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>().<span class="ident">into</span>()
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
     }
 }
-<span class="kw">impl</span> <span class="ident">FormatString</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">components</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">FormatStringComponent</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">all_children</span>().<span class="ident">filter_map</span>(<span class="ident">FormatStringComponent::new</span>)
+<span class="kw">impl </span>StructLiteral {
+    <span class="kw">pub fn </span>items(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = StructLiteralItem&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FormatStringComponent</span> {
-    <span class="ident">EscapedChar</span>(<span class="ident">Token</span>),
-    <span class="ident">Path</span>(<span class="ident">Path</span>),
-    <span class="ident">StringInner</span>(<span class="ident">Token</span>),
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>StructLiteralItem(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>StructLiteralItem {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::StructLiteralItem).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
 }
-<span class="kw">impl</span> <span class="ident">FormatStringComponent</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">item</span>: <span class="ident">AstNodeOrToken</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">item</span> {
-            <span class="ident">AstNodeOrToken::Node</span>(<span class="ident">node</span>) =&gt; <span class="ident">AstItem::from_node</span>(<span class="ident">node</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Path</span>),
-            <span class="ident">AstNodeOrToken::Token</span>(<span class="ident">token</span>) <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::EscapedChar</span> =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::EscapedChar</span>(<span class="ident">token</span>))
+<span class="kw">impl </span>StructLiteralItem {
+    <span class="kw">pub fn </span>ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ident {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
+    }
+
+    <span class="kw">pub fn </span>expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ControlFlowOperation(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>ControlFlowOperation {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::ControlFlow).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>ControlFlowOperation {
+    <span class="kw">pub fn </span>op(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ControlFlowOperator {
+        <span class="self">self</span>.<span class="number">0</span>.find_token().unwrap()
+    }
+
+    <span class="kw">pub fn </span>expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Expression&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.find_node()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ControlFlowOperator(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>ControlFlowOperator {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        token
+            .kind
+            .control_flow_operator()
+            .is_some()
+            .then_some(<span class="self">Self</span>(token))
+    }
+
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ParensValue(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>ParensValue {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::ParensValue).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>ParensValue {
+    <span class="kw">pub fn </span>expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Expression {
+        <span class="self">self</span>.<span class="number">0</span>.find_node().unwrap()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Tuple(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>Tuple {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::Tuple).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>Tuple {
+    <span class="kw">pub fn </span>items(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Expression&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.nodes()
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Int(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>Int {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (token.kind == TokenKind::Int).then_some(<span class="self">Self</span>(token))
+    }
+
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Ident(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>Ident {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (token.kind == TokenKind::Ident).then_some(<span class="self">Self</span>(token))
+    }
+
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>String(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>String {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (token.kind == TokenKind::String).then_some(<span class="self">Self</span>(token))
+    }
+
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>FormatString(AstNode);
+<span class="kw">impl </span>AstItem <span class="kw">for </span>FormatString {
+    <span class="kw">fn </span>from_node(node: AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (node.syntax().kind == NodeKind::FormatString).then_some(<span class="self">Self</span>(node))
+    }
+
+    <span class="kw">fn </span>to_item(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AstNodeOrToken {
+        <span class="self">self</span>.<span class="number">0</span>.clone().into()
+    }
+}
+<span class="kw">impl </span>FormatString {
+    <span class="kw">pub fn </span>components(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = FormatStringComponent&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.<span class="number">0</span>.all_children().filter_map(FormatStringComponent::new)
+    }
+}
+
+<span class="kw">pub enum </span>FormatStringComponent {
+    EscapedChar(Token),
+    Path(Path),
+    StringInner(Token),
+}
+<span class="kw">impl </span>FormatStringComponent {
+    <span class="kw">pub fn </span>new(item: AstNodeOrToken) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>item {
+            AstNodeOrToken::Node(node) =&gt; AstItem::from_node(node).map(<span class="self">Self</span>::Path),
+            AstNodeOrToken::Token(token) <span class="kw">if </span>token.kind == TokenKind::EscapedChar =&gt; {
+                <span class="prelude-val">Some</span>(<span class="self">Self</span>::EscapedChar(token))
             }
-            <span class="ident">AstNodeOrToken::Token</span>(<span class="ident">token</span>) <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::StringInner</span> =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::StringInner</span>(<span class="ident">token</span>))
+            AstNodeOrToken::Token(token) <span class="kw">if </span>token.kind == TokenKind::StringInner =&gt; {
+                <span class="prelude-val">Some</span>(<span class="self">Self</span>::StringInner(token))
             }
-            <span class="ident">AstNodeOrToken::Token</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            AstNodeOrToken::Token(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Bool</span> {
-    <span class="ident">True</span>(<span class="ident">Token</span>),
-    <span class="ident">False</span>(<span class="ident">Token</span>),
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Bool {
+    True(Token),
+    False(Token),
 }
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">Bool</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span> {
-            <span class="ident">TokenKind::BoolTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bool::True</span>(<span class="ident">token</span>)),
-            <span class="ident">TokenKind::BoolFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Bool::False</span>(<span class="ident">token</span>)),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl </span>AstToken <span class="kw">for </span>Bool {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">match </span>token.kind {
+            TokenKind::BoolTrue =&gt; <span class="prelude-val">Some</span>(Bool::True(token)),
+            TokenKind::BoolFalse =&gt; <span class="prelude-val">Some</span>(Bool::False(token)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Bool::True</span>(<span class="ident">token</span>) <span class="op">|</span> <span class="ident">Bool::False</span>(<span class="ident">token</span>) =&gt; <span class="kw-2">*</span><span class="ident">token</span>,
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="kw">match </span><span class="self">self </span>{
+            Bool::True(token) | Bool::False(token) =&gt; <span class="kw-2">*</span>token,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ComptimeToken</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">ComptimeToken</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        (<span class="ident">token</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">TokenKind::KwComptime</span>).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
+<span class="kw">pub struct </span>ComptimeToken(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>ComptimeToken {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        (token.kind == TokenKind::KwComptime).then_some(<span class="self">Self</span>(token))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfixOperator</span>(<span class="ident">Token</span>);
-<span class="kw">impl</span> <span class="ident">AstToken</span> <span class="kw">for</span> <span class="ident">InfixOperator</span> {
-    <span class="kw">fn</span> <span class="ident">from_token</span>(<span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">token</span>.<span class="ident">kind</span>.<span class="ident">infix_operator</span>().<span class="ident">is_some</span>().<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">token</span>))
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>InfixOperator(Token);
+<span class="kw">impl </span>AstToken <span class="kw">for </span>InfixOperator {
+    <span class="kw">fn </span>from_token(token: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        token.kind.infix_operator().is_some().then_some(<span class="self">Self</span>(token))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_token</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Token</span> {
-        <span class="self">self</span>.<span class="number">0</span>
-    }
+    <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Token {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">proptest::prelude</span>::<span class="kw-2">*</span>;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>proptest::prelude::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">parser::parse</span>, <span class="ident">syntax_tree::SyntaxTree</span>};
+    <span class="kw">use crate</span>::{parser::parse, syntax_tree::SyntaxTree};
 
-    <span class="macro">prop_compose!</span> {
-        <span class="kw">fn</span> <span class="ident">ast</span>()(<span class="ident">s</span> <span class="kw">in</span> <span class="string">&quot;\\PC*&quot;</span>) -&gt; (<span class="ident">String</span>, <span class="ident">SyntaxTree</span>) {
-            <span class="kw">let</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>);
-            (<span class="ident">s</span>, <span class="ident">ast</span>)
+    <span class="macro">prop_compose! </span>{
+        <span class="kw">fn </span>ast()(s <span class="kw">in </span><span class="string">&quot;\\PC*&quot;</span>) -&gt; (String, SyntaxTree) {
+            <span class="kw">let </span>ast = parse(<span class="kw-2">&amp;</span>s);
+            (s, ast)
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

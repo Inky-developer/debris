@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_bool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_bool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_bool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_bool.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -229,231 +223,230 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">function_interface::make_overload</span>,
-    <span class="ident">impl_class</span>,
-    <span class="ident">item_id::ItemId</span>,
-    <span class="ident">json_format::JsonFormatComponent</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>},
-    <span class="ident">memory</span>::{<span class="ident">copy</span>, <span class="ident">MemoryLayout</span>},
-    <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
-    <span class="ident">objects::obj_bool_static::ObjStaticBool</span>,
-    <span class="ident">ObjectPayload</span>, <span class="ident">Type</span>,
+<span class="kw">use crate</span>::{
+    function_interface::make_overload,
+    impl_class,
+    item_id::ItemId,
+    json_format::JsonFormatComponent,
+    llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
+    memory::{copy, MemoryLayout},
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+    objects::obj_bool_static::ObjStaticBool,
+    ObjectPayload, Type,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::obj_function::FunctionContext</span>;
+<span class="kw">use </span><span class="kw">super</span>::obj_function::FunctionContext;
 
-<span class="doccomment">/// Returns the boolean or-ed with the static value</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">or_static</span>(<span class="ident">item_id</span>: <span class="ident">ItemId</span>, <span class="ident">bool</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">value</span>: <span class="ident">bool</span>) -&gt; (<span class="ident">Node</span>, <span class="ident">ObjBool</span>) {
+<span class="doccomment">/// Returns the boolean or-ed with the static value
+</span><span class="kw">pub fn </span>or_static(item_id: ItemId, bool: <span class="kw-2">&amp;</span>ObjBool, value: bool) -&gt; (Node, ObjBool) {
     (
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="bool-val">false</span> =&gt; <span class="ident">copy</span>(<span class="ident">item_id</span>, <span class="ident">bool</span>.<span class="ident">id</span>),
-            <span class="bool-val">true</span> =&gt; <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+        <span class="kw">match </span>value {
+            <span class="bool-val">false </span>=&gt; copy(item_id, bool.id),
+            <span class="bool-val">true </span>=&gt; Node::FastStore(FastStore {
+                id: item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
         },
-        <span class="ident">ObjBool::new</span>(<span class="ident">item_id</span>),
+        ObjBool::new(item_id),
     )
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">and_static</span>(<span class="ident">item_id</span>: <span class="ident">ItemId</span>, <span class="ident">bool</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">value</span>: <span class="ident">bool</span>) -&gt; (<span class="ident">Node</span>, <span class="ident">ObjBool</span>) {
+<span class="kw">pub fn </span>and_static(item_id: ItemId, bool: <span class="kw-2">&amp;</span>ObjBool, value: bool) -&gt; (Node, ObjBool) {
     (
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="bool-val">true</span> =&gt; <span class="ident">copy</span>(<span class="ident">item_id</span>, <span class="ident">bool</span>.<span class="ident">id</span>),
-            <span class="bool-val">false</span> =&gt; <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
+        <span class="kw">match </span>value {
+            <span class="bool-val">true </span>=&gt; copy(item_id, bool.id),
+            <span class="bool-val">false </span>=&gt; Node::FastStore(FastStore {
+                id: item_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">0</span>),
             }),
         },
-        <span class="ident">ObjBool::new</span>(<span class="ident">item_id</span>),
+        ObjBool::new(item_id),
     )
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cmp</span>(
-    <span class="ident">item_id</span>: <span class="ident">ItemId</span>,
-    <span class="ident">bool</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>,
-    <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>,
-    <span class="ident">cmp</span>: <span class="ident">ScoreboardComparison</span>,
-) -&gt; (<span class="ident">Node</span>, <span class="ident">ObjBool</span>) {
+<span class="kw">pub fn </span>cmp(
+    item_id: ItemId,
+    bool: <span class="kw-2">&amp;</span>ObjBool,
+    value: ScoreboardValue,
+    cmp: ScoreboardComparison,
+) -&gt; (Node, ObjBool) {
     (
-        <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-            <span class="ident">id</span>: <span class="ident">item_id</span>,
-            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-            <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Condition</span>(<span class="ident">Condition::Compare</span> {
-                <span class="ident">comparison</span>: <span class="ident">cmp</span>,
-                <span class="ident">lhs</span>: <span class="ident">bool</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">rhs</span>: <span class="ident">value</span>,
+        Node::FastStoreFromResult(FastStoreFromResult {
+            id: item_id,
+            scoreboard: Scoreboard::Main,
+            command: Box::new(Node::Condition(Condition::Compare {
+                comparison: cmp,
+                lhs: bool.as_scoreboard_value(),
+                rhs: value,
             })),
         }),
-        <span class="ident">item_id</span>.<span class="ident">into</span>(),
+        item_id.into(),
     )
 }
 
-<span class="doccomment">/// A boolean value that is stored on a scoreboard</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The bool is treated as true if the scoreboard value is equal to one</span>
-<span class="doccomment">/// If the value is zero, the bool is treated as false.</span>
-<span class="doccomment">/// Any other value is undefined behavior and should not be possible to achieve.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjBool</span> {
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
-    <span class="kw">pub</span> <span class="ident">memory_layout</span>: <span class="ident">MemoryLayout</span>,
+<span class="doccomment">/// A boolean value that is stored on a scoreboard
+///
+/// The bool is treated as true if the scoreboard value is equal to one
+/// If the value is zero, the bool is treated as false.
+/// Any other value is undefined behavior and should not be possible to achieve.
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>ObjBool {
+    <span class="kw">pub </span>id: ItemId,
+    <span class="kw">pub </span>memory_layout: MemoryLayout,
 }
 
-<span class="macro">impl_class!</span> {<span class="ident">ObjBool</span>, <span class="ident">Type::DynamicBool</span>, {
-    <span class="ident">And</span> =&gt; <span class="ident">make_overload</span>(<span class="macro">vec!</span>[
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">and_static</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>.<span class="ident">value</span>);
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">node</span>);
-            <span class="ident">value</span>
-        }.<span class="ident">to_normalized_function</span>(),
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Condition</span>(<span class="ident">Condition::And</span>(<span class="macro">vec!</span>[
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">lhs</span>: <span class="ident">lhs</span>.<span class="ident">as_scoreboard_value</span>(),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
+<span class="macro">impl_class! </span>{ObjBool, Type::DynamicBool, {
+    And =&gt; make_overload(<span class="macro">vec!</span>[
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, lhs: <span class="kw-2">&amp;</span>ObjBool, rhs: <span class="kw-2">&amp;</span>ObjStaticBool| -&gt; ObjBool {
+            <span class="kw">let </span>(node, value) = and_static(ctx.item_id, lhs, rhs.value);
+            ctx.emit(node);
+            value
+        }.to_normalized_function(),
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, lhs: <span class="kw-2">&amp;</span>ObjBool, rhs: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
+            ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                command: Box::new(Node::Condition(Condition::And(<span class="macro">vec!</span>[
+                    Condition::Compare {
+                        lhs: lhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
+                        comparison: ScoreboardComparison::Equal,
                     },
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">lhs</span>: <span class="ident">rhs</span>.<span class="ident">as_scoreboard_value</span>(),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                    },
-                ]))),
-            }));
-            <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
-        }.<span class="ident">to_normalized_function</span>(),
-    ]),
-
-    <span class="ident">Or</span> =&gt; <span class="ident">make_overload</span>(<span class="macro">vec!</span>[
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="ident">or_static</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>, <span class="ident">lhs</span>, <span class="ident">rhs</span>.<span class="ident">value</span>);
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">node</span>);
-            <span class="ident">value</span>
-        }.<span class="ident">to_normalized_function</span>(),
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Condition</span>(<span class="ident">Condition::Or</span>(<span class="macro">vec!</span>[
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">lhs</span>: <span class="ident">lhs</span>.<span class="ident">as_scoreboard_value</span>(),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                    },
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">lhs</span>: <span class="ident">rhs</span>.<span class="ident">as_scoreboard_value</span>(),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
+                    Condition::Compare {
+                        lhs: rhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
+                        comparison: ScoreboardComparison::Equal,
                     },
                 ]))),
             }));
-            <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
-        }.<span class="ident">to_normalized_function</span>(),
+            ObjBool::new(ctx.item_id)
+        }.to_normalized_function(),
     ]),
 
-    <span class="ident">Not</span> =&gt; <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-        <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-            <span class="ident">id</span>: <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-            <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-            <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Condition</span>(<span class="ident">Condition::Compare</span> {
-                <span class="ident">lhs</span>: <span class="ident">value</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
-                <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
+    Or =&gt; make_overload(<span class="macro">vec!</span>[
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, lhs: <span class="kw-2">&amp;</span>ObjBool, rhs: <span class="kw-2">&amp;</span>ObjStaticBool| -&gt; ObjBool {
+            <span class="kw">let </span>(node, value) = or_static(ctx.item_id, lhs, rhs.value);
+            ctx.emit(node);
+            value
+        }.to_normalized_function(),
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, lhs: <span class="kw-2">&amp;</span>ObjBool, rhs: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
+            ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+                id: ctx.item_id,
+                scoreboard: Scoreboard::Main,
+                command: Box::new(Node::Condition(Condition::Or(<span class="macro">vec!</span>[
+                    Condition::Compare {
+                        lhs: lhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
+                        comparison: ScoreboardComparison::Equal,
+                    },
+                    Condition::Compare {
+                        lhs: rhs.as_scoreboard_value(),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
+                        comparison: ScoreboardComparison::Equal,
+                    },
+                ]))),
+            }));
+            ObjBool::new(ctx.item_id)
+        }.to_normalized_function(),
+    ]),
+
+    Not =&gt; |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, value: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
+        ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
+            id: ctx.item_id,
+            scoreboard: Scoreboard::Main,
+            command: Box::new(Node::Condition(Condition::Compare {
+                lhs: value.as_scoreboard_value(),
+                rhs: ScoreboardValue::Static(<span class="number">0</span>),
+                comparison: ScoreboardComparison::Equal,
             })),
         }));
-        <span class="ident">ObjBool::new</span>(<span class="ident">ctx</span>.<span class="ident">item_id</span>)
+        ObjBool::new(ctx.item_id)
     },
 
-    <span class="ident">CmpEq</span> =&gt; <span class="ident">make_overload</span>(<span class="macro">vec!</span>[
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">ret</span>) <span class="op">=</span> <span class="ident">cmp</span>(
-                <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">this</span>,
-                <span class="ident">other</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">ScoreboardComparison::Equal</span>,
+    CmpEq =&gt; make_overload(<span class="macro">vec!</span>[
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, this: <span class="kw-2">&amp;</span>ObjBool, other: <span class="kw-2">&amp;</span>ObjStaticBool| -&gt; ObjBool {
+            <span class="kw">let </span>(node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::Equal,
             );
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">node</span>);
-            <span class="ident">ret</span>
-        }.<span class="ident">to_normalized_function</span>(),
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">ret</span>) <span class="op">=</span> <span class="ident">cmp</span>(
-                <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">this</span>,
-                <span class="ident">other</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">ScoreboardComparison::Equal</span>,
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, this: <span class="kw-2">&amp;</span>ObjBool, other: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
+            <span class="kw">let </span>(node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::Equal,
             );
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">node</span>);
-            <span class="ident">ret</span>
-        }.<span class="ident">to_normalized_function</span>(),
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
     ]),
 
-    <span class="ident">CmpNe</span> =&gt; <span class="ident">make_overload</span>(<span class="macro">vec!</span>[
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">ret</span>) <span class="op">=</span> <span class="ident">cmp</span>(
-                <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">this</span>,
-                <span class="ident">other</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">ScoreboardComparison::NotEqual</span>,
+    CmpNe =&gt; make_overload(<span class="macro">vec!</span>[
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, this: <span class="kw-2">&amp;</span>ObjBool, other: <span class="kw-2">&amp;</span>ObjStaticBool| -&gt; ObjBool {
+            <span class="kw">let </span>(node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::NotEqual,
             );
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">node</span>);
-            <span class="ident">ret</span>
-        }.<span class="ident">to_normalized_function</span>(),
-        <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjBool</span><span class="op">|</span> -&gt; <span class="ident">ObjBool</span> {
-            <span class="kw">let</span> (<span class="ident">node</span>, <span class="ident">ret</span>) <span class="op">=</span> <span class="ident">cmp</span>(
-                <span class="ident">ctx</span>.<span class="ident">item_id</span>,
-                <span class="ident">this</span>,
-                <span class="ident">other</span>.<span class="ident">as_scoreboard_value</span>(),
-                <span class="ident">ScoreboardComparison::NotEqual</span>,
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
+        |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, this: <span class="kw-2">&amp;</span>ObjBool, other: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
+            <span class="kw">let </span>(node, ret) = cmp(
+                ctx.item_id,
+                this,
+                other.as_scoreboard_value(),
+                ScoreboardComparison::NotEqual,
             );
-            <span class="ident">ctx</span>.<span class="ident">emit</span>(<span class="ident">node</span>);
-            <span class="ident">ret</span>
-        }.<span class="ident">to_normalized_function</span>(),
+            ctx.emit(node);
+            ret
+        }.to_normalized_function(),
     ])
 }}
 
-<span class="kw">impl</span> <span class="ident">ObjBool</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">ItemId</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ObjBool</span> {
-            <span class="ident">id</span>,
-            <span class="ident">memory_layout</span>: <span class="ident">MemoryLayout::One</span>(<span class="ident">id</span>),
+<span class="kw">impl </span>ObjBool {
+    <span class="kw">pub fn </span>new(id: ItemId) -&gt; <span class="self">Self </span>{
+        ObjBool {
+            id,
+            memory_layout: MemoryLayout::One(id),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ScoreboardValue</span> {
-        <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="self">self</span>.<span class="ident">id</span>)
+    <span class="kw">pub fn </span>as_scoreboard_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ScoreboardValue {
+        ScoreboardValue::Scoreboard(Scoreboard::Main, <span class="self">self</span>.id)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjBool</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">memory_layout</span>
+<span class="kw">impl </span>ObjectPayload <span class="kw">for </span>ObjBool {
+    <span class="kw">fn </span>memory_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MemoryLayout {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.memory_layout
     }
 
-    <span class="kw">fn</span> <span class="ident">json_fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsonFormatComponent</span><span class="op">&gt;</span>) {
-        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::Score</span>(<span class="self">self</span>.<span class="ident">as_scoreboard_value</span>()));
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjBool</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Bool({})&quot;</span>, <span class="self">self</span>.<span class="ident">id</span>)
+    <span class="kw">fn </span>json_fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;JsonFormatComponent&gt;) {
+        buf.push(JsonFormatComponent::Score(<span class="self">self</span>.as_scoreboard_value()));
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ObjBool</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">ItemId</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ObjBool::new</span>(<span class="ident">val</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ObjBool {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Bool({})&quot;</span>, <span class="self">self</span>.id)
+    }
+}
+
+<span class="kw">impl </span>From&lt;ItemId&gt; <span class="kw">for </span>ObjBool {
+    <span class="kw">fn </span>from(val: ItemId) -&gt; <span class="self">Self </span>{
+        ObjBool::new(val)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/variable_metadata.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>variable_metadata.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/variable_metadata.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>variable_metadata.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -225,183 +219,183 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module contains structs which can hold metadata for variables.</span>
-<span class="doccomment">//! This includes so called `ValueHints` which allow to deduce the set of possible</span>
-<span class="doccomment">//! runtime values a variable can have.</span>
-<span class="doccomment">//! This module also contains variable usage data which contain information about the amount</span>
-<span class="doccomment">//! of reads and writes a specific variable gets</span>
-<span class="kw">use</span> <span class="ident">std::usize</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! This module contains structs which can hold metadata for variables.
+//! This includes so called `ValueHints` which allow to deduce the set of possible
+//! runtime values a variable can have.
+//! This module also contains variable usage data which contain information about the amount
+//! of reads and writes a specific variable gets
+</span><span class="kw">use </span>std::usize;
 
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">item_id::ItemId</span>,
-    <span class="ident">llir_nodes</span>::{
-        <span class="ident">BinaryOperation</span>, <span class="ident">Call</span>, <span class="ident">Condition</span>, <span class="ident">ExecuteRaw</span>, <span class="ident">ExecuteRawComponent</span>, <span class="ident">FastStore</span>,
-        <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>,
+<span class="kw">use crate</span>::{
+    item_id::ItemId,
+    llir_nodes::{
+        BinaryOperation, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
+        FastStoreFromResult, Node,
     },
-    <span class="ident">minecraft_utils::ScoreboardValue</span>,
+    minecraft_utils::ScoreboardValue,
 };
 
-<span class="doccomment">/// A hint about the possible value of a variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Hint</span> {
-    <span class="doccomment">/// Hints that the value is unknown (the variable can take any value)</span>
-    <span class="attribute">#[<span class="ident">default</span>]</span>
-    <span class="ident">Unknown</span>,
-    <span class="doccomment">/// Hints that the value can have exactly one value (the variable becomes comptime known)</span>
-    <span class="ident">Exact</span>(<span class="ident">i32</span>),
-    <span class="comment">// /// Hints that the runtime value of this variable lies within this inclusive range</span>
-    <span class="comment">// Range(i32, i32),</span>
-}
+<span class="doccomment">/// A hint about the possible value of a variable
+</span><span class="attr">#[derive(Debug, Default, Clone, Copy)]
+</span><span class="kw">pub enum </span>Hint {
+    <span class="doccomment">/// Hints that the value is unknown (the variable can take any value)
+    </span><span class="attr">#[default]
+    </span>Unknown,
+    <span class="doccomment">/// Hints that the value can have exactly one value (the variable becomes comptime known)
+    </span>Exact(i32),
+    <span class="comment">// /// Hints that the runtime value of this variable lies within this inclusive range
+    // Range(i32, i32),
+</span>}
 
-<span class="kw">impl</span> <span class="ident">Hint</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exact</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Hint::Unknown</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Hint::Exact</span>(<span class="ident">val</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">val</span>),
+<span class="kw">impl </span>Hint {
+    <span class="kw">pub fn </span>exact(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Hint::Unknown =&gt; <span class="prelude-val">None</span>,
+            Hint::Exact(val) =&gt; <span class="prelude-val">Some</span>(val),
         }
     }
 }
 
-<span class="doccomment">/// Stores the possible range of values of a runtime variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValueHints</span> {
-    <span class="ident">hints</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">ItemId</span>, <span class="ident">Hint</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Stores the possible range of values of a runtime variable
+</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>ValueHints {
+    hints: FxHashMap&lt;ItemId, Hint&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ValueHints</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_hint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>, <span class="ident">hint</span>: <span class="ident">Hint</span>) {
-        <span class="self">self</span>.<span class="ident">hints</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">hint</span>);
+<span class="kw">impl </span>ValueHints {
+    <span class="kw">pub fn </span>set_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: ItemId, hint: Hint) {
+        <span class="self">self</span>.hints.insert(id, hint);
     }
 
-    <span class="doccomment">/// Clears all hints for this id</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_hint</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>) {
-        <span class="self">self</span>.<span class="ident">hints</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Hint::default</span>());
+    <span class="doccomment">/// Clears all hints for this id
+    </span><span class="kw">pub fn </span>clear_hint(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: ItemId) {
+        <span class="self">self</span>.hints.insert(id, Hint::default());
     }
 
-    <span class="doccomment">/// Clears all hints</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">hints</span>.<span class="ident">clear</span>();
+    <span class="doccomment">/// Clears all hints
+    </span><span class="kw">pub fn </span>clear_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.hints.clear();
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ItemId</span>) -&gt; <span class="ident">Hint</span> {
-        <span class="self">self</span>.<span class="ident">hints</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>).<span class="ident">copied</span>().<span class="ident">unwrap_or_default</span>()
+    <span class="kw">pub fn </span>get_hint(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ItemId) -&gt; Hint {
+        <span class="self">self</span>.hints.get(<span class="kw-2">&amp;</span>id).copied().unwrap_or_default()
     }
 
-    <span class="doccomment">/// Tries to get the static value of a scoreboard value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_scoreboard_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ScoreboardValue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>) =&gt; <span class="self">self</span>.<span class="ident">get_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>).<span class="ident">exact</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">ScoreboardValue::Static</span>(<span class="ident">val</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">val</span>),
+    <span class="doccomment">/// Tries to get the static value of a scoreboard value
+    </span><span class="kw">pub fn </span>get_scoreboard_value(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>ScoreboardValue) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
+        <span class="kw">match </span>value {
+            ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) =&gt; <span class="self">self</span>.get_hint(<span class="kw-2">*</span>id).exact(),
+            <span class="kw-2">&amp;</span>ScoreboardValue::Static(val) =&gt; <span class="prelude-val">Some</span>(val),
         }
     }
 
-    <span class="doccomment">/// Updates the hints for all variables that this node modifies</span>
-    <span class="doccomment">/// `guaranteed_run` specifies whether `node` will definitely execute</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_hints</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">guaranteed_run</span>: <span class="ident">bool</span>) {
-        <span class="kw">match</span> <span class="ident">node</span> {
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>,
-                <span class="ident">value</span>,
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
+    <span class="doccomment">/// Updates the hints for all variables that this node modifies
+    /// `guaranteed_run` specifies whether `node` will definitely execute
+    </span><span class="kw">pub fn </span>update_hints(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Node, guaranteed_run: bool) {
+        <span class="kw">match </span>node {
+            Node::FastStore(FastStore {
+                id,
+                value,
+                scoreboard: <span class="kw">_</span>,
             }) =&gt; {
-                <span class="kw">if</span> <span class="ident">guaranteed_run</span> {
-                    <span class="kw">match</span> <span class="ident">value</span> {
-                        <span class="ident">ScoreboardValue::Static</span>(<span class="ident">static_value</span>) =&gt; {
-                            <span class="self">self</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">Hint::Exact</span>(<span class="kw-2">*</span><span class="ident">static_value</span>));
+                <span class="kw">if </span>guaranteed_run {
+                    <span class="kw">match </span>value {
+                        ScoreboardValue::Static(static_value) =&gt; {
+                            <span class="self">self</span>.set_hint(<span class="kw-2">*</span>id, Hint::Exact(<span class="kw-2">*</span>static_value));
                         }
-                        <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">_scoreboard</span>, <span class="ident">other_id</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">other_value_hint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_hint</span>(<span class="kw-2">*</span><span class="ident">other_id</span>);
-                            <span class="self">self</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">other_value_hint</span>);
+                        ScoreboardValue::Scoreboard(_scoreboard, other_id) =&gt; {
+                            <span class="kw">let </span>other_value_hint = <span class="self">self</span>.get_hint(<span class="kw-2">*</span>other_id);
+                            <span class="self">self</span>.set_hint(<span class="kw-2">*</span>id, other_value_hint);
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>);
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.clear_hint(<span class="kw-2">*</span>id);
                 }
             }
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">id</span>,
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">command</span>,
+            Node::FastStoreFromResult(FastStoreFromResult {
+                id,
+                scoreboard: <span class="kw">_</span>,
+                command,
             }) =&gt; {
-                <span class="self">self</span>.<span class="ident">update_hints</span>(<span class="ident">command</span>, <span class="ident">guaranteed_run</span>);
-                <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>);
+                <span class="self">self</span>.update_hints(command, guaranteed_run);
+                <span class="self">self</span>.clear_hint(<span class="kw-2">*</span>id);
             }
-            <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>,
-                <span class="ident">lhs</span>: <span class="kw">_</span>,
-                <span class="ident">rhs</span>: <span class="kw">_</span>,
-                <span class="ident">operation</span>: <span class="kw">_</span>,
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard: <span class="kw">_</span>,
+                id,
+                lhs: <span class="kw">_</span>,
+                rhs: <span class="kw">_</span>,
+                operation: <span class="kw">_</span>,
             }) =&gt; {
-                <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>);
+                <span class="self">self</span>.clear_hint(<span class="kw-2">*</span>id);
             }
-            <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) =&gt; <span class="self">self</span>.<span class="ident">clear_all</span>(),
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">update_hints</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">pos_branch</span>, <span class="bool-val">false</span>);
-                <span class="self">self</span>.<span class="ident">update_hints</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">neg_branch</span>, <span class="bool-val">false</span>);
+            Node::Call(Call { id: <span class="kw">_ </span>}) =&gt; <span class="self">self</span>.clear_all(),
+            Node::Branch(branch) =&gt; {
+                <span class="self">self</span>.update_hints(<span class="kw-2">&amp;</span>branch.pos_branch, <span class="bool-val">false</span>);
+                <span class="self">self</span>.update_hints(<span class="kw-2">&amp;</span>branch.neg_branch, <span class="bool-val">false</span>);
             }
-            <span class="ident">Node::Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) =&gt; {
-                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-                    <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(
+            Node::Execute(ExecuteRaw(components)) =&gt; {
+                <span class="kw">for </span>component <span class="kw">in </span>components {
+                    <span class="kw">match </span>component {
+                        ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(
                             <span class="kw">_</span>,
-                            <span class="ident">id</span>,
-                        )) =&gt; <span class="self">self</span>.<span class="ident">clear_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>),
-                        <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">node</span>) =&gt; <span class="self">self</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>, <span class="bool-val">false</span>),
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">ExecuteRawComponent::String</span>(<span class="kw">_</span>) =&gt; {}
+                            id,
+                        )) =&gt; <span class="self">self</span>.clear_hint(<span class="kw-2">*</span>id),
+                        ExecuteRawComponent::Node(node) =&gt; <span class="self">self</span>.update_hints(node, <span class="bool-val">false</span>),
+                        ExecuteRawComponent::ScoreboardValue(<span class="kw">_</span>)
+                        | ExecuteRawComponent::String(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
-            <span class="comment">// Conditions and chat writes should not modify any values</span>
-            <span class="ident">Node::Condition</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::Write</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::Nop</span> =&gt; {}
+            <span class="comment">// Conditions and chat writes should not modify any values
+            </span>Node::Condition(<span class="kw">_</span>) | Node::Write(<span class="kw">_</span>) | Node::Nop =&gt; {}
         }
     }
 
-    <span class="doccomment">/// Tries to evaluate a binary operation with static values</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_binary_operation</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bin_op</span>: <span class="kw-2">&amp;</span><span class="ident">BinaryOperation</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">BinaryOperation</span> {
-            <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-            <span class="ident">id</span>: <span class="kw">_</span>,
-            <span class="ident">lhs</span>,
-            <span class="ident">rhs</span>,
-            <span class="ident">operation</span>,
-        } <span class="op">=</span> <span class="ident">bin_op</span>;
+    <span class="doccomment">/// Tries to evaluate a binary operation with static values
+    </span><span class="kw">pub fn </span>static_binary_operation(<span class="kw-2">&amp;</span><span class="self">self</span>, bin_op: <span class="kw-2">&amp;</span>BinaryOperation) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
+        <span class="kw">let </span>BinaryOperation {
+            scoreboard: <span class="kw">_</span>,
+            id: <span class="kw">_</span>,
+            lhs,
+            rhs,
+            operation,
+        } = bin_op;
 
-        <span class="kw">let</span> <span class="ident">lhs_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_scoreboard_value</span>(<span class="ident">lhs</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">rhs_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_scoreboard_value</span>(<span class="ident">rhs</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>lhs_value = <span class="self">self</span>.get_scoreboard_value(lhs)<span class="question-mark">?</span>;
+        <span class="kw">let </span>rhs_value = <span class="self">self</span>.get_scoreboard_value(rhs)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Some</span>(<span class="ident">operation</span>.<span class="ident">evaluate</span>(<span class="ident">lhs_value</span>, <span class="ident">rhs_value</span>))
+        <span class="prelude-val">Some</span>(operation.evaluate(lhs_value, rhs_value))
     }
 
-    <span class="doccomment">/// Tries to evaluate a condition with static values</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">condition</span>: <span class="kw-2">&amp;</span><span class="ident">Condition</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">condition</span> {
-            <span class="ident">Condition::Compare</span> {
-                <span class="ident">lhs</span>,
-                <span class="ident">rhs</span>,
-                <span class="ident">comparison</span>,
+    <span class="doccomment">/// Tries to evaluate a condition with static values
+    </span><span class="kw">pub fn </span>static_condition(<span class="kw-2">&amp;</span><span class="self">self</span>, condition: <span class="kw-2">&amp;</span>Condition) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
+        <span class="kw">match </span>condition {
+            Condition::Compare {
+                lhs,
+                rhs,
+                comparison,
             } =&gt; {
-                <span class="kw">let</span> <span class="ident">lhs_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_scoreboard_value</span>(<span class="ident">lhs</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">rhs_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_scoreboard_value</span>(<span class="ident">rhs</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Some</span>(<span class="ident">comparison</span>.<span class="ident">evaluate</span>(<span class="ident">lhs_value</span>, <span class="ident">rhs_value</span>))
+                <span class="kw">let </span>lhs_value = <span class="self">self</span>.get_scoreboard_value(lhs)<span class="question-mark">?</span>;
+                <span class="kw">let </span>rhs_value = <span class="self">self</span>.get_scoreboard_value(rhs)<span class="question-mark">?</span>;
+                <span class="prelude-val">Some</span>(comparison.evaluate(lhs_value, rhs_value))
             }
-            <span class="ident">Condition::And</span>(<span class="ident">parts</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">parts</span> {
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">static_condition</span>(<span class="ident">part</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">value</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+            Condition::And(parts) =&gt; {
+                <span class="kw">for </span>part <span class="kw">in </span>parts {
+                    <span class="kw">let </span>value = <span class="self">self</span>.static_condition(part)<span class="question-mark">?</span>;
+                    <span class="kw">if </span>!value {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
                     }
                 }
                 <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
             }
-            <span class="ident">Condition::Or</span>(<span class="ident">parts</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">parts</span> {
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">static_condition</span>(<span class="ident">part</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">value</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>);
+            Condition::Or(parts) =&gt; {
+                <span class="kw">for </span>part <span class="kw">in </span>parts {
+                    <span class="kw">let </span>value = <span class="self">self</span>.static_condition(part)<span class="question-mark">?</span>;
+                    <span class="kw">if </span>value {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="bool-val">true</span>);
                     }
                 }
                 <span class="prelude-val">Some</span>(<span class="bool-val">false</span>)
@@ -410,42 +404,41 @@
     }
 }
 
-<span class="doccomment">/// General data about the usage of a specific variable</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableUsage</span> {
-    <span class="kw">pub</span> <span class="ident">reads</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">writes</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">constant_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
+<span class="doccomment">/// General data about the usage of a specific variable
+</span><span class="attr">#[derive(Debug, Default, Clone)]
+</span><span class="kw">pub struct </span>VariableUsage {
+    <span class="kw">pub </span>reads: usize,
+    <span class="kw">pub </span>writes: usize,
+    <span class="kw">pub </span>constant_value: <span class="prelude-ty">Option</span>&lt;i32&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">VariableUsage</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">reads</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+<span class="kw">impl </span>VariableUsage {
+    <span class="kw">pub fn </span>add_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.reads += <span class="number">1</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">reads</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">pub fn </span>remove_read(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.reads -= <span class="number">1</span>;
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">writes</span> <span class="op">==</span> <span class="number">1</span> {
-            <span class="self">self</span>.<span class="ident">constant_value</span> <span class="op">=</span> <span class="ident">value</span>;
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">constant_value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">pub fn </span>add_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="prelude-ty">Option</span>&lt;i32&gt;) {
+        <span class="self">self</span>.writes += <span class="number">1</span>;
+        <span class="kw">if </span><span class="self">self</span>.writes == <span class="number">1 </span>{
+            <span class="self">self</span>.constant_value = value;
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.constant_value = <span class="prelude-val">None</span>;
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">writes</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">constant_value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">pub fn </span>remove_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.writes -= <span class="number">1</span>;
+        <span class="self">self</span>.constant_value = <span class="prelude-val">None</span>;
     }
 
-    <span class="doccomment">/// Returns whether the variable is written to at most once and read from at most once</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_once</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">reads</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">writes</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>
-    }
+    <span class="doccomment">/// Returns whether the variable is written to at most once and read from at most once
+    </span><span class="kw">pub fn </span>used_once(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.reads &lt;= <span class="number">1 </span>&amp;&amp; <span class="self">self</span>.writes &lt;= <span class="number">1
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

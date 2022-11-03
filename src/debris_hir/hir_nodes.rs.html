@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/hir/src/hir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/hir/src/hir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -589,591 +583,590 @@
 <span id="583">583</span>
 <span id="584">584</span>
 <span id="585">585</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Defines every node used in the hir representation
 
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+</span><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeId</span>, <span class="ident">Ident</span>, <span class="ident">InputFiles</span>, <span class="ident">Span</span>, <span class="ident">SpecialIdent</span>};
+<span class="kw">use </span>debris_common::{CodeId, Ident, InputFiles, Span, SpecialIdent};
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>};
+<span class="kw">use super</span>::{IdentifierPath, SpannedIdentifier};
 
-<span class="doccomment">/// A constant literal, already parsed</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirConstValue</span> {
-    <span class="ident">Integer</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">value</span>: <span class="ident">i32</span>,
+<span class="doccomment">/// A constant literal, already parsed
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>HirConstValue {
+    Integer {
+        span: Span,
+        value: i32,
     },
-    <span class="ident">Bool</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">value</span>: <span class="ident">bool</span>,
+    Bool {
+        span: Span,
+        value: bool,
     },
-    <span class="ident">Fixed</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">value</span>: <span class="ident">i32</span>,
+    Fixed {
+        span: Span,
+        value: i32,
     },
-    <span class="ident">String</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">value</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    String {
+        span: Span,
+        value: Rc&lt;str&gt;,
     },
-    <span class="ident">FormatString</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirFormatStringMember</span><span class="op">&gt;</span>,
+    FormatString {
+        span: Span,
+        value: Vec&lt;HirFormatStringMember&gt;,
     },
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirFormatStringMember</span> {
-    <span class="ident">String</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
-    <span class="ident">Variable</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>),
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>HirFormatStringMember {
+    String(Rc&lt;str&gt;),
+    Variable(Box&lt;HirExpression&gt;),
 }
 
-<span class="doccomment">/// Any supported comparison operator</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirComparisonOperator</span> {
-    <span class="ident">Eq</span>,
-    <span class="ident">Ne</span>,
-    <span class="ident">Gt</span>,
-    <span class="ident">Ge</span>,
-    <span class="ident">Lt</span>,
-    <span class="ident">Le</span>,
+<span class="doccomment">/// Any supported comparison operator
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+</span><span class="kw">pub enum </span>HirComparisonOperator {
+    Eq,
+    Ne,
+    Gt,
+    Ge,
+    Lt,
+    Le,
 }
 
-<span class="doccomment">/// Any operator that can be used as an infix</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// That means that this operator has to be between to values</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirInfixOperator</span> {
-    <span class="doccomment">/// Any comparison like &lt;, &gt;, &lt;=, &gt;=, ==, !=</span>
-    <span class="ident">Comparison</span>(<span class="ident">HirComparisonOperator</span>),
-    <span class="doccomment">/// Logical and</span>
-    <span class="ident">And</span>,
-    <span class="doccomment">/// Logical or</span>
-    <span class="ident">Or</span>,
-    <span class="doccomment">/// Mathematical addition</span>
-    <span class="ident">Plus</span>,
-    <span class="doccomment">/// Mathematical subtraction</span>
-    <span class="ident">Minus</span>,
-    <span class="doccomment">/// Mathematical multiplication</span>
-    <span class="ident">Times</span>,
-    <span class="doccomment">/// Mathematical division</span>
-    <span class="ident">Divide</span>,
-    <span class="doccomment">/// Mathematical modulo</span>
-    <span class="ident">Modulo</span>,
+<span class="doccomment">/// Any operator that can be used as an infix
+///
+/// That means that this operator has to be between to values
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone)]
+</span><span class="kw">pub enum </span>HirInfixOperator {
+    <span class="doccomment">/// Any comparison like &lt;, &gt;, &lt;=, &gt;=, ==, !=
+    </span>Comparison(HirComparisonOperator),
+    <span class="doccomment">/// Logical and
+    </span>And,
+    <span class="doccomment">/// Logical or
+    </span>Or,
+    <span class="doccomment">/// Mathematical addition
+    </span>Plus,
+    <span class="doccomment">/// Mathematical subtraction
+    </span>Minus,
+    <span class="doccomment">/// Mathematical multiplication
+    </span>Times,
+    <span class="doccomment">/// Mathematical division
+    </span>Divide,
+    <span class="doccomment">/// Mathematical modulo
+    </span>Modulo,
 }
 
-<span class="doccomment">/// Holds an infix operator combined with its span</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirInfix</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">operator</span>: <span class="ident">HirInfixOperator</span>,
+<span class="doccomment">/// Holds an infix operator combined with its span
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>HirInfix {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>operator: HirInfixOperator,
 }
 
-<span class="doccomment">/// Any prefix operator</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A prefix operator operates on a single value and is written before it</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirPrefixOperator</span> {
-    <span class="doccomment">/// Mathematical minus</span>
-    <span class="ident">Minus</span>,
-    <span class="doccomment">/// Logical negation</span>
-    <span class="ident">Not</span>,
+<span class="doccomment">/// Any prefix operator
+///
+/// A prefix operator operates on a single value and is written before it
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+</span><span class="kw">pub enum </span>HirPrefixOperator {
+    <span class="doccomment">/// Mathematical minus
+    </span>Minus,
+    <span class="doccomment">/// Logical negation
+    </span>Not,
 }
 
-<span class="doccomment">/// Holds a prefix operator combined with its span</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirPrefix</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">operator</span>: <span class="ident">HirPrefixOperator</span>,
+<span class="doccomment">/// Holds a prefix operator combined with its span
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Clone)]
+</span><span class="kw">pub struct </span>HirPrefix {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>operator: HirPrefixOperator,
 }
 
-<span class="doccomment">/// Marks an import statement.</span>
-<span class="doccomment">/// The id specifies the index of the matching [`HirModule`]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirImport</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Marks an import statement.
+/// The id specifies the index of the matching [`HirModule`]
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirImport {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>ident: SpannedIdentifier,
+    <span class="kw">pub </span>id: usize,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirControlKind</span> {
-    <span class="ident">Return</span>,
-    <span class="ident">Break</span>,
-    <span class="ident">Continue</span>,
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+</span><span class="kw">pub enum </span>HirControlKind {
+    Return,
+    Break,
+    Continue,
 }
 
-<span class="kw">impl</span> <span class="ident">HirControlKind</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">returns</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirControlKind::Return</span> <span class="op">|</span> <span class="ident">HirControlKind::Break</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">HirControlKind::Continue</span> =&gt; <span class="bool-val">false</span>,
+<span class="kw">impl </span>HirControlKind {
+    <span class="kw">pub fn </span>returns(<span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirControlKind::Return | HirControlKind::Break =&gt; <span class="bool-val">true</span>,
+            HirControlKind::Continue =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">takes_value</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirControlKind::Return</span> <span class="op">|</span> <span class="ident">HirControlKind::Break</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">HirControlKind::Continue</span> =&gt; <span class="bool-val">false</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">HirControlKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirControlKind::Break</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;break&quot;</span>),
-            <span class="ident">HirControlKind::Continue</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;continue&quot;</span>),
-            <span class="ident">HirControlKind::Return</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;return&quot;</span>),
+    <span class="kw">pub fn </span>takes_value(<span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirControlKind::Return | HirControlKind::Break =&gt; <span class="bool-val">true</span>,
+            HirControlKind::Continue =&gt; <span class="bool-val">false</span>,
         }
     }
 }
 
-<span class="doccomment">/// Represents a control flow statement like return or break</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirControlFlow</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">HirControlKind</span>,
-    <span class="kw">pub</span> <span class="ident">expression</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>HirControlKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirControlKind::Break =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;break&quot;</span>),
+            HirControlKind::Continue =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;continue&quot;</span>),
+            HirControlKind::Return =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;return&quot;</span>),
+        }
+    }
 }
 
-<span class="doccomment">/// An infinite loop</span>
-<span class="doccomment">/// (Can be exited using control keywords like `break` and `return`)</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirInfiniteLoop</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirBlock</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Represents a control flow statement like return or break
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirControlFlow {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>kind: HirControlKind,
+    <span class="kw">pub </span>expression: <span class="prelude-ty">Option</span>&lt;Box&lt;HirExpression&gt;&gt;,
 }
 
-<span class="doccomment">/// Holds a variable type declaration like `foo: String`</span>
-<span class="doccomment">/// This is used in method signatures</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirParameterDeclaration</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    <span class="kw">pub</span> <span class="ident">typ</span>: <span class="ident">HirTypePattern</span>,
+<span class="doccomment">/// An infinite loop
+/// (Can be exited using control keywords like `break` and `return`)
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirInfiniteLoop {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>block: Box&lt;HirBlock&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirDeclarationMode</span> {
-    <span class="ident">Let</span>,
-    <span class="ident">Comptime</span>,
+<span class="doccomment">/// Holds a variable type declaration like `foo: String`
+/// This is used in method signatures
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+</span><span class="kw">pub struct </span>HirParameterDeclaration {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>ident: SpannedIdentifier,
+    <span class="kw">pub </span>typ: HirTypePattern,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirVariablePattern</span> {
-    <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
-    <span class="ident">Tuple</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirVariablePattern</span><span class="op">&gt;</span>),
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+</span><span class="kw">pub enum </span>HirDeclarationMode {
+    Let,
+    Comptime,
 }
 
-<span class="doccomment">/// Sets a variable like `let a = expression();`</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableInitialization</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">pattern</span>: <span class="ident">HirVariablePattern</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">mode</span>: <span class="ident">HirDeclarationMode</span>,
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>HirVariablePattern {
+    Path(IdentifierPath),
+    Tuple(Vec&lt;HirVariablePattern&gt;),
 }
 
-<span class="doccomment">/// Similar to `HirVariableInitialization`, however this node</span>
-<span class="doccomment">/// marks a write to an already initialized value</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirVariableUpdate</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">pattern</span>: <span class="ident">HirVariablePattern</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Sets a variable like `let a = expression();`
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirVariableInitialization {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>pattern: HirVariablePattern,
+    <span class="kw">pub </span>value: Box&lt;HirExpression&gt;,
+    <span class="kw">pub </span>mode: HirDeclarationMode,
 }
 
-<span class="doccomment">/// Declaration of a property in a struct definition</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirPropertyDeclaration</span> {
-    <span class="doccomment">/// The span of the declaration</span>
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="doccomment">/// The identifier inside of the struct</span>
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    <span class="doccomment">/// The type of the property</span>
-    <span class="kw">pub</span> <span class="ident">datatype</span>: <span class="ident">HirTypePattern</span>,
+<span class="doccomment">/// Similar to `HirVariableInitialization`, however this node
+/// marks a write to an already initialized value
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirVariableUpdate {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>pattern: HirVariablePattern,
+    <span class="kw">pub </span>value: Box&lt;HirExpression&gt;,
 }
 
-<span class="doccomment">/// Any function call, can be dotted</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunctionCall</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">parameters_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Declaration of a property in a struct definition
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>HirPropertyDeclaration {
+    <span class="doccomment">/// The span of the declaration
+    </span><span class="kw">pub </span>span: Span,
+    <span class="doccomment">/// The identifier inside of the struct
+    </span><span class="kw">pub </span>ident: SpannedIdentifier,
+    <span class="doccomment">/// The type of the property
+    </span><span class="kw">pub </span>datatype: HirTypePattern,
 }
 
-<span class="doccomment">/// An if-branch which checks a condition and runs code</span>
-<span class="doccomment">/// depending on whether the condition is true or not</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirConditionalBranch</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">is_comptime</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">block_positive</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirBlock</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">block_negative</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirBlock</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Any function call, can be dotted
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>HirFunctionCall {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>value: Box&lt;HirExpression&gt;,
+    <span class="kw">pub </span>parameters_span: Span,
+    <span class="kw">pub </span>parameters: Vec&lt;HirExpression&gt;,
 }
 
-<span class="doccomment">/// Creates a Struct Object from a struct</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirStructInitialization</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">SpannedIdentifier</span>, <span class="ident">HirExpression</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// An if-branch which checks a condition and runs code
+/// depending on whether the condition is true or not
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>HirConditionalBranch {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>is_comptime: bool,
+    <span class="kw">pub </span>condition: Box&lt;HirExpression&gt;,
+    <span class="kw">pub </span>block_positive: Box&lt;HirBlock&gt;,
+    <span class="kw">pub </span>block_negative: <span class="prelude-ty">Option</span>&lt;Box&lt;HirBlock&gt;&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirTupleInitialization</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Creates a Struct Object from a struct
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirStructInitialization {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>base: Box&lt;HirExpression&gt;,
+    <span class="kw">pub </span>values: Vec&lt;(SpannedIdentifier, HirExpression)&gt;,
 }
 
-<span class="doccomment">/// Any expression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirExpression</span> {
-    <span class="doccomment">/// A variable, for example `a`</span>
-    <span class="ident">Variable</span>(<span class="ident">SpannedIdentifier</span>),
-    <span class="doccomment">/// A path, for example `a.b.c`</span>
-    <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
-    <span class="doccomment">/// A generic property access, not necessarily in a path</span>
-    <span class="ident">PropertyAccess</span> {
-        <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-        <span class="ident">rhs</span>: <span class="ident">SpannedIdentifier</span>,
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirTupleInitialization {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>values: Vec&lt;HirExpression&gt;,
+}
+
+<span class="doccomment">/// Any expression
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>HirExpression {
+    <span class="doccomment">/// A variable, for example `a`
+    </span>Variable(SpannedIdentifier),
+    <span class="doccomment">/// A path, for example `a.b.c`
+    </span>Path(IdentifierPath),
+    <span class="doccomment">/// A generic property access, not necessarily in a path
+    </span>PropertyAccess {
+        lhs: Box&lt;HirExpression&gt;,
+        rhs: SpannedIdentifier,
     },
-    <span class="doccomment">/// A literal value, for example `2.0` or `&quot;Hello World&quot;`</span>
-    <span class="ident">Value</span>(<span class="ident">HirConstValue</span>),
-    <span class="doccomment">/// A unary operation, for example `-a`</span>
-    <span class="ident">UnaryOperation</span> {
-        <span class="ident">operation</span>: <span class="ident">HirPrefix</span>,
-        <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// A literal value, for example `2.0` or `&quot;Hello World&quot;`
+    </span>Value(HirConstValue),
+    <span class="doccomment">/// A unary operation, for example `-a`
+    </span>UnaryOperation {
+        operation: HirPrefix,
+        value: Box&lt;HirExpression&gt;,
     },
-    <span class="doccomment">/// A binary operation, for example `a + b`</span>
-    <span class="ident">BinaryOperation</span> {
-        <span class="ident">operation</span>: <span class="ident">HirInfix</span>,
-        <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
-        <span class="ident">rhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// A binary operation, for example `a + b`
+    </span>BinaryOperation {
+        operation: HirInfix,
+        lhs: Box&lt;HirExpression&gt;,
+        rhs: Box&lt;HirExpression&gt;,
     },
-    <span class="doccomment">/// A block which returns something</span>
-    <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
-    <span class="doccomment">/// An anonymous function</span>
-    <span class="ident">Function</span>(<span class="ident">HirFunction</span>),
-    <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`</span>
-    <span class="ident">FunctionCall</span>(<span class="ident">HirFunctionCall</span>),
-    <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
-    <span class="ident">StructInitialization</span>(<span class="ident">HirStructInitialization</span>),
-    <span class="ident">TupleInitialization</span>(<span class="ident">HirTupleInitialization</span>),
-    <span class="ident">InfiniteLoop</span>(<span class="ident">HirInfiniteLoop</span>),
-    <span class="ident">ControlFlow</span>(<span class="ident">HirControlFlow</span>),
+    <span class="doccomment">/// A block which returns something
+    </span>Block(HirBlock),
+    <span class="doccomment">/// An anonymous function
+    </span>Function(HirFunction),
+    <span class="doccomment">/// A function call, for example `foo()` or `path.to.foo()`
+    </span>FunctionCall(HirFunctionCall),
+    ConditionalBranch(HirConditionalBranch),
+    StructInitialization(HirStructInitialization),
+    TupleInitialization(HirTupleInitialization),
+    InfiniteLoop(HirInfiniteLoop),
+    ControlFlow(HirControlFlow),
 }
 
-<span class="doccomment">/// Any statement, the difference to an expression is that a statement does not return anything</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirStatement</span> {
-    <span class="doccomment">/// A variable declaration, for example `let foo = 1`</span>
-    <span class="ident">VariableDecl</span>(<span class="ident">HirVariableInitialization</span>),
-    <span class="doccomment">/// A write to an already existing variable</span>
-    <span class="ident">VariableUpdate</span>(<span class="ident">HirVariableUpdate</span>),
-    <span class="doccomment">/// Controls the program flow</span>
-    <span class="ident">ControlFlow</span>(<span class="ident">HirControlFlow</span>),
-    <span class="doccomment">/// A normal block</span>
-    <span class="ident">Block</span>(<span class="ident">HirBlock</span>),
-    <span class="doccomment">/// A normal if statement</span>
-    <span class="ident">ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span>),
-    <span class="ident">InfiniteLoop</span>(<span class="ident">HirInfiniteLoop</span>),
-    <span class="ident">Expression</span>(<span class="ident">HirExpression</span>),
+<span class="doccomment">/// Any statement, the difference to an expression is that a statement does not return anything
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>HirStatement {
+    <span class="doccomment">/// A variable declaration, for example `let foo = 1`
+    </span>VariableDecl(HirVariableInitialization),
+    <span class="doccomment">/// A write to an already existing variable
+    </span>VariableUpdate(HirVariableUpdate),
+    <span class="doccomment">/// Controls the program flow
+    </span>ControlFlow(HirControlFlow),
+    <span class="doccomment">/// A normal block
+    </span>Block(HirBlock),
+    <span class="doccomment">/// A normal if statement
+    </span>ConditionalBranch(HirConditionalBranch),
+    InfiniteLoop(HirInfiniteLoop),
+    Expression(HirExpression),
 }
 
-<span class="doccomment">/// Any pattern that is allowed to specify a function parameter type</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirTypePattern</span> {
-    <span class="doccomment">/// A normal type, like `Int`</span>
-    <span class="ident">Path</span>(<span class="ident">IdentifierPath</span>),
-    <span class="doccomment">/// A function, like `fn(Int, Int) -&gt; Int`</span>
-    <span class="ident">Function</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
-        <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Any pattern that is allowed to specify a function parameter type
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
+</span><span class="kw">pub enum </span>HirTypePattern {
+    <span class="doccomment">/// A normal type, like `Int`
+    </span>Path(IdentifierPath),
+    <span class="doccomment">/// A function, like `fn(Int, Int) -&gt; Int`
+    </span>Function {
+        span: Span,
+        parameters: Vec&lt;HirTypePattern&gt;,
+        return_type: <span class="prelude-ty">Option</span>&lt;Box&lt;HirTypePattern&gt;&gt;,
     },
-    <span class="ident">Tuple</span> {
-        <span class="ident">span</span>: <span class="ident">Span</span>,
-        <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
+    Tuple {
+        span: Span,
+        values: Vec&lt;HirTypePattern&gt;,
     },
 }
 
-<span class="doccomment">/// A block of code. Usually contained withing a pair of {} parenthesis.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirBlock</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="doccomment">/// The statements of this block</span>
-    <span class="kw">pub</span> <span class="ident">statements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirStatement</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The returned value:</span>
-    <span class="kw">pub</span> <span class="ident">return_value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The objects that got declared within this block</span>
-    <span class="kw">pub</span> <span class="ident">objects</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirObject</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A block of code. Usually contained withing a pair of {} parenthesis.
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>HirBlock {
+    <span class="kw">pub </span>span: Span,
+    <span class="doccomment">/// The statements of this block
+    </span><span class="kw">pub </span>statements: Vec&lt;HirStatement&gt;,
+    <span class="doccomment">/// The returned value:
+    </span><span class="kw">pub </span>return_value: <span class="prelude-ty">Option</span>&lt;Box&lt;HirExpression&gt;&gt;,
+    <span class="doccomment">/// The objects that got declared within this block
+    </span><span class="kw">pub </span>objects: Vec&lt;HirObject&gt;,
 }
 
-<span class="doccomment">/// Attributes are a form of metadata that can be applied</span>
-<span class="doccomment">/// to any object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attribute</span> {
-    <span class="kw">pub</span> <span class="ident">expression</span>: <span class="ident">HirExpression</span>,
+<span class="doccomment">/// Attributes are a form of metadata that can be applied
+/// to any object.
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Attribute {
+    <span class="kw">pub </span>expression: HirExpression,
 }
 
-<span class="doccomment">/// Anonymous functions don&#39;t have an explicit identifier,</span>
-<span class="doccomment">/// So if the function is unnamed, the hir builder will try to infer it.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirFunctionName</span> {
-    <span class="ident">Ident</span>(<span class="ident">SpannedIdentifier</span>),
-    <span class="ident">Unnamed</span> { <span class="ident">file</span>: <span class="ident">CodeId</span>, <span class="ident">pos</span>: <span class="ident">Span</span> },
+<span class="doccomment">/// Anonymous functions don&#39;t have an explicit identifier,
+/// So if the function is unnamed, the hir builder will try to infer it.
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+</span><span class="kw">pub enum </span>HirFunctionName {
+    Ident(SpannedIdentifier),
+    Unnamed { file: CodeId, pos: Span },
 }
 
-<span class="kw">impl</span> <span class="ident">HirFunctionName</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFunctionName::Ident</span>(<span class="ident">ident</span>) =&gt; <span class="ident">ident</span>.<span class="ident">span</span>,
-            <span class="ident">HirFunctionName::Unnamed</span> { <span class="ident">pos</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">pos</span>,
+<span class="kw">impl </span>HirFunctionName {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFunctionName::Ident(ident) =&gt; ident.span,
+            HirFunctionName::Unnamed { pos, .. } =&gt; <span class="kw-2">*</span>pos,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spanned_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SpannedIdentifier</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFunctionName::Ident</span>(<span class="ident">spanned_ident</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">spanned_ident</span>),
-            <span class="ident">HirFunctionName::Unnamed</span> { .. } =&gt; <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>spanned_ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SpannedIdentifier&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFunctionName::Ident(spanned_ident) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>spanned_ident),
+            HirFunctionName::Unnamed { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_unknown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">HirFunctionName::Unnamed</span> { .. })
+    <span class="kw">pub fn </span>is_unknown(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, HirFunctionName::Unnamed { .. })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input_files</span>: <span class="kw-2">&amp;</span><span class="ident">InputFiles</span>) -&gt; <span class="ident">Ident</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirFunctionName::Ident</span>(<span class="ident">span</span>) =&gt; <span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">span</span>.<span class="ident">span</span>).<span class="ident">into</span>(),
-            <span class="ident">HirFunctionName::Unnamed</span> { <span class="ident">file</span>, <span class="ident">pos</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">code_ref</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="kw-2">*</span><span class="ident">file</span>);
+    <span class="kw">pub fn </span>into_ident(<span class="kw-2">&amp;</span><span class="self">self</span>, input_files: <span class="kw-2">&amp;</span>InputFiles) -&gt; Ident {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirFunctionName::Ident(span) =&gt; input_files.get_span_str(span.span).into(),
+            HirFunctionName::Unnamed { file, pos } =&gt; {
+                <span class="kw">let </span>code_ref = input_files.get_code_ref(<span class="kw-2">*</span>file);
 
-                <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">code_ref</span>
-                    .<span class="ident">get_code</span>()
-                    .<span class="ident">path</span>
-                    .<span class="ident">as_ref</span>()
-                    .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">file</span>.<span class="ident">to_string</span>(), <span class="ident">ToString::to_string</span>);
+                <span class="kw">let </span>file_name = code_ref
+                    .get_code()
+                    .path
+                    .as_ref()
+                    .map_or_else(|| file.to_string(), ToString::to_string);
 
-                <span class="kw">let</span> (<span class="ident">line</span>, <span class="ident">col</span>) <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="kw-2">*</span><span class="ident">pos</span>);
-                <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span> <span class="op">+</span> <span class="number">1</span>;
-                <span class="kw">let</span> <span class="ident">col</span> <span class="op">=</span> <span class="ident">col</span> <span class="op">+</span> <span class="number">1</span>;
-                <span class="ident">Ident::Value</span>(<span class="macro">format!</span>(<span class="string">&quot;&lt;&#39;{file_name}:{line}:{col}&#39;&gt;&quot;</span>).<span class="ident">into</span>())
+                <span class="kw">let </span>(line, col) = input_files.line_col(<span class="kw-2">*</span>pos);
+                <span class="kw">let </span>line = line + <span class="number">1</span>;
+                <span class="kw">let </span>col = col + <span class="number">1</span>;
+                Ident::Value(<span class="macro">format!</span>(<span class="string">&quot;&lt;&#39;{file_name}:{line}:{col}&#39;&gt;&quot;</span>).into())
             }
         }
     }
 }
 
-<span class="doccomment">/// A function, which contains other statements</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFunction</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">signature_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">parameter_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">is_comptime</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">HirFunctionName</span>,
-    <span class="doccomment">/// The block containing all statements of the function</span>
-    <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">HirBlock</span>,
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirParameterDeclaration</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">return_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HirTypePattern</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A function, which contains other statements
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>HirFunction {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>signature_span: Span,
+    <span class="kw">pub </span>parameter_span: Span,
+    <span class="kw">pub </span>is_comptime: bool,
+    <span class="kw">pub </span>attributes: Vec&lt;Attribute&gt;,
+    <span class="kw">pub </span>ident: HirFunctionName,
+    <span class="doccomment">/// The block containing all statements of the function
+    </span><span class="kw">pub </span>block: HirBlock,
+    <span class="kw">pub </span>parameters: Vec&lt;HirParameterDeclaration&gt;,
+    <span class="kw">pub </span>return_type: <span class="prelude-ty">Option</span>&lt;HirTypePattern&gt;,
 }
 
-<span class="doccomment">/// A struct definition</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirStruct</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// All declared properties of this struct</span>
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirPropertyDeclaration</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">objects</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirObject</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A struct definition
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>HirStruct {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>ident: SpannedIdentifier,
+    <span class="kw">pub </span>attributes: Vec&lt;Attribute&gt;,
+    <span class="doccomment">/// All declared properties of this struct
+    </span><span class="kw">pub </span>properties: Vec&lt;HirPropertyDeclaration&gt;,
+    <span class="kw">pub </span>objects: Vec&lt;HirObject&gt;,
 }
 
-<span class="doccomment">/// A module with an associated name</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirModule</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    <span class="kw">pub</span> <span class="ident">block</span>: <span class="ident">HirBlock</span>,
+<span class="doccomment">/// A module with an associated name
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>HirModule {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>attributes: Vec&lt;Attribute&gt;,
+    <span class="kw">pub </span>ident: SpannedIdentifier,
+    <span class="kw">pub </span>block: HirBlock,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirObject</span> {
-    <span class="ident">Function</span>(<span class="ident">HirFunction</span>),
-    <span class="ident">Struct</span>(<span class="ident">HirStruct</span>),
-    <span class="ident">Module</span>(<span class="ident">HirModule</span>),
-    <span class="doccomment">/// Syntax sugar for a module from another file</span>
-    <span class="ident">Import</span>(<span class="ident">HirImport</span>),
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>HirObject {
+    Function(HirFunction),
+    Struct(HirStruct),
+    Module(HirModule),
+    <span class="doccomment">/// Syntax sugar for a module from another file
+    </span>Import(HirImport),
 }
 
-<span class="kw">impl</span> <span class="ident">HirObject</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spanned_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SpannedIdentifier</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirObject::Function</span>(<span class="ident">func</span>) =&gt; <span class="ident">func</span>.<span class="ident">ident</span>.<span class="ident">spanned_ident</span>()<span class="question-mark">?</span>,
-            <span class="ident">HirObject::Struct</span>(<span class="ident">strukt</span>) =&gt; <span class="ident">strukt</span>.<span class="ident">ident</span>,
-            <span class="ident">HirObject::Module</span>(<span class="ident">module</span>) =&gt; <span class="ident">module</span>.<span class="ident">ident</span>,
-            <span class="ident">HirObject::Import</span>(<span class="ident">import</span>) =&gt; <span class="ident">import</span>.<span class="ident">ident</span>,
+<span class="kw">impl </span>HirObject {
+    <span class="kw">pub fn </span>spanned_ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;SpannedIdentifier&gt; {
+        <span class="prelude-val">Some</span>(<span class="kw">match </span><span class="self">self </span>{
+            HirObject::Function(func) =&gt; func.ident.spanned_ident()<span class="question-mark">?</span>,
+            HirObject::Struct(strukt) =&gt; strukt.ident,
+            HirObject::Module(module) =&gt; module.ident,
+            HirObject::Import(import) =&gt; import.ident,
         })
     }
 }
 
-<span class="doccomment">/// Any Item</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HirItem</span> {
-    <span class="ident">Object</span>(<span class="ident">HirObject</span>),
-    <span class="ident">Statement</span>(<span class="ident">HirStatement</span>),
+<span class="doccomment">/// Any Item
+</span><span class="attr">#[derive(Debug, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>HirItem {
+    Object(HirObject),
+    Statement(HirStatement),
 }
 
-<span class="kw">impl</span> <span class="ident">HirConstValue</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirConstValue::Fixed</span> { <span class="ident">span</span>, .. }
-            <span class="op">|</span> <span class="ident">HirConstValue::Integer</span> { <span class="ident">span</span>, .. }
-            <span class="op">|</span> <span class="ident">HirConstValue::Bool</span> { <span class="ident">span</span>, .. }
-            <span class="op">|</span> <span class="ident">HirConstValue::String</span> { <span class="ident">span</span>, .. }
-            <span class="op">|</span> <span class="ident">HirConstValue::FormatString</span> { <span class="ident">span</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">span</span>,
+<span class="kw">impl </span>HirConstValue {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirConstValue::Fixed { span, .. }
+            | HirConstValue::Integer { span, .. }
+            | HirConstValue::Bool { span, .. }
+            | HirConstValue::String { span, .. }
+            | HirConstValue::FormatString { span, .. } =&gt; <span class="kw-2">*</span>span,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirComparisonOperator</span> {
-    <span class="doccomment">/// Returns the associated [`SpecialIdent`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_raw_special_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpecialIdent</span> {
-        <span class="kw">use</span> <span class="ident">HirComparisonOperator</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Eq</span> =&gt; <span class="ident">SpecialIdent::CmpEq</span>,
-            <span class="ident">Ne</span> =&gt; <span class="ident">SpecialIdent::CmpNe</span>,
-            <span class="ident">Gt</span> =&gt; <span class="ident">SpecialIdent::CmpGt</span>,
-            <span class="ident">Ge</span> =&gt; <span class="ident">SpecialIdent::CmpGe</span>,
-            <span class="ident">Lt</span> =&gt; <span class="ident">SpecialIdent::CmpLt</span>,
-            <span class="ident">Le</span> =&gt; <span class="ident">SpecialIdent::CmpLe</span>,
+<span class="kw">impl </span>HirComparisonOperator {
+    <span class="doccomment">/// Returns the associated [`SpecialIdent`]
+    </span><span class="kw">pub fn </span>get_raw_special_ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpecialIdent {
+        <span class="kw">use </span>HirComparisonOperator::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Eq =&gt; SpecialIdent::CmpEq,
+            Ne =&gt; SpecialIdent::CmpNe,
+            Gt =&gt; SpecialIdent::CmpGt,
+            Ge =&gt; SpecialIdent::CmpGe,
+            Lt =&gt; SpecialIdent::CmpLt,
+            Le =&gt; SpecialIdent::CmpLe,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirInfixOperator</span> {
-    <span class="doccomment">/// Returns the associated [`SpecialIdent`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_special_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SpecialIdent</span> {
-        <span class="kw">use</span> <span class="ident">HirInfixOperator</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">And</span> =&gt; <span class="ident">SpecialIdent::And</span>,
-            <span class="ident">Or</span> =&gt; <span class="ident">SpecialIdent::Or</span>,
-            <span class="ident">Plus</span> =&gt; <span class="ident">SpecialIdent::Add</span>,
-            <span class="ident">Minus</span> =&gt; <span class="ident">SpecialIdent::Sub</span>,
-            <span class="ident">Times</span> =&gt; <span class="ident">SpecialIdent::Mul</span>,
-            <span class="ident">Divide</span> =&gt; <span class="ident">SpecialIdent::Div</span>,
-            <span class="ident">Modulo</span> =&gt; <span class="ident">SpecialIdent::Mod</span>,
-            <span class="ident">Comparison</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">get_raw_special_ident</span>(),
+<span class="kw">impl </span>HirInfixOperator {
+    <span class="doccomment">/// Returns the associated [`SpecialIdent`]
+    </span><span class="kw">pub fn </span>get_special_ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SpecialIdent {
+        <span class="kw">use </span>HirInfixOperator::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            And =&gt; SpecialIdent::And,
+            Or =&gt; SpecialIdent::Or,
+            Plus =&gt; SpecialIdent::Add,
+            Minus =&gt; SpecialIdent::Sub,
+            Times =&gt; SpecialIdent::Mul,
+            Divide =&gt; SpecialIdent::Div,
+            Modulo =&gt; SpecialIdent::Mod,
+            Comparison(value) =&gt; value.get_raw_special_ident(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirPrefixOperator</span> {
-    <span class="doccomment">/// Returns the associated [Ident]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ident</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Ident</span> {
-        <span class="ident">Ident::Special</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirPrefixOperator::Minus</span> =&gt; <span class="ident">SpecialIdent::UnaryMinus</span>,
-            <span class="ident">HirPrefixOperator::Not</span> =&gt; <span class="ident">SpecialIdent::Not</span>,
+<span class="kw">impl </span>HirPrefixOperator {
+    <span class="doccomment">/// Returns the associated [Ident]
+    </span><span class="kw">pub fn </span>get_ident(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ident {
+        Ident::Special(<span class="kw">match </span><span class="self">self </span>{
+            HirPrefixOperator::Minus =&gt; SpecialIdent::UnaryMinus,
+            HirPrefixOperator::Not =&gt; SpecialIdent::Not,
         })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirBlock</span> {
-    <span class="doccomment">/// Returns the span of the item in the block which is responsible</span>
-    <span class="doccomment">/// for the return type</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_item_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_value</span> {
-            <span class="ident">value</span>.<span class="ident">span</span>()
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> [.., <span class="ident">last</span>] <span class="op">=</span> <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">as_slice</span>() {
-            <span class="ident">last</span>.<span class="ident">span</span>()
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">span</span>
+<span class="kw">impl </span>HirBlock {
+    <span class="doccomment">/// Returns the span of the item in the block which is responsible
+    /// for the return type
+    </span><span class="kw">pub fn </span>last_item_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = <span class="kw-2">&amp;</span><span class="self">self</span>.return_value {
+            value.span()
+        } <span class="kw">else if let </span>[.., last] = <span class="self">self</span>.statements.as_slice() {
+            last.span()
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.span
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirVariablePattern</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirVariablePattern::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">span</span>(),
-            <span class="ident">HirVariablePattern::Tuple</span>(<span class="ident">tuple</span>) =&gt; <span class="kw">match</span> <span class="ident">tuple</span>.<span class="ident">as_slice</span>() {
-                [] =&gt; <span class="ident">Span::EMPTY</span>,
-                [<span class="ident">single</span>] =&gt; <span class="ident">single</span>.<span class="ident">span</span>(),
-                [<span class="ident">first</span>, .., <span class="ident">last</span>] =&gt; <span class="ident">first</span>.<span class="ident">span</span>().<span class="ident">until</span>(<span class="ident">last</span>.<span class="ident">span</span>()),
+<span class="kw">impl </span>HirVariablePattern {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirVariablePattern::Path(path) =&gt; path.span(),
+            HirVariablePattern::Tuple(tuple) =&gt; <span class="kw">match </span>tuple.as_slice() {
+                [] =&gt; Span::EMPTY,
+                [single] =&gt; single.span(),
+                [first, .., last] =&gt; first.span().until(last.span()),
             },
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirExpression</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirExpression::Value</span>(<span class="ident">number</span>) =&gt; <span class="ident">number</span>.<span class="ident">span</span>(),
-            <span class="ident">HirExpression::Variable</span>(<span class="ident">var</span>) =&gt; <span class="ident">var</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">span</span>(),
-            <span class="ident">HirExpression::PropertyAccess</span> { <span class="ident">lhs</span>, <span class="ident">rhs</span> } =&gt; <span class="ident">lhs</span>.<span class="ident">span</span>().<span class="ident">until</span>(<span class="ident">rhs</span>.<span class="ident">span</span>),
-            <span class="ident">HirExpression::BinaryOperation</span> {
-                <span class="ident">lhs</span>,
-                <span class="ident">operation</span>: <span class="kw">_</span>,
-                <span class="ident">rhs</span>,
-            } =&gt; <span class="ident">lhs</span>.<span class="ident">span</span>().<span class="ident">until</span>(<span class="ident">rhs</span>.<span class="ident">span</span>()),
-            <span class="ident">HirExpression::UnaryOperation</span> { <span class="ident">operation</span>, <span class="ident">value</span> } =&gt; {
-                <span class="ident">operation</span>.<span class="ident">span</span>.<span class="ident">until</span>(<span class="ident">value</span>.<span class="ident">span</span>())
+<span class="kw">impl </span>HirExpression {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirExpression::Value(number) =&gt; number.span(),
+            HirExpression::Variable(var) =&gt; var.span,
+            HirExpression::Path(path) =&gt; path.span(),
+            HirExpression::PropertyAccess { lhs, rhs } =&gt; lhs.span().until(rhs.span),
+            HirExpression::BinaryOperation {
+                lhs,
+                operation: <span class="kw">_</span>,
+                rhs,
+            } =&gt; lhs.span().until(rhs.span()),
+            HirExpression::UnaryOperation { operation, value } =&gt; {
+                operation.span.until(value.span())
             }
-            <span class="ident">HirExpression::Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::Function</span>(<span class="ident">function</span>) =&gt; <span class="ident">function</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::FunctionCall</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">branch</span>) =&gt; <span class="ident">branch</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::StructInitialization</span>(<span class="ident">struct_instantiation</span>) =&gt; <span class="ident">struct_instantiation</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::TupleInitialization</span>(<span class="ident">tuple_initialization</span>) =&gt; <span class="ident">tuple_initialization</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::InfiniteLoop</span>(<span class="ident">inf_loop</span>) =&gt; <span class="ident">inf_loop</span>.<span class="ident">span</span>,
-            <span class="ident">HirExpression::ControlFlow</span>(<span class="ident">control_flow</span>) =&gt; <span class="ident">control_flow</span>.<span class="ident">span</span>,
+            HirExpression::Block(block) =&gt; block.span,
+            HirExpression::Function(function) =&gt; function.span,
+            HirExpression::FunctionCall(call) =&gt; call.span,
+            HirExpression::ConditionalBranch(branch) =&gt; branch.span,
+            HirExpression::StructInitialization(struct_instantiation) =&gt; struct_instantiation.span,
+            HirExpression::TupleInitialization(tuple_initialization) =&gt; tuple_initialization.span,
+            HirExpression::InfiniteLoop(inf_loop) =&gt; inf_loop.span,
+            HirExpression::ControlFlow(control_flow) =&gt; control_flow.span,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirStatement</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirStatement::VariableDecl</span>(<span class="ident">var_decl</span>) =&gt; <span class="ident">var_decl</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::VariableUpdate</span>(<span class="ident">var_update</span>) =&gt; <span class="ident">var_update</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::ControlFlow</span>(<span class="ident">control_flow</span>) =&gt; <span class="ident">control_flow</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::ConditionalBranch</span>(<span class="ident">branch</span>) =&gt; <span class="ident">branch</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::InfiniteLoop</span>(<span class="ident">inf_loop</span>) =&gt; <span class="ident">inf_loop</span>.<span class="ident">span</span>,
-            <span class="ident">HirStatement::Expression</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">span</span>(),
+<span class="kw">impl </span>HirStatement {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirStatement::VariableDecl(var_decl) =&gt; var_decl.span,
+            HirStatement::VariableUpdate(var_update) =&gt; var_update.span,
+            HirStatement::ControlFlow(control_flow) =&gt; control_flow.span,
+            HirStatement::Block(block) =&gt; block.span,
+            HirStatement::ConditionalBranch(branch) =&gt; branch.span,
+            HirStatement::InfiniteLoop(inf_loop) =&gt; inf_loop.span,
+            HirStatement::Expression(expr) =&gt; expr.span(),
         }
     }
 }
-<span class="kw">impl</span> <span class="ident">HirTypePattern</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">HirTypePattern::Function</span> { <span class="ident">span</span>, .. } <span class="op">|</span> <span class="ident">HirTypePattern::Tuple</span> { <span class="ident">span</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">span</span>,
-            <span class="ident">HirTypePattern::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">span</span>(),
+<span class="kw">impl </span>HirTypePattern {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="self">self </span>{
+            HirTypePattern::Function { span, .. } | HirTypePattern::Tuple { span, .. } =&gt; <span class="kw-2">*</span>span,
+            HirTypePattern::Path(path) =&gt; path.span(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Attribute</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="self">self</span>.<span class="ident">expression</span>.<span class="ident">span</span>()
+<span class="kw">impl </span>Attribute {
+    <span class="kw">pub fn </span>span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="self">self</span>.expression.span()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirFunction</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_type_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_type</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">path</span>) =&gt; <span class="ident">path</span>.<span class="ident">span</span>(),
-            <span class="prelude-val">None</span> =&gt; <span class="ident">Span::new</span>(<span class="self">self</span>.<span class="ident">parameter_span</span>.<span class="ident">end</span>(), <span class="number">1</span>),
+<span class="kw">impl </span>HirFunction {
+    <span class="kw">pub fn </span>return_type_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.return_type {
+            <span class="prelude-val">Some</span>(path) =&gt; path.span(),
+            <span class="prelude-val">None </span>=&gt; Span::new(<span class="self">self</span>.parameter_span.end(), <span class="number">1</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

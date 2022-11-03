@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/function_interface.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>function_interface.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/function_interface.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>function_interface.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -404,406 +398,405 @@
 <span id="398">398</span>
 <span id="399">399</span>
 <span id="400">400</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module contains a trait `ToFunctionInterface` which allows to write nice function interfaces</span>
-<span class="doccomment">//! by using much less boilerplate to define functions.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Examples:</span>
-<span class="doccomment">//! ```ignore</span>
-<span class="doccomment">//! use debris_core::{objects::{ObjInt, FunctionContext}, ObjectRef, error::LangResult};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! /// The most general form of a function</span>
-<span class="doccomment">//! fn foo(ctx: &amp;mut FunctionContext, objects: &amp;[ObjectRef]) -&gt; LangResult&lt;ObjectRef&gt; {</span>
-<span class="doccomment">//!     // [...]</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! /// Return types can be anything that can be converted into a LangResult&lt;ObjectRef&gt;, so this is also valid</span>
-<span class="doccomment">//! fn bar(ctx: &amp;mut FunctionContext, objects: &amp;[ObjectRef]) -&gt; ObjectRef {</span>
-<span class="doccomment">//!     // [...]</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! /// Instead of taking an arbitrary amount of any object, it is possible to specify which objects are required</span>
-<span class="doccomment">//! fn square(_ctx: &amp;mut FunctionContext, value: &amp;ObjInt) -&gt; ObjInt {</span>
-<span class="doccomment">//!     // [...]</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! /// Since integers can be converted into `ObjStaticInt`, this is also possible</span>
-<span class="doccomment">//! /// Note that `ctx` can be omitted if it is not needed</span>
-<span class="doccomment">//! fn square_static(value: &amp;ObjStaticInt) -&gt; i32 {</span>
-<span class="doccomment">//!     value.value * value.value</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module contains a trait `ToFunctionInterface` which allows to write nice function interfaces
+//! by using much less boilerplate to define functions.
+//!
+//! # Examples:
+//! ```ignore
+//! use debris_core::{objects::{ObjInt, FunctionContext}, ObjectRef, error::LangResult};
+//!
+//! /// The most general form of a function
+//! fn foo(ctx: &amp;mut FunctionContext, objects: &amp;[ObjectRef]) -&gt; LangResult&lt;ObjectRef&gt; {
+//!     // [...]
+//! }
+//!
+//! /// Return types can be anything that can be converted into a LangResult&lt;ObjectRef&gt;, so this is also valid
+//! fn bar(ctx: &amp;mut FunctionContext, objects: &amp;[ObjectRef]) -&gt; ObjectRef {
+//!     // [...]
+//! }
+//!
+//! /// Instead of taking an arbitrary amount of any object, it is possible to specify which objects are required
+//! fn square(_ctx: &amp;mut FunctionContext, value: &amp;ObjInt) -&gt; ObjInt {
+//!     // [...]
+//! }
+//!
+//! /// Since integers can be converted into `ObjStaticInt`, this is also possible
+//! /// Note that `ctx` can be omitted if it is not needed
+//! fn square_static(value: &amp;ObjStaticInt) -&gt; i32 {
+//!     value.value * value.value
+//! }
+//! ```
 
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+</span><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">LangError</span>, <span class="ident">LangErrorKind</span>, <span class="ident">LangResult</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>debris_error::{LangError, LangErrorKind, LangResult, <span class="prelude-ty">Result</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">class::ClassRef</span>,
-    <span class="ident">objects</span>::{
-        <span class="ident">obj_bool_static::ObjStaticBool</span>, <span class="ident">obj_function::FunctionContext</span>,
-        <span class="ident">obj_int_static::ObjStaticInt</span>, <span class="ident">obj_null::ObjNull</span>, <span class="ident">obj_string::ObjString</span>,
+<span class="kw">use crate</span>::{
+    class::ClassRef,
+    objects::{
+        obj_bool_static::ObjStaticBool, obj_function::FunctionContext,
+        obj_int_static::ObjStaticInt, obj_null::ObjNull, obj_string::ObjString,
     },
-    <span class="ident">type_context::TypeContext</span>,
-    <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">ValidPayload</span>,
+    type_context::TypeContext,
+    ObjectPayload, ObjectRef, ValidPayload,
 };
 
-<span class="doccomment">/// The common type for working with callbacks</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebrisFunctionInterface</span>(<span class="ident">NormalizedFunction</span>);
+<span class="doccomment">/// The common type for working with callbacks
+</span><span class="kw">pub struct </span>DebrisFunctionInterface(NormalizedFunction);
 
-<span class="kw">impl</span> <span class="ident">DebrisFunctionInterface</span> {
-    <span class="doccomment">/// Calls this interface and returns the result and a vec of the generated nodes</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">raw_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">call_raw</span>(<span class="ident">function_ctx</span>);
-        <span class="self">self</span>.<span class="ident">handle_raw_result</span>(<span class="ident">function_ctx</span>, <span class="ident">raw_value</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">kind</span><span class="op">|</span> <span class="ident">LangError::new</span>(<span class="ident">kind</span>, <span class="ident">function_ctx</span>.<span class="ident">span</span>).<span class="ident">into</span>())
+<span class="kw">impl </span>DebrisFunctionInterface {
+    <span class="doccomment">/// Calls this interface and returns the result and a vec of the generated nodes
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, function_ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Result</span>&lt;ObjectRef&gt; {
+        <span class="kw">let </span>raw_value = <span class="self">self</span>.call_raw(function_ctx);
+        <span class="self">self</span>.handle_raw_result(function_ctx, raw_value)
+            .map_err(|kind| LangError::new(kind, function_ctx.span).into())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call_raw</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call_raw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        (<span class="self">self</span>.<span class="number">0</span>.<span class="ident">inner_fn</span>)(<span class="ident">function_ctx</span>)
+        function_ctx: <span class="kw-2">&amp;mut </span>FunctionContext,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        (<span class="self">self</span>.<span class="number">0</span>.inner_fn)(function_ctx)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handle_raw_result</span>(
+    <span class="kw">pub fn </span>handle_raw_result(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">function_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>,
-        <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">LangErrorKind::UnexpectedOverload</span> {
-                <span class="ident">expected</span>: (<span class="self">self</span>.<span class="number">0</span>.<span class="ident">required_parameter_fn</span>)(<span class="ident">function_ctx</span>.<span class="ident">type_ctx</span>()).<span class="ident">map_or_else</span>(
-                    <span class="op">|</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="string">&quot;&lt;Any&gt;&quot;</span>.<span class="ident">to_string</span>()]],
-                    <span class="op">|</span><span class="ident">overloads</span><span class="op">|</span> {
-                        <span class="ident">overloads</span>
-                            .<span class="ident">into_iter</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">params</span><span class="op">|</span> {
-                                <span class="ident">params</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">to_string</span>()).<span class="ident">collect</span>()
+        function_ctx: <span class="kw-2">&amp;</span>FunctionContext,
+        value: <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt;,
+    ) -&gt; LangResult&lt;ObjectRef&gt; {
+        <span class="kw">match </span>value {
+            <span class="prelude-val">Some</span>(val) =&gt; val,
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(LangErrorKind::UnexpectedOverload {
+                expected: (<span class="self">self</span>.<span class="number">0</span>.required_parameter_fn)(function_ctx.type_ctx()).map_or_else(
+                    || <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="string">&quot;&lt;Any&gt;&quot;</span>.to_string()]],
+                    |overloads| {
+                        overloads
+                            .into_iter()
+                            .map(|params| {
+                                params.into_iter().map(|param| param.to_string()).collect()
                             })
-                            .<span class="ident">collect</span>()
+                            .collect()
                     },
                 ),
-                <span class="ident">parameters</span>: <span class="ident">function_ctx</span>
-                    .<span class="ident">parameters</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">class</span>.<span class="ident">to_string</span>())
-                    .<span class="ident">collect</span>(),
-                <span class="ident">function_definition_span</span>: <span class="prelude-val">None</span>,
+                parameters: function_ctx
+                    .parameters
+                    .iter()
+                    .map(|param| param.class.to_string())
+                    .collect(),
+                function_definition_span: <span class="prelude-val">None</span>,
             }),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">NormalizedFunction</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebrisFunctionInterface</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">NormalizedFunction</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">DebrisFunctionInterface</span>(<span class="ident">value</span>)
+<span class="kw">impl </span>From&lt;NormalizedFunction&gt; <span class="kw">for </span>DebrisFunctionInterface {
+    <span class="kw">fn </span>from(value: NormalizedFunction) -&gt; <span class="self">Self </span>{
+        DebrisFunctionInterface(value)
     }
 }
 
-<span class="kw">type</span> <span class="ident">NormalizedFnSig</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">type </span>NormalizedFnSig = <span class="kw">dyn </span>Fn(<span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt;;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NormalizedFunction</span> {
-    <span class="doccomment">/// Calls this function if the parameters are valid and returns None otherwise</span>
-    <span class="ident">inner_fn</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">NormalizedFnSig</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>NormalizedFunction {
+    <span class="doccomment">/// Calls this function if the parameters are valid and returns None otherwise
+    </span>inner_fn: Box&lt;NormalizedFnSig&gt;,
 
-    <span class="doccomment">/// Returns the parameters that this function wants. If None any parameters are assumed to be valid</span>
-    <span class="ident">required_parameter_fn</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Returns the parameters that this function wants. If None any parameters are assumed to be valid
+    </span>required_parameter_fn: Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>TypeContext) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Vec&lt;ClassRef&gt;&gt;&gt;&gt;,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_overload</span>(<span class="ident">functions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NormalizedFunction</span><span class="op">&gt;</span>) -&gt; <span class="ident">NormalizedFunction</span> {
-    <span class="kw">let</span> <span class="ident">functions</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">functions</span>);
-    <span class="kw">let</span> <span class="ident">functions_2</span> <span class="op">=</span> <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">functions</span>);
-    <span class="ident">NormalizedFunction</span> {
-        <span class="ident">inner_fn</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="ident">functions</span>.<span class="ident">as_ref</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> (<span class="ident">function</span>.<span class="ident">inner_fn</span>)(<span class="ident">ctx</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>);
+<span class="kw">pub fn </span>make_overload(functions: Vec&lt;NormalizedFunction&gt;) -&gt; NormalizedFunction {
+    <span class="kw">let </span>functions = Rc::new(functions);
+    <span class="kw">let </span>functions_2 = Rc::clone(<span class="kw-2">&amp;</span>functions);
+    NormalizedFunction {
+        inner_fn: Box::new(<span class="kw">move </span>|ctx| {
+            <span class="kw">for </span>function <span class="kw">in </span>functions.as_ref() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = (function.inner_fn)(ctx) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(result);
                 }
             }
-            <span class="prelude-val">None</span>
-        }),
-        <span class="ident">required_parameter_fn</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">type_ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">functions_2</span>.<span class="ident">len</span>());
-            <span class="kw">for</span> <span class="ident">function</span> <span class="kw">in</span> <span class="ident">functions_2</span>.<span class="ident">as_ref</span>() {
-                <span class="ident">values</span>.<span class="ident">extend</span>(
-                    (<span class="ident">function</span>.<span class="ident">required_parameter_fn</span>)(<span class="ident">type_ctx</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="macro">vec!</span>[]]),
+            <span class="prelude-val">None
+        </span>}),
+        required_parameter_fn: Box::new(<span class="kw">move </span>|type_ctx| {
+            <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::with_capacity(functions_2.len());
+            <span class="kw">for </span>function <span class="kw">in </span>functions_2.as_ref() {
+                values.extend(
+                    (function.required_parameter_fn)(type_ctx).unwrap_or_else(|| <span class="macro">vec!</span>[<span class="macro">vec!</span>[]]),
                 );
             }
-            <span class="prelude-val">Some</span>(<span class="ident">values</span>)
+            <span class="prelude-val">Some</span>(values)
         }),
     }
 }
 
-<span class="doccomment">/// Trait used for converting any valid return value into a [`Option&lt;LangResult&lt;ObjectRef&gt;&gt;`]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ValidReturnType</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Trait used for converting any valid return value into a [`Option&lt;LangResult&lt;ObjectRef&gt;&gt;`]
+</span><span class="kw">pub trait </span>ValidReturnType {
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">ObjectPayload</span>,
+<span class="kw">impl</span>&lt;T&gt; ValidReturnType <span class="kw">for </span>T
+<span class="kw">where
+    </span>T: ObjectPayload,
 {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())))
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="self">self</span>.into_object(ctx.type_ctx())))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">ObjectPayload</span>,
+<span class="kw">impl</span>&lt;T&gt; ValidReturnType <span class="kw">for </span>LangResult&lt;T&gt;
+<span class="kw">where
+    </span>T: ObjectPayload,
 {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())))
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.map(|value| value.into_object(ctx.type_ctx())))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">ObjectPayload</span>,
+<span class="kw">impl</span>&lt;T&gt; ValidReturnType <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;LangResult&lt;T&gt;&gt;
+<span class="kw">where
+    </span>T: ObjectPayload,
 {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())))
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="self">self</span>.map(|res| res.map(|val| val.into_object(ctx.type_ctx())))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>
-    }
+<span class="kw">impl </span>ValidReturnType <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, _ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl </span>ValidReturnType <span class="kw">for </span>LangResult&lt;ObjectRef&gt; {
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, _ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
         <span class="prelude-val">Some</span>(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="ident">ObjectRef</span> {
-    <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">impl </span>ValidReturnType <span class="kw">for </span>ObjectRef {
+    <span class="kw">fn </span>into_result(<span class="self">self</span>, _ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="self">self</span>))
     }
 }
 
-<span class="doccomment">/// Maps a valid return type from `$from` to `$to`</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_map_valid_return_type</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span>:<span class="ident">ty</span>) =&gt; {
-        <span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span> {
-            <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="doccomment">/// Maps a valid return type from `$from` to `$to`
+</span><span class="macro">macro_rules! </span>impl_map_valid_return_type {
+    (<span class="macro-nonterminal">$from</span>:ty, <span class="macro-nonterminal">$to</span>:ty) =&gt; {
+        <span class="kw">impl </span>ValidReturnType <span class="kw">for </span><span class="macro-nonterminal">$from </span>{
+            <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(
-                    <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span> <span class="kw">as</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="self">self</span>).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>())
+                    &lt;<span class="macro-nonterminal">$to </span><span class="kw">as </span>From&lt;<span class="macro-nonterminal">$from</span>&gt;&gt;::from(<span class="self">self</span>).into_object(<span class="kw-2">&amp;</span>ctx.type_ctx())
                 ))
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="ident">LangResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="self">self</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span> <span class="kw">as</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="ident">value</span>).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>())),
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">err</span>),
+        <span class="kw">impl </span>ValidReturnType <span class="kw">for </span>LangResult&lt;<span class="macro-nonterminal">$from</span>&gt; {
+            <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+                <span class="prelude-val">Some</span>(<span class="kw">match </span><span class="self">self </span>{
+                    <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(&lt;<span class="macro-nonterminal">$to </span><span class="kw">as </span>From&lt;<span class="macro-nonterminal">$from</span>&gt;&gt;::from(value).into_object(<span class="kw-2">&amp;</span>ctx.type_ctx())),
+                    <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
                 })
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span> <span class="kw">as</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="ident">value</span>).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>())))
+        <span class="kw">impl </span>ValidReturnType <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$from</span>&gt; {
+            <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+                <span class="self">self</span>.map(|value| <span class="prelude-val">Ok</span>(&lt;<span class="macro-nonterminal">$to </span><span class="kw">as </span>From&lt;<span class="macro-nonterminal">$from</span>&gt;&gt;::from(value).into_object(<span class="kw-2">&amp;</span>ctx.type_ctx())))
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ValidReturnType</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">res</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">to</span> <span class="kw">as</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">from</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="ident">value</span>).<span class="ident">into_object</span>(<span class="kw-2">&amp;</span><span class="ident">ctx</span>.<span class="ident">type_ctx</span>())),
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">err</span>),
+        <span class="kw">impl </span>ValidReturnType <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;LangResult&lt;<span class="macro-nonterminal">$from</span>&gt;&gt; {
+            <span class="kw">fn </span>into_result(<span class="self">self</span>, ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+                <span class="self">self</span>.map(|res| <span class="kw">match </span>res {
+                    <span class="prelude-val">Ok</span>(value) =&gt; <span class="prelude-val">Ok</span>(&lt;<span class="macro-nonterminal">$to </span><span class="kw">as </span>From&lt;<span class="macro-nonterminal">$from</span>&gt;&gt;::from(value).into_object(<span class="kw-2">&amp;</span>ctx.type_ctx())),
+                    <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Err</span>(err),
                 })
             }
         }
     };
 }
 
-<span class="comment">// Functions which return unit are mapped to ObjNull</span>
-<span class="macro">impl_map_valid_return_type!</span>((), <span class="ident">ObjNull</span>);
-<span class="macro">impl_map_valid_return_type!</span>(<span class="ident">i32</span>, <span class="ident">ObjStaticInt</span>);
-<span class="macro">impl_map_valid_return_type!</span>(<span class="ident">bool</span>, <span class="ident">ObjStaticBool</span>);
-<span class="macro">impl_map_valid_return_type!</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">ObjString</span>);
+<span class="comment">// Functions which return unit are mapped to ObjNull
+</span><span class="macro">impl_map_valid_return_type!</span>((), ObjNull);
+<span class="macro">impl_map_valid_return_type!</span>(i32, ObjStaticInt);
+<span class="macro">impl_map_valid_return_type!</span>(bool, ObjStaticBool);
+<span class="macro">impl_map_valid_return_type!</span>(Rc&lt;str&gt;, ObjString);
 
-<span class="doccomment">/// This trait can convert functions into compatible interface functions</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span><span class="ident">Params</span>, <span class="ident">Return</span><span class="op">&gt;</span>: <span class="lifetime">&#39;static</span> {
-    <span class="kw">fn</span> <span class="ident">to_normalized_function</span>(<span class="self">self</span>) -&gt; <span class="ident">NormalizedFunction</span>;
+<span class="doccomment">/// This trait can convert functions into compatible interface functions
+</span><span class="kw">pub trait </span>ToFunctionInterface&lt;Params, Return&gt;: <span class="lifetime">&#39;static </span>{
+    <span class="kw">fn </span>to_normalized_function(<span class="self">self</span>) -&gt; NormalizedFunction;
 }
 
-<span class="kw">impl</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NormalizedFunction</span> {
-    <span class="kw">fn</span> <span class="ident">to_normalized_function</span>(<span class="self">self</span>) -&gt; <span class="ident">NormalizedFunction</span> {
-        <span class="self">self</span>
-    }
+<span class="kw">impl </span>ToFunctionInterface&lt;(), ()&gt; <span class="kw">for </span>NormalizedFunction {
+    <span class="kw">fn </span>to_normalized_function(<span class="self">self</span>) -&gt; NormalizedFunction {
+        <span class="self">self
+    </span>}
 }
 
-<span class="comment">// Most generic implementation for functions that want to verify their parameters themselves</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Function</span>, <span class="ident">Return</span><span class="op">&gt;</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>]), <span class="ident">Return</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Function</span>
-<span class="kw">where</span>
-    <span class="ident">Function</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>]) -&gt; <span class="ident">Return</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">Return</span>: <span class="ident">ValidReturnType</span>,
+<span class="comment">// Most generic implementation for functions that want to verify their parameters themselves
+</span><span class="kw">impl</span>&lt;Function, Return&gt; ToFunctionInterface&lt;(<span class="kw-2">&amp;mut </span>FunctionContext&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>[ObjectRef]), Return&gt;
+    <span class="kw">for </span>Function
+<span class="kw">where
+    </span>Function: Fn(<span class="kw-2">&amp;mut </span>FunctionContext, <span class="kw-2">&amp;</span>[ObjectRef]) -&gt; Return + <span class="lifetime">&#39;static</span>,
+    Return: ValidReturnType,
 {
-    <span class="kw">fn</span> <span class="ident">to_normalized_function</span>(<span class="self">self</span>) -&gt; <span class="ident">NormalizedFunction</span> {
-        <span class="ident">NormalizedFunction</span> {
-            <span class="ident">inner_fn</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span><span class="op">|</span> {
-                (<span class="self">self</span>)(<span class="ident">ctx</span>, <span class="ident">ctx</span>.<span class="ident">parameters</span>).<span class="ident">into_result</span>(<span class="ident">ctx</span>)
+    <span class="kw">fn </span>to_normalized_function(<span class="self">self</span>) -&gt; NormalizedFunction {
+        NormalizedFunction {
+            inner_fn: Box::new(<span class="kw">move </span>|ctx: <span class="kw-2">&amp;mut </span>FunctionContext| {
+                (<span class="self">self</span>)(ctx, ctx.parameters).into_result(ctx)
             }),
-            <span class="ident">required_parameter_fn</span>: <span class="ident">Box::new</span>(<span class="op">|</span><span class="ident">_ctx</span><span class="op">|</span> <span class="prelude-val">None</span>),
+            required_parameter_fn: Box::new(|_ctx| <span class="prelude-val">None</span>),
         }
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">count</span> {
+<span class="macro">macro_rules! </span>count {
     () =&gt; (<span class="number">0_usize</span>);
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">tt</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">tt</span>)<span class="op">*</span> ) =&gt; (<span class="number">1_usize</span> <span class="op">+</span> <span class="macro">count!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)<span class="kw-2">*</span>));
+    ( <span class="macro-nonterminal">$x</span>:tt $(<span class="macro-nonterminal">$xs</span>:tt)* ) =&gt; (<span class="number">1_usize </span>+ <span class="macro">count!</span>($(<span class="macro-nonterminal">$xs</span>)<span class="kw-2">*</span>));
 }
 
-<span class="doccomment">/// Implements the `ToFunctionInterface` trait for functions with a variable amount of parameters</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_to_function_interface</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) =&gt; {
-        <span class="doccomment">/// With mut function context</span>
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Function</span>, <span class="ident">Return</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>), <span class="ident">Return</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Function</span>
-        <span class="kw">where</span>
-            <span class="ident">Function</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Return</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-            <span class="ident">Return</span>: <span class="ident">ValidReturnType</span>,
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>: <span class="ident">ObjectPayload</span>),<span class="op">*</span>
+<span class="doccomment">/// Implements the `ToFunctionInterface` trait for functions with a variable amount of parameters
+</span><span class="macro">macro_rules! </span>impl_to_function_interface {
+    ($(<span class="macro-nonterminal">$xs</span>:ident),<span class="kw-2">*</span>) =&gt; {
+        <span class="doccomment">/// With mut function context
+        </span><span class="kw">impl</span>&lt;Function, Return, $(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>&gt; ToFunctionInterface&lt;(<span class="kw-2">&amp;mut </span>FunctionContext&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>), Return&gt; <span class="kw">for </span>Function
+        <span class="kw">where
+            </span>Function: Fn(<span class="kw-2">&amp;mut </span>FunctionContext, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>) -&gt; Return + <span class="lifetime">&#39;static</span>,
+            Return: ValidReturnType,
+            $(<span class="macro-nonterminal">$xs</span>: ObjectPayload),*
         {
-            <span class="macro">impl_to_function_interface!</span>(<span class="ident">impl_inner</span>, [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>], ,);
+            <span class="macro">impl_to_function_interface!</span>(impl_inner, [$(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>], ,);
         }
 
-        <span class="doccomment">/// With non-mut function context</span>
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Function</span>, <span class="ident">Return</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">FunctionContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>), <span class="ident">Return</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Function</span>
-        <span class="kw">where</span>
-            <span class="ident">Function</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Return</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-            <span class="ident">Return</span>: <span class="ident">ValidReturnType</span>,
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>: <span class="ident">ObjectPayload</span>),<span class="op">*</span>
+        <span class="doccomment">/// With non-mut function context
+        </span><span class="kw">impl</span>&lt;Function, Return, $(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>&gt; ToFunctionInterface&lt;(<span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>), Return&gt; <span class="kw">for </span>Function
+        <span class="kw">where
+            </span>Function: Fn(<span class="kw-2">&amp;</span>FunctionContext, $(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>) -&gt; Return + <span class="lifetime">&#39;static</span>,
+            Return: ValidReturnType,
+            $(<span class="macro-nonterminal">$xs</span>: ObjectPayload),*
         {
-            <span class="macro">impl_to_function_interface!</span>(<span class="ident">impl_inner</span>, [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>], ,);
+            <span class="macro">impl_to_function_interface!</span>(impl_inner, [$(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>], ,);
         }
 
-        <span class="doccomment">/// Without function context</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_parens</span>)]</span>
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Function</span>, <span class="ident">Return</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">ToFunctionInterface</span><span class="op">&lt;</span>($(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>), <span class="ident">Return</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Function</span>
-        <span class="kw">where</span>
-            <span class="ident">Function</span>: <span class="ident">Fn</span>($(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">Return</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-            <span class="ident">Return</span>: <span class="ident">ValidReturnType</span>,
-            $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>: <span class="ident">ObjectPayload</span>),<span class="op">*</span>
+        <span class="doccomment">/// Without function context
+        </span><span class="attr">#[allow(unused_parens)]
+        </span><span class="kw">impl</span>&lt;Function, Return, $(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>&gt; ToFunctionInterface&lt;($(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>), Return&gt; <span class="kw">for </span>Function
+        <span class="kw">where
+            </span>Function: Fn($(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>) -&gt; Return + <span class="lifetime">&#39;static</span>,
+            Return: ValidReturnType,
+            $(<span class="macro-nonterminal">$xs</span>: ObjectPayload),*
         {
-            <span class="macro">impl_to_function_interface!</span>(<span class="ident">impl_inner</span>, [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>],);
+            <span class="macro">impl_to_function_interface!</span>(impl_inner, [$(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>],);
         }
 
     };
 
-    (<span class="ident">impl_inner</span>, [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>], $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">use_ctx</span>:<span class="ident">tt</span>)<span class="question-mark">?</span>) =&gt; {
-        <span class="kw">fn</span> <span class="ident">to_normalized_function</span>(<span class="self">self</span>) -&gt; <span class="ident">NormalizedFunction</span> {
-            <span class="kw">let</span> <span class="ident">inner_fn</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>();
+    (impl_inner, [$(<span class="macro-nonterminal">$xs</span>:ident),<span class="kw-2">*</span>], $(<span class="macro-nonterminal">$use_ctx</span>:tt)<span class="question-mark">?</span>) =&gt; {
+        <span class="kw">fn </span>to_normalized_function(<span class="self">self</span>) -&gt; NormalizedFunction {
+            <span class="kw">let </span>inner_fn = Box::new(<span class="kw">move </span>|ctx: <span class="kw-2">&amp;mut </span>FunctionContext| {
+                <span class="kw">let </span>iter = ctx.parameters.iter();
 
-                <span class="comment">// Prepend the self value if it makes the parameter count correct</span>
-                <span class="kw">let</span> <span class="ident">self_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ctx</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="macro">count!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)<span class="kw-2">*</span>) {
-                    <span class="ident">ctx</span>.<span class="ident">self_val</span>.<span class="ident">clone</span>()
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>, <span class="ident">unused_mut</span>)]</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">self_val</span>.<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">iter</span>);
+                <span class="comment">// Prepend the self value if it makes the parameter count correct
+                </span><span class="kw">let </span>self_val = <span class="kw">if </span>ctx.parameters.len() + <span class="number">1 </span>== <span class="macro">count!</span>($(<span class="macro-nonterminal">$xs</span>)<span class="kw-2">*</span>) {
+                    ctx.self_val.clone()
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
+                <span class="attr">#[allow(unused_variables, unused_mut)]
+                </span><span class="kw">let </span><span class="kw-2">mut </span>iter = self_val.iter().chain(iter);
 
-                <span class="comment">// TODO: Make less inefficient</span>
-                <span class="comment">// This creates many casts which are not needed if the parameter count is wrong</span>
-                <span class="kw">let</span> <span class="ident">temp_slice</span>: [<span class="ident">ObjectRef</span>; <span class="macro">count!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)<span class="kw-2">*</span>)] <span class="op">=</span> [$(<span class="macro">impl_to_function_interface!</span>(<span class="ident">maybe_promote</span>, <span class="ident">ctx</span>, <span class="ident">iter</span>.<span class="ident">next</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)),<span class="kw-2">*</span>];
+                <span class="comment">// TODO: Make less inefficient
+                // This creates many casts which are not needed if the parameter count is wrong
+                </span><span class="kw">let </span>temp_slice: [ObjectRef; <span class="macro">count!</span>($(<span class="macro-nonterminal">$xs</span>)<span class="kw-2">*</span>)] = [$(<span class="macro">impl_to_function_interface!</span>(maybe_promote, ctx, iter.next(), <span class="macro-nonterminal">$xs</span>)),<span class="kw-2">*</span>];
 
-                <span class="comment">// Fail if there are too many parameters</span>
-                <span class="kw">if</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                <span class="comment">// Fail if there are too many parameters
+                </span><span class="kw">if </span>iter.next().is_some() {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
 
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>, <span class="ident">unused_mut</span>)]</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">temp_values</span> <span class="op">=</span> <span class="ident">temp_slice</span>.<span class="ident">iter</span>();
+                <span class="attr">#[allow(unused_variables, unused_mut)]
+                </span><span class="kw">let </span><span class="kw-2">mut </span>temp_values = temp_slice.iter();
 
-                (<span class="self">self</span>)($(<span class="ident">ctx</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">use_ctx</span>)<span class="question-mark">?</span> $(
-                    <span class="macro">impl_to_function_interface!</span>(<span class="ident">verify_type</span>, <span class="ident">temp_values</span>.<span class="ident">next</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)<span class="question-mark">?</span>
-                ),<span class="kw-2">*</span>).<span class="ident">into_result</span>(<span class="ident">ctx</span>)
+                (<span class="self">self</span>)($(ctx <span class="macro-nonterminal">$use_ctx</span>)<span class="question-mark">? </span>$(
+                    <span class="macro">impl_to_function_interface!</span>(verify_type, temp_values.next(), <span class="macro-nonterminal">$xs</span>)<span class="question-mark">?
+                </span>),<span class="kw-2">*</span>).into_result(ctx)
 
             });
 
-            <span class="ident">NormalizedFunction</span> {
-                <span class="ident">inner_fn</span>,
-                <span class="ident">required_parameter_fn</span>: <span class="ident">Box::new</span>(<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span> <span class="op">|</span><span class="ident">type_ctx</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="macro">vec!</span>[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs::static_class</span>(<span class="ident">type_ctx</span>)),<span class="kw-2">*</span>]]))
+            NormalizedFunction {
+                inner_fn,
+                required_parameter_fn: Box::new(<span class="attr">#[allow(unused_variables)] </span>|type_ctx| <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="macro">vec!</span>[$(<span class="macro-nonterminal">$xs::static_class</span>(type_ctx)),<span class="kw-2">*</span>]]))
             }
         }
     };
 
-    (<span class="ident">maybe_promote</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span>:<span class="ident">ident</span>) =&gt; {{
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span><span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>().<span class="ident">is_some</span>() {
-            <span class="ident">value</span>.<span class="ident">clone</span>()
-        } <span class="kw">else</span> {
-            <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">promote_obj</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ctx</span>.<span class="ident">type_ctx</span>().<span class="ident">static_class_obj</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>()) {
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)) =&gt; <span class="ident">value</span>,
-                <span class="ident">other</span> =&gt; <span class="kw">return</span> <span class="ident">other</span>,
+    (maybe_promote, <span class="macro-nonterminal">$ctx</span>:expr, <span class="macro-nonterminal">$val</span>:expr, <span class="macro-nonterminal">$typ</span>:ident) =&gt; {{
+        <span class="kw">let </span>value = <span class="macro-nonterminal">$val</span><span class="question-mark">?</span>;
+        <span class="kw">if </span>value.downcast_payload::&lt;<span class="macro-nonterminal">$typ</span>&gt;().is_some() {
+            value.clone()
+        } <span class="kw">else </span>{
+            <span class="kw">match </span><span class="macro-nonterminal">$ctx</span>.promote_obj(value.clone(), <span class="macro-nonterminal">$ctx</span>.type_ctx().static_class_obj::&lt;<span class="macro-nonterminal">$typ</span>&gt;()) {
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(value)) =&gt; value,
+                other =&gt; <span class="kw">return </span>other,
             }
         }
     }};
 
-    (<span class="ident">verify_type</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">val</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">typ</span><span class="op">&gt;</span>())
+    (verify_type, <span class="macro-nonterminal">$val</span>:expr, <span class="macro-nonterminal">$typ</span>:ident) =&gt; {
+        <span class="macro-nonterminal">$val</span>.and_then(|value| value.downcast_payload::&lt;<span class="macro-nonterminal">$typ</span>&gt;())
     };
 }
 
-<span class="comment">// Function interface may take up to eight types</span>
-<span class="macro">impl_to_function_interface!</span>();
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>);
-<span class="macro">impl_to_function_interface!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>);
+<span class="comment">// Function interface may take up to eight types
+</span><span class="macro">impl_to_function_interface!</span>();
+<span class="macro">impl_to_function_interface!</span>(A);
+<span class="macro">impl_to_function_interface!</span>(A, B);
+<span class="macro">impl_to_function_interface!</span>(A, B, C);
+<span class="macro">impl_to_function_interface!</span>(A, B, C, D);
+<span class="macro">impl_to_function_interface!</span>(A, B, C, D, E);
+<span class="macro">impl_to_function_interface!</span>(A, B, C, D, E, F);
+<span class="macro">impl_to_function_interface!</span>(A, B, C, D, E, F, G);
+<span class="macro">impl_to_function_interface!</span>(A, B, C, D, E, F, G, H);
 
-<span class="doccomment">/// This trait allows downcasting an entire array of objects into a tuple of concrete payloads</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DowncastArray</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">downcast_array</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+<span class="doccomment">/// This trait allows downcasting an entire array of objects into a tuple of concrete payloads
+</span><span class="kw">pub trait </span>DowncastArray&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="kw">fn </span>downcast_array(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;;
 }
 
-<span class="doccomment">/// This macro works much like `impl_to_function_interface` by implementing the array downcast trait for tuples of variable lengths</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_downcast_array</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) =&gt; {
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span><span class="op">&gt;</span> <span class="ident">DowncastArray</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, ($(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>,)<span class="op">&gt;</span> <span class="kw">for</span> [<span class="ident">ObjectRef</span>]
-        <span class="kw">where</span>
-            $(
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>: <span class="ident">ObjectPayload</span>
-            ),<span class="op">*</span>
+<span class="doccomment">/// This macro works much like `impl_to_function_interface` by implementing the array downcast trait for tuples of variable lengths
+</span><span class="macro">macro_rules! </span>impl_downcast_array {
+    ($(<span class="macro-nonterminal">$xs</span>:ident),<span class="kw-2">*</span>) =&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, $(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>&gt; DowncastArray&lt;<span class="lifetime">&#39;a</span>, ($(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>,)&gt; <span class="kw">for </span>[ObjectRef]
+        <span class="kw">where
+            </span>$(
+                <span class="macro-nonterminal">$xs</span>: ObjectPayload
+            ),*
         {
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">downcast_array</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>($(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>,)<span class="op">&gt;</span> {
-                <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span> {
-                    [$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>] =&gt; {
+            <span class="attr">#[allow(non_snake_case)]
+            </span><span class="kw">fn </span>downcast_array(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;($(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>,)&gt; {
+                <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
+                    [$(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>] =&gt; {
                         $(
-                            <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>.<span class="ident">downcast_payload</span>()<span class="question-mark">?</span>;
-                        )<span class="op">*</span>
-                        <span class="prelude-val">Some</span>(($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="kw-2">*</span>,))
+                            <span class="kw">let </span><span class="macro-nonterminal">$xs </span>= <span class="macro-nonterminal">$xs</span>.downcast_payload()<span class="question-mark">?</span>;
+                        )*
+                        <span class="prelude-val">Some</span>(($(<span class="macro-nonterminal">$xs</span>),<span class="kw-2">*</span>,))
                     }
-                    <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
                 }
             }
         }
     };
 }
 
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>, <span class="ident">I</span>);
-<span class="macro">impl_downcast_array!</span>(<span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">D</span>, <span class="ident">E</span>, <span class="ident">F</span>, <span class="ident">G</span>, <span class="ident">H</span>, <span class="ident">I</span>, <span class="ident">J</span>);
+<span class="macro">impl_downcast_array!</span>(A);
+<span class="macro">impl_downcast_array!</span>(A, B);
+<span class="macro">impl_downcast_array!</span>(A, B, C);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D, E);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D, E, F);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D, E, F, G);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D, E, F, G, H);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D, E, F, G, H, I);
+<span class="macro">impl_downcast_array!</span>(A, B, C, D, E, F, G, H, I, J);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

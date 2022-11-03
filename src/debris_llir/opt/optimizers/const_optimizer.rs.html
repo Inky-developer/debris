@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimizers/const_optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>const_optimizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../debris_llir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimizers/const_optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>const_optimizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../debris_llir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -126,56 +120,56 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">FastStore</span>, <span class="ident">FastStoreFromResult</span>, <span class="ident">Node</span>, <span class="ident">VariableAccess</span>},
-    <span class="ident">minecraft_utils::ScoreboardValue</span>,
-    <span class="ident">opt</span>::{
-        <span class="ident">global_opt</span>::{<span class="ident">Commands</span>, <span class="ident">Optimizer</span>},
-        <span class="ident">optimize_commands</span>::{<span class="ident">OptimizeCommand</span>, <span class="ident">OptimizeCommandDeque</span>, <span class="ident">OptimizeCommandKind</span>},
-        <span class="ident">variable_metadata</span>::{<span class="ident">Hint</span>, <span class="ident">ValueHints</span>},
-        <span class="ident">NodeId</span>,
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{
+    llir_nodes::{Branch, FastStore, FastStoreFromResult, Node, VariableAccess},
+    minecraft_utils::ScoreboardValue,
+    opt::{
+        global_opt::{Commands, Optimizer},
+        optimize_commands::{OptimizeCommand, OptimizeCommandDeque, OptimizeCommandKind},
+        variable_metadata::{Hint, ValueHints},
+        NodeId,
     },
 };
 
-<span class="doccomment">/// Optimizes nodes which are const-evaluatable.</span>
-<span class="doccomment">/// This optimizer tracks all const assignments to variables in</span>
-<span class="doccomment">/// a given function and replaces reads from const variables by their</span>
-<span class="doccomment">/// const value. Also contains functionality to evaluate [`BinaryOperation`](crate::llir_nodes::BinaryOperation)</span>
-<span class="doccomment">/// and [`Condition`](crate::llir_nodes::Condition).</span>
-<span class="doccomment">/// In order to be more efficient, this optimizer optimizes an entire function.</span>
-<span class="doccomment">/// This means that the current state must always be synced correctly!</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConstOptimizer</span> {
-    <span class="ident">value_hints</span>: <span class="ident">ValueHints</span>,
+<span class="doccomment">/// Optimizes nodes which are const-evaluatable.
+/// This optimizer tracks all const assignments to variables in
+/// a given function and replaces reads from const variables by their
+/// const value. Also contains functionality to evaluate [`BinaryOperation`](crate::llir_nodes::BinaryOperation)
+/// and [`Condition`](crate::llir_nodes::Condition).
+/// In order to be more efficient, this optimizer optimizes an entire function.
+/// This means that the current state must always be synced correctly!
+</span><span class="attr">#[derive(Default)]
+</span><span class="kw">pub struct </span>ConstOptimizer {
+    value_hints: ValueHints,
 }
 
-<span class="kw">impl</span> <span class="ident">Optimizer</span> <span class="kw">for</span> <span class="ident">ConstOptimizer</span> {
-    <span class="kw">fn</span> <span class="ident">optimize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>) {
-        <span class="kw">for</span> <span class="ident">function_iter</span> <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_functions</span>() {
-            <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">clear_all</span>();
-            <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">function_iter</span> {
-                <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>, <span class="bool-val">true</span>);
+<span class="kw">impl </span>Optimizer <span class="kw">for </span>ConstOptimizer {
+    <span class="kw">fn </span>optimize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, commands: <span class="kw-2">&amp;mut </span>Commands) {
+        <span class="kw">for </span>function_iter <span class="kw">in </span>commands.optimizer.iter_functions() {
+            <span class="self">self</span>.value_hints.clear_all();
+            <span class="kw">for </span>(node_id, node) <span class="kw">in </span>function_iter {
+                <span class="self">self</span>.value_hints.update_hints(node, <span class="bool-val">true</span>);
 
-                <span class="kw">let</span> <span class="ident">could_optimize</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">optimize_node</span>(<span class="ident">commands</span>.<span class="ident">commands</span>, <span class="ident">node_id</span>, <span class="ident">node</span>);
-                <span class="kw">if</span> <span class="ident">could_optimize</span> {
+                <span class="kw">let </span>could_optimize = <span class="self">self</span>.optimize_node(commands.commands, node_id, node);
+                <span class="kw">if </span>could_optimize {
                     <span class="kw">continue</span>;
                 }
 
-                <span class="kw">let</span> <span class="ident">commands_vec</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">commands</span>.<span class="ident">commands</span>;
-                <span class="kw">let</span> <span class="ident">variable_information</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">commands</span>.<span class="ident">stats</span>.<span class="ident">variable_information</span>;
-                <span class="ident">node</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>)) <span class="op">=</span> <span class="ident">access</span> {
-                        <span class="kw">let</span> <span class="ident">hint</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">get_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>).<span class="ident">exact</span>();
-                        <span class="kw">let</span> <span class="ident">global_const</span> <span class="op">=</span> <span class="ident">variable_information</span>[<span class="ident">id</span>].<span class="ident">constant_value</span>;
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exact_value</span>) <span class="op">=</span> <span class="ident">hint</span>.<span class="ident">or</span>(<span class="ident">global_const</span>) {
-                            <span class="ident">commands_vec</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                                <span class="ident">node_id</span>,
-                                <span class="ident">OptimizeCommandKind::ChangeReads</span>(
-                                    <span class="kw-2">*</span><span class="ident">id</span>,
-                                    <span class="ident">ScoreboardValue::Static</span>(<span class="ident">exact_value</span>),
+                <span class="kw">let </span>commands_vec = <span class="kw-2">&amp;mut *</span>commands.commands;
+                <span class="kw">let </span>variable_information = <span class="kw-2">&amp;</span>commands.stats.variable_information;
+                node.variable_accesses(<span class="kw-2">&amp;mut </span>|access| {
+                    <span class="kw">if let </span>VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id)) = access {
+                        <span class="kw">let </span>hint = <span class="self">self</span>.value_hints.get_hint(<span class="kw-2">*</span>id).exact();
+                        <span class="kw">let </span>global_const = variable_information[id].constant_value;
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(exact_value) = hint.or(global_const) {
+                            commands_vec.push(OptimizeCommand::new(
+                                node_id,
+                                OptimizeCommandKind::ChangeReads(
+                                    <span class="kw-2">*</span>id,
+                                    ScoreboardValue::Static(exact_value),
                                 ),
                             ));
-                            <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">node</span>, <span class="bool-val">true</span>);
+                            <span class="self">self</span>.value_hints.update_hints(node, <span class="bool-val">true</span>);
                         }
                     }
                 });
@@ -184,70 +178,69 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ConstOptimizer</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">optimize_node</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">OptimizeCommandDeque</span><span class="op">&lt;</span><span class="ident">OptimizeCommand</span><span class="op">&gt;</span>,
-        <span class="ident">node_id</span>: <span class="ident">NodeId</span>,
-        <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>,
-    ) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="ident">node</span> {
-            <span class="ident">Node::BinaryOperation</span>(<span class="ident">bin_op</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_binary_operation</span>(<span class="ident">bin_op</span>) {
-                    <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                        <span class="ident">node_id</span>,
-                        <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                            <span class="ident">id</span>: <span class="ident">bin_op</span>.<span class="ident">id</span>,
-                            <span class="ident">scoreboard</span>: <span class="ident">bin_op</span>.<span class="ident">scoreboard</span>,
-                            <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">result</span>),
+<span class="kw">impl </span>ConstOptimizer {
+    <span class="kw">pub fn </span>optimize_node(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        commands: <span class="kw-2">&amp;mut </span>OptimizeCommandDeque&lt;OptimizeCommand&gt;,
+        node_id: NodeId,
+        node: <span class="kw-2">&amp;</span>Node,
+    ) -&gt; bool {
+        <span class="kw">match </span>node {
+            Node::BinaryOperation(bin_op) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = <span class="self">self</span>.value_hints.static_binary_operation(bin_op) {
+                    commands.push(OptimizeCommand::new(
+                        node_id,
+                        OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                            id: bin_op.id,
+                            scoreboard: bin_op.scoreboard,
+                            value: ScoreboardValue::Static(result),
                         })),
                     ));
-                    <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">set_hint</span>(<span class="ident">bin_op</span>.<span class="ident">id</span>, <span class="ident">Hint::Exact</span>(<span class="ident">result</span>));
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                    <span class="self">self</span>.value_hints.set_hint(bin_op.id, Hint::Exact(result));
+                    <span class="kw">return </span><span class="bool-val">true</span>;
                 }
             }
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">scoreboard</span>,
-                <span class="ident">id</span>,
-                <span class="ident">command</span>,
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard,
+                id,
+                command,
             }) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">command</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_condition</span>(<span class="ident">condition</span>) {
-                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">result</span> { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
-                        <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                            <span class="ident">node_id</span>,
-                            <span class="ident">OptimizeCommandKind::Replace</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                                <span class="ident">id</span>: <span class="kw-2">*</span><span class="ident">id</span>,
-                                <span class="ident">scoreboard</span>: <span class="kw-2">*</span><span class="ident">scoreboard</span>,
-                                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>),
+                <span class="kw">if let </span>Node::Condition(condition) = <span class="kw-2">&amp;**</span>command {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = <span class="self">self</span>.value_hints.static_condition(condition) {
+                        commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::Replace(Node::FastStore(FastStore {
+                                id: <span class="kw-2">*</span>id,
+                                scoreboard: <span class="kw-2">*</span>scoreboard,
+                                value: ScoreboardValue::Static(i32::from(result)),
                             })),
                         ));
-                        <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">set_hint</span>(<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">Hint::Exact</span>(<span class="ident">value</span>));
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
+                        <span class="self">self</span>.value_hints
+                            .set_hint(<span class="kw-2">*</span>id, Hint::Exact(i32::from(result)));
+                        <span class="kw">return </span><span class="bool-val">true</span>;
                     }
                 }
             }
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>,
-                <span class="ident">pos_branch</span>,
-                <span class="ident">neg_branch</span>,
+            Node::Branch(Branch {
+                condition,
+                pos_branch,
+                neg_branch,
             }) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">static_condition</span>(<span class="ident">condition</span>) {
-                    <span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                        <span class="ident">node_id</span>,
-                        <span class="ident">OptimizeCommandKind::InlineBranch</span>(<span class="ident">result</span>),
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = <span class="self">self</span>.value_hints.static_condition(condition) {
+                    commands.push(OptimizeCommand::new(
+                        node_id,
+                        OptimizeCommandKind::InlineBranch(result),
                     ));
-                    <span class="kw">let</span> <span class="ident">branch</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">result</span> { <span class="ident">pos_branch</span> } <span class="kw">else</span> { <span class="ident">neg_branch</span> };
-                    <span class="self">self</span>.<span class="ident">value_hints</span>.<span class="ident">update_hints</span>(<span class="ident">branch</span>, <span class="bool-val">true</span>);
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                    <span class="kw">let </span>branch = <span class="kw">if </span>result { pos_branch } <span class="kw">else </span>{ neg_branch };
+                    <span class="self">self</span>.value_hints.update_hints(branch, <span class="bool-val">true</span>);
+                    <span class="kw">return </span><span class="bool-val">true</span>;
                 }
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="bool-val">false</span>
-    }
+        <span class="bool-val">false
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

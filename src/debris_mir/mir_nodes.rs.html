@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/mir/src/mir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_mir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_mir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_mir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/mir/src/mir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_mir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -250,252 +244,251 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::fmt::Formatter</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>debris_common::{Ident, Span};
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fmt::Formatter;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">mir_context::MirContextId</span>, <span class="ident">mir_object::MirObjectId</span>, <span class="ident">mir_primitives::MirPrimitive</span>};
+<span class="kw">use crate</span>::{mir_context::MirContextId, mir_object::MirObjectId, mir_primitives::MirPrimitive};
 
-<span class="macro">macro_rules!</span> <span class="ident">mir_node_declaration</span> {
-    (<span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">member_name</span>:<span class="ident">ident</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>:<span class="ident">ident</span>)),<span class="kw-2">*</span>}) =&gt; {
-        <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
+<span class="macro">macro_rules! </span>mir_node_declaration {
+    (<span class="kw">pub enum </span><span class="macro-nonterminal">$name</span>:ident {$(<span class="macro-nonterminal">$member_name</span>:ident(<span class="macro-nonterminal">$type_name</span>:ident)),<span class="kw-2">*</span>}) =&gt; {
+        <span class="kw">pub enum </span><span class="macro-nonterminal">$name </span>{
             $(
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">member_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>)
-            ),<span class="op">*</span>
+                <span class="macro-nonterminal">$member_name</span>(<span class="macro-nonterminal">$type_name</span>)
+            ),*
         }
 
         $(
-            <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">type_name</span>) -&gt; <span class="self">Self</span> {
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">member_name</span>(<span class="ident">value</span>)
+            <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$type_name</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$name </span>{
+                <span class="kw">fn </span>from(value: <span class="macro-nonterminal">$type_name</span>) -&gt; <span class="self">Self </span>{
+                    <span class="macro-nonterminal">$name</span>::<span class="macro-nonterminal">$member_name</span>(value)
                 }
             }
-        )<span class="op">*</span>
+        )*
 
-        <span class="kw">impl</span> <span class="ident">::std::fmt::Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">::std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">::std::fmt::Result</span> {
-                <span class="kw">match</span> <span class="self">self</span> {
+        <span class="kw">impl </span>::std::fmt::Debug <span class="kw">for </span><span class="macro-nonterminal">$name </span>{
+            <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>::std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; ::std::fmt::Result {
+                <span class="kw">match </span><span class="self">self </span>{
                     $(
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">member_name</span>(<span class="ident">val</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{val:?}&quot;</span>),
-                    )<span class="op">*</span>
+                        <span class="macro-nonterminal">$name</span>::<span class="macro-nonterminal">$member_name</span>(val) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{val:?}&quot;</span>),
+                    )*
                 }
             }
         }
     };
 }
 
-<span class="macro">mir_node_declaration!</span> {
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirNode</span> {
-        <span class="ident">Branch</span>(<span class="ident">Branch</span>),
-        <span class="ident">FunctionCall</span>(<span class="ident">FunctionCall</span>),
-        <span class="ident">Goto</span>(<span class="ident">Goto</span>),
-        <span class="ident">RuntimePromotion</span>(<span class="ident">RuntimePromotion</span>),
-        <span class="ident">RuntimeCopy</span>(<span class="ident">RuntimeCopy</span>),
-        <span class="ident">VerifyValueComptime</span>(<span class="ident">VerifyValueComptime</span>),
-        <span class="ident">VerifyTupleLength</span>(<span class="ident">VerifyTupleLength</span>),
-        <span class="ident">VerifyPropertyExists</span>(<span class="ident">VerifyPropertyExists</span>),
-        <span class="ident">PrimitiveDeclaration</span>(<span class="ident">PrimitiveDeclaration</span>),
-        <span class="ident">VariableUpdate</span>(<span class="ident">VariableUpdate</span>),
-        <span class="ident">PropertyUpdate</span>(<span class="ident">PropertyUpdate</span>),
-        <span class="ident">PropertyAccess</span>(<span class="ident">PropertyAccess</span>)
+<span class="macro">mir_node_declaration! </span>{
+    <span class="kw">pub enum </span>MirNode {
+        Branch(Branch),
+        FunctionCall(FunctionCall),
+        Goto(Goto),
+        RuntimePromotion(RuntimePromotion),
+        RuntimeCopy(RuntimeCopy),
+        VerifyValueComptime(VerifyValueComptime),
+        VerifyTupleLength(VerifyTupleLength),
+        VerifyPropertyExists(VerifyPropertyExists),
+        PrimitiveDeclaration(PrimitiveDeclaration),
+        VariableUpdate(VariableUpdate),
+        PropertyUpdate(PropertyUpdate),
+        PropertyAccess(PropertyAccess)
     }
 }
 
-<span class="doccomment">/// An if-statement which has a condition, a return value and two possible branches</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">is_comptime</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">condition_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">return_value</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">pos_branch</span>: <span class="ident">MirContextId</span>,
-    <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="ident">MirContextId</span>,
+<span class="doccomment">/// An if-statement which has a condition, a return value and two possible branches
+</span><span class="kw">pub struct </span>Branch {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>is_comptime: bool,
+    <span class="kw">pub </span>condition_span: Span,
+    <span class="kw">pub </span>return_value: MirObjectId,
+    <span class="kw">pub </span>condition: MirObjectId,
+    <span class="kw">pub </span>pos_branch: MirContextId,
+    <span class="kw">pub </span>neg_branch: MirContextId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Branch</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Branch {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;{:?} := if {:?} then call {:?} else call {:?}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">return_value</span>, <span class="self">self</span>.<span class="ident">condition</span>, <span class="self">self</span>.<span class="ident">pos_branch</span>, <span class="self">self</span>.<span class="ident">neg_branch</span>
+            <span class="self">self</span>.return_value, <span class="self">self</span>.condition, <span class="self">self</span>.pos_branch, <span class="self">self</span>.neg_branch
         )
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionCall</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">value_span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">allow_comptime</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">function</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">self_obj</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirObjectId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">return_value</span>: <span class="ident">MirObjectId</span>,
+<span class="kw">pub struct </span>FunctionCall {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>value_span: Span,
+    <span class="kw">pub </span>allow_comptime: bool,
+    <span class="kw">pub </span>function: MirObjectId,
+    <span class="kw">pub </span>parameters: Vec&lt;MirObjectId&gt;,
+    <span class="kw">pub </span>self_obj: <span class="prelude-ty">Option</span>&lt;MirObjectId&gt;,
+    <span class="kw">pub </span>return_value: MirObjectId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">FunctionCall</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>FunctionCall {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;{:?} := call {:?} with {:?}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">return_value</span>, <span class="self">self</span>.<span class="ident">function</span>, <span class="self">self</span>.<span class="ident">parameters</span>
+            <span class="self">self</span>.return_value, <span class="self">self</span>.function, <span class="self">self</span>.parameters
         )<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">self_obj_id</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">self_obj</span> {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; (self: {self_obj_id:?})&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(self_obj_id) = <span class="kw-2">&amp;</span><span class="self">self</span>.self_obj {
+            <span class="macro">write!</span>(f, <span class="string">&quot; (self: {self_obj_id:?})&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="doccomment">/// Goes to a specific context</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Goto</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">context_id</span>: <span class="ident">MirContextId</span>,
+<span class="doccomment">/// Goes to a specific context
+</span><span class="kw">pub struct </span>Goto {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>context_id: MirContextId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Goto</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;goto {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">context_id</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Goto {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;goto {:?}&quot;</span>, <span class="self">self</span>.context_id)
     }
 }
 
-<span class="doccomment">/// Tries to promote a comptime value to a runtime value, but does not fail if</span>
-<span class="doccomment">/// no such conversion exists.</span>
-<span class="doccomment">/// Used in `let foo = expression();` statements, because foo by default stores</span>
-<span class="doccomment">/// runtime encodable values.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RuntimePromotion</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">MirObjectId</span>,
+<span class="doccomment">/// Tries to promote a comptime value to a runtime value, but does not fail if
+/// no such conversion exists.
+/// Used in `let foo = expression();` statements, because foo by default stores
+/// runtime encodable values.
+</span><span class="kw">pub struct </span>RuntimePromotion {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>value: MirObjectId,
+    <span class="kw">pub </span>target: MirObjectId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">RuntimePromotion</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} := promote {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">target</span>, <span class="self">self</span>.<span class="ident">value</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>RuntimePromotion {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?} := promote {:?}&quot;</span>, <span class="self">self</span>.target, <span class="self">self</span>.value)
     }
 }
 
-<span class="doccomment">/// Tries to copy a value (Does nothing if the value is comptime)</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RuntimeCopy</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">MirObjectId</span>,
+<span class="doccomment">/// Tries to copy a value (Does nothing if the value is comptime)
+</span><span class="kw">pub struct </span>RuntimeCopy {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>value: MirObjectId,
+    <span class="kw">pub </span>target: MirObjectId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">RuntimeCopy</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} := copy {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">target</span>, <span class="self">self</span>.<span class="ident">value</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>RuntimeCopy {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?} := copy {:?}&quot;</span>, <span class="self">self</span>.target, <span class="self">self</span>.value)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerifyValueComptime</span> {
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
+<span class="kw">pub struct </span>VerifyValueComptime {
+    <span class="kw">pub </span>value: MirObjectId,
+    <span class="kw">pub </span>span: Span,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">VerifyValueComptime</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;verify_comptime {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">value</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>VerifyValueComptime {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;verify_comptime {:?}&quot;</span>, <span class="self">self</span>.value)
     }
 }
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerifyTupleLength</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">length</span>: <span class="ident">usize</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
+<span class="kw">pub struct </span>VerifyTupleLength {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>length: usize,
+    <span class="kw">pub </span>value: MirObjectId,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">VerifyTupleLength</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;verify_tuple_length {:?}, {}&quot;</span>, <span class="self">self</span>.<span class="ident">value</span>, <span class="self">self</span>.<span class="ident">length</span>)
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerifyPropertyExists</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">obj_id</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">VerifyPropertyExists</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;verify_property_exists {:?}.{}&quot;</span>, <span class="self">self</span>.<span class="ident">obj_id</span>, <span class="self">self</span>.<span class="ident">ident</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>VerifyTupleLength {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;verify_tuple_length {:?}, {}&quot;</span>, <span class="self">self</span>.value, <span class="self">self</span>.length)
     }
 }
 
-<span class="doccomment">/// Declares a primitive value and assigns it to `target`</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrimitiveDeclaration</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirPrimitive</span>,
+<span class="kw">pub struct </span>VerifyPropertyExists {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>obj_id: MirObjectId,
+    <span class="kw">pub </span>ident: Ident,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">PrimitiveDeclaration</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} := {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">target</span>, <span class="self">self</span>.<span class="ident">value</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>VerifyPropertyExists {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;verify_property_exists {:?}.{}&quot;</span>, <span class="self">self</span>.obj_id, <span class="self">self</span>.ident)
     }
 }
 
-<span class="doccomment">/// Updates the variable at `target` to `value`</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VariableUpdate</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
-    <span class="doccomment">/// Whether the update may be performed at compile time</span>
-    <span class="kw">pub</span> <span class="ident">comptime_update_allowed</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Declares a primitive value and assigns it to `target`
+</span><span class="kw">pub struct </span>PrimitiveDeclaration {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>target: MirObjectId,
+    <span class="kw">pub </span>value: MirPrimitive,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">VariableUpdate</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">comptime_update_allowed</span> {
-            <span class="string">&quot;:&quot;</span>
-        } <span class="kw">else</span> {
-            <span class="string">&quot;&quot;</span>
-        };
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?} {}= {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">target</span>, <span class="ident">decl</span>, <span class="self">self</span>.<span class="ident">value</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>PrimitiveDeclaration {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?} := {:?}&quot;</span>, <span class="self">self</span>.target, <span class="self">self</span>.value)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyUpdate</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="kw">pub</span> <span class="ident">parent</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">comptime_update_allowed</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Updates the variable at `target` to `value`
+</span><span class="kw">pub struct </span>VariableUpdate {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>target: MirObjectId,
+    <span class="kw">pub </span>value: MirObjectId,
+    <span class="doccomment">/// Whether the update may be performed at compile time
+    </span><span class="kw">pub </span>comptime_update_allowed: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">PropertyUpdate</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">comptime_update_allowed</span> {
-            <span class="string">&quot;:&quot;</span>
-        } <span class="kw">else</span> {
-            <span class="string">&quot;&quot;</span>
-        };
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>VariableUpdate {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>decl = <span class="kw">if </span><span class="self">self</span>.comptime_update_allowed {
+            <span class="string">&quot;:&quot;
+        </span>} <span class="kw">else </span>{
+            <span class="string">&quot;&quot;
+        </span>};
+        <span class="macro">write!</span>(f, <span class="string">&quot;{:?} {}= {:?}&quot;</span>, <span class="self">self</span>.target, decl, <span class="self">self</span>.value)
+    }
+}
+
+<span class="kw">pub struct </span>PropertyUpdate {
+    <span class="kw">pub </span>span: Span,
+    <span class="kw">pub </span>parent: MirObjectId,
+    <span class="kw">pub </span>ident: Ident,
+    <span class="kw">pub </span>value: MirObjectId,
+    <span class="kw">pub </span>comptime_update_allowed: bool,
+}
+
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>PropertyUpdate {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>decl = <span class="kw">if </span><span class="self">self</span>.comptime_update_allowed {
+            <span class="string">&quot;:&quot;
+        </span>} <span class="kw">else </span>{
+            <span class="string">&quot;&quot;
+        </span>};
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;{:?}.{} {}= {:?}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">parent</span>, <span class="self">self</span>.<span class="ident">ident</span>, <span class="ident">decl</span>, <span class="self">self</span>.<span class="ident">value</span>
+            <span class="self">self</span>.parent, <span class="self">self</span>.ident, decl, <span class="self">self</span>.value
         )
     }
 }
 
-<span class="doccomment">/// Binds a required property of an object to an object id so it can be used</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyAccess</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">Span</span>,
-    <span class="doccomment">/// The target to which should be written to</span>
-    <span class="kw">pub</span> <span class="ident">target_id</span>: <span class="ident">MirObjectId</span>,
-    <span class="doccomment">/// The object with the required ident</span>
-    <span class="kw">pub</span> <span class="ident">value_id</span>: <span class="ident">MirObjectId</span>,
-    <span class="kw">pub</span> <span class="ident">property_ident</span>: <span class="ident">Ident</span>,
+<span class="doccomment">/// Binds a required property of an object to an object id so it can be used
+</span><span class="kw">pub struct </span>PropertyAccess {
+    <span class="kw">pub </span>span: Span,
+    <span class="doccomment">/// The target to which should be written to
+    </span><span class="kw">pub </span>target_id: MirObjectId,
+    <span class="doccomment">/// The object with the required ident
+    </span><span class="kw">pub </span>value_id: MirObjectId,
+    <span class="kw">pub </span>property_ident: Ident,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">PropertyAccess</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>PropertyAccess {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(
-            <span class="ident">f</span>,
+            f,
             <span class="string">&quot;{:?} := {:?}.{}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">target_id</span>, <span class="self">self</span>.<span class="ident">value_id</span>, <span class="self">self</span>.<span class="ident">property_ident</span>
+            <span class="self">self</span>.target_id, <span class="self">self</span>.value_id, <span class="self">self</span>.property_ident
         )
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/backends/src/common/commands.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>commands.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_backends/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_backends/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_backends/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/backends/src/common/commands.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>commands.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_backends/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -181,183 +175,182 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">fmt::Display</span>, <span class="ident">rc::Rc</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{fmt, fmt::Display, rc::Rc};
 
-<span class="kw">use</span> <span class="ident">debris_llir</span>::{
-    <span class="ident">llir_nodes::WriteTarget</span>,
-    <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+<span class="kw">use </span>debris_llir::{
+    llir_nodes::WriteTarget,
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation},
 };
-<span class="kw">use</span> <span class="ident">fmt::Formatter</span>;
+<span class="kw">use </span>fmt::Formatter;
 
-<span class="doccomment">/// Enumerates all minecraft commands that are used by any backend</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MinecraftCommand</span> {
-    <span class="doccomment">/// Sets the scoreboard value to a specific integer</span>
-    <span class="ident">ScoreboardSet</span> {
-        <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">value</span>: <span class="ident">i32</span>,
+<span class="doccomment">/// Enumerates all minecraft commands that are used by any backend
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>MinecraftCommand {
+    <span class="doccomment">/// Sets the scoreboard value to a specific integer
+    </span>ScoreboardSet {
+        player: ScoreboardPlayer,
+        value: i32,
     },
-    <span class="doccomment">/// Sets the scoreboard value to another scoreboard value</span>
-    <span class="ident">ScoreboardSetEqual</span> {
-        <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span>,
+    <span class="doccomment">/// Sets the scoreboard value to another scoreboard value
+    </span>ScoreboardSetEqual {
+        player1: ScoreboardPlayer,
+        player2: ScoreboardPlayer,
     },
-    <span class="doccomment">/// Sets the scoreboard value equal to the result of the other command</span>
-    <span class="ident">ScoreboardSetFromResult</span> {
-        <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">command</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">MinecraftCommand</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Sets the scoreboard value equal to the result of the other command
+    </span>ScoreboardSetFromResult {
+        player: ScoreboardPlayer,
+        command: Box&lt;MinecraftCommand&gt;,
     },
-    <span class="ident">ScoreboardOperation</span> {
-        <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">operation</span>: <span class="ident">ScoreboardOperation</span>,
+    ScoreboardOperation {
+        player1: ScoreboardPlayer,
+        player2: ScoreboardPlayer,
+        operation: ScoreboardOperation,
     },
-    <span class="doccomment">/// Quick operation which adds or removes a static value</span>
-    <span class="ident">ScoreboardOperationAdd</span> {
-        <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">value</span>: <span class="ident">i32</span>,
+    <span class="doccomment">/// Quick operation which adds or removes a static value
+    </span>ScoreboardOperationAdd {
+        player: ScoreboardPlayer,
+        value: i32,
     },
-    <span class="doccomment">/// Any used execute command</span>
-    <span class="ident">Execute</span> {
-        <span class="ident">parts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExecuteComponent</span><span class="op">&gt;</span>,
-        <span class="ident">and_then</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">MinecraftCommand</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Any used execute command
+    </span>Execute {
+        parts: Vec&lt;ExecuteComponent&gt;,
+        and_then: <span class="prelude-ty">Option</span>&lt;Box&lt;MinecraftCommand&gt;&gt;,
     },
-    <span class="doccomment">/// Calls another function</span>
-    <span class="ident">Function</span> {
-        <span class="ident">function</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FunctionIdent</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Calls another function
+    </span>Function {
+        function: Rc&lt;FunctionIdent&gt;,
     },
-    <span class="ident">ScoreboardAdd</span> {
-        <span class="ident">name</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-        <span class="ident">criterion</span>: <span class="ident">ObjectiveCriterion</span>,
-        <span class="ident">json_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    ScoreboardAdd {
+        name: Rc&lt;str&gt;,
+        criterion: ObjectiveCriterion,
+        json_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
-    <span class="ident">ScoreboardRemove</span> {
-        <span class="ident">name</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    ScoreboardRemove {
+        name: Rc&lt;str&gt;,
     },
-    <span class="ident">RawCommand</span> {
-        <span class="ident">command</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    RawCommand {
+        command: Rc&lt;str&gt;,
     },
-    <span class="ident">JsonMessage</span> {
-        <span class="ident">target</span>: <span class="ident">WriteTarget</span>,
-        <span class="ident">message</span>: <span class="ident">String</span>,
+    JsonMessage {
+        target: WriteTarget,
+        message: String,
     },
 }
 
-<span class="doccomment">/// A component in an execute command</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteComponent</span> {
-    <span class="doccomment">/// Tests for a relation between to scores</span>
-    <span class="ident">IfScoreRelation</span> {
-        <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>,
+<span class="doccomment">/// A component in an execute command
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>ExecuteComponent {
+    <span class="doccomment">/// Tests for a relation between to scores
+    </span>IfScoreRelation {
+        player1: ScoreboardPlayer,
+        player2: ScoreboardPlayer,
+        comparison: ScoreboardComparison,
     },
-    <span class="doccomment">/// Tests for a relation between a score and a static value</span>
-    <span class="ident">IfScoreRange</span> {
-        <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span>,
-        <span class="ident">range</span>: <span class="ident">MinecraftRange</span>,
+    <span class="doccomment">/// Tests for a relation between a score and a static value
+    </span>IfScoreRange {
+        player: ScoreboardPlayer,
+        range: MinecraftRange,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">ExecuteComponent</span> {
-    <span class="doccomment">/// Returns whether this component is a condition</span>
-    <span class="doccomment">/// (Right now always true)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ExecuteComponent::IfScoreRange</span> { .. } <span class="op">|</span> <span class="ident">ExecuteComponent::IfScoreRelation</span> { .. } =&gt; {
-                <span class="bool-val">true</span>
-            }
+<span class="kw">impl </span>ExecuteComponent {
+    <span class="doccomment">/// Returns whether this component is a condition
+    /// (Right now always true)
+    </span><span class="kw">pub fn </span>is_condition(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            ExecuteComponent::IfScoreRange { .. } | ExecuteComponent::IfScoreRelation { .. } =&gt; {
+                <span class="bool-val">true
+            </span>}
         }
     }
 }
 
-<span class="doccomment">/// Any valid minecraft range</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A minecraft range is inclusive on both ends</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MinecraftRange</span> {
-    <span class="doccomment">/// A full range, eg. 1..99</span>
-    <span class="ident">Range</span> { <span class="ident">from</span>: <span class="ident">i32</span>, <span class="ident">to</span>: <span class="ident">i32</span> },
-    <span class="doccomment">/// A range with a lower bound, eg. 0..</span>
-    <span class="ident">Minimum</span>(<span class="ident">i32</span>),
-    <span class="doccomment">/// A range with an upper bound, eg. ..50</span>
-    <span class="ident">Maximum</span>(<span class="ident">i32</span>),
-    <span class="doccomment">/// A range that only contains one value</span>
-    <span class="ident">Equal</span>(<span class="ident">i32</span>),
-    <span class="doccomment">/// A range that contains every value except one</span>
-    <span class="ident">NotEqual</span>(<span class="ident">i32</span>),
+<span class="doccomment">/// Any valid minecraft range
+///
+/// A minecraft range is inclusive on both ends
+</span><span class="attr">#[derive(Debug, Copy, Clone)]
+</span><span class="kw">pub enum </span>MinecraftRange {
+    <span class="doccomment">/// A full range, eg. 1..99
+    </span>Range { from: i32, to: i32 },
+    <span class="doccomment">/// A range with a lower bound, eg. 0..
+    </span>Minimum(i32),
+    <span class="doccomment">/// A range with an upper bound, eg. ..50
+    </span>Maximum(i32),
+    <span class="doccomment">/// A range that only contains one value
+    </span>Equal(i32),
+    <span class="doccomment">/// A range that contains every value except one
+    </span>NotEqual(i32),
 }
 
-<span class="doccomment">/// A combination of scoreboard and player</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScoreboardPlayer</span> {
-    <span class="kw">pub</span> <span class="ident">player</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A combination of scoreboard and player
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>ScoreboardPlayer {
+    <span class="kw">pub </span>player: Rc&lt;str&gt;,
+    <span class="kw">pub </span>scoreboard: Rc&lt;str&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ScoreboardPlayer</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">player</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">player</span>.<span class="ident">as_ref</span>();
-        <span class="kw">let</span> <span class="ident">scoreboard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">scoreboard</span>.<span class="ident">as_ref</span>();
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{player} {scoreboard}&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ScoreboardPlayer {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>player = <span class="self">self</span>.player.as_ref();
+        <span class="kw">let </span>scoreboard = <span class="self">self</span>.scoreboard.as_ref();
+        <span class="macro">write!</span>(f, <span class="string">&quot;{player} {scoreboard}&quot;</span>)
     }
 }
 
-<span class="doccomment">/// Any objective criterion</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// used in the command `scoreboard objectives add foo &lt;criterion&gt;`</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectiveCriterion</span> {
-    <span class="doccomment">/// Mostly used by debris</span>
-    <span class="ident">Dummy</span>,
-    <span class="comment">// /// potentially generate an enum of all possibilities from minecraft data</span>
-    <span class="comment">// Other(String),</span>
+<span class="doccomment">/// Any objective criterion
+///
+/// used in the command `scoreboard objectives add foo &lt;criterion&gt;`
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>ObjectiveCriterion {
+    <span class="doccomment">/// Mostly used by debris
+    </span>Dummy,
+    <span class="comment">// /// potentially generate an enum of all possibilities from minecraft data
+    // Other(String),
+</span>}
+
+<span class="doccomment">/// A unique minecraft function identifier
+</span><span class="attr">#[derive(Debug, PartialEq, Eq, Hash)]
+</span><span class="kw">pub struct </span>FunctionIdent {
+    <span class="doccomment">/// The namespace of this function, for example `debris`
+    </span><span class="kw">pub </span>namespace: Rc&lt;str&gt;,
+    <span class="doccomment">/// The path of this function, for example `foo/bar/baz`
+    </span><span class="kw">pub </span>path: String,
+    <span class="doccomment">/// Whether this function is a collection, marked by a `#`
+    </span><span class="kw">pub </span>is_collection: bool,
 }
 
-<span class="doccomment">/// A unique minecraft function identifier</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionIdent</span> {
-    <span class="doccomment">/// The namespace of this function, for example `debris`</span>
-    <span class="kw">pub</span> <span class="ident">namespace</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The path of this function, for example `foo/bar/baz`</span>
-    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// Whether this function is a collection, marked by a `#`</span>
-    <span class="kw">pub</span> <span class="ident">is_collection</span>: <span class="ident">bool</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">MinecraftRange</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_operator</span>(<span class="ident">value</span>: <span class="ident">i32</span>, <span class="ident">operator</span>: <span class="ident">ScoreboardComparison</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">operator</span> {
-            <span class="ident">ScoreboardComparison::Equal</span> =&gt; <span class="ident">MinecraftRange::Equal</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison::NotEqual</span> =&gt; <span class="ident">MinecraftRange::NotEqual</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison::Greater</span> =&gt; {
-                <span class="ident">MinecraftRange::Minimum</span>(<span class="ident">value</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
+<span class="kw">impl </span>MinecraftRange {
+    <span class="kw">pub fn </span>from_operator(value: i32, operator: ScoreboardComparison) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>operator {
+            ScoreboardComparison::Equal =&gt; MinecraftRange::Equal(value),
+            ScoreboardComparison::NotEqual =&gt; MinecraftRange::NotEqual(value),
+            ScoreboardComparison::Greater =&gt; {
+                MinecraftRange::Minimum(value.checked_add(<span class="number">1</span>).expect(<span class="string">&quot;Invalid value&quot;</span>))
             }
-            <span class="ident">ScoreboardComparison::GreaterOrEqual</span> =&gt; <span class="ident">MinecraftRange::Minimum</span>(<span class="ident">value</span>),
-            <span class="ident">ScoreboardComparison::Less</span> =&gt; {
-                <span class="ident">MinecraftRange::Maximum</span>(<span class="ident">value</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;Invalid value&quot;</span>))
+            ScoreboardComparison::GreaterOrEqual =&gt; MinecraftRange::Minimum(value),
+            ScoreboardComparison::Less =&gt; {
+                MinecraftRange::Maximum(value.checked_sub(<span class="number">1</span>).expect(<span class="string">&quot;Invalid value&quot;</span>))
             }
-            <span class="ident">ScoreboardComparison::LessOrEqual</span> =&gt; <span class="ident">MinecraftRange::Maximum</span>(<span class="ident">value</span>),
+            ScoreboardComparison::LessOrEqual =&gt; MinecraftRange::Maximum(value),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectiveCriterion</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ObjectiveCriterion::Dummy</span> =&gt; <span class="string">&quot;dummy&quot;</span>,
+<span class="kw">impl </span>Display <span class="kw">for </span>ObjectiveCriterion {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="kw">match </span><span class="self">self </span>{
+            ObjectiveCriterion::Dummy =&gt; <span class="string">&quot;dummy&quot;</span>,
         })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FunctionIdent</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_collection</span> { <span class="string">&quot;#&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> };
-        <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">namespace</span>.<span class="ident">as_ref</span>();
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">as_str</span>();
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{prefix}{namespace}:{path}&quot;</span>)
+<span class="kw">impl </span>Display <span class="kw">for </span>FunctionIdent {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>prefix = <span class="kw">if </span><span class="self">self</span>.is_collection { <span class="string">&quot;#&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>};
+        <span class="kw">let </span>namespace = <span class="self">self</span>.namespace.as_ref();
+        <span class="kw">let </span>path = <span class="self">self</span>.path.as_str();
+        <span class="macro">write!</span>(f, <span class="string">&quot;{prefix}{namespace}:{path}&quot;</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

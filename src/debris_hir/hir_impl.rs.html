@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/hir/src/hir_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hir_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/hir/src/hir_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>hir_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -820,828 +814,821 @@
 <span id="814">814</span>
 <span id="815">815</span>
 <span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Converts the high-level representation from the pest parser.</span>
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Converts the high-level representation from the pest parser.
+</span><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">hir_nodes</span>::{
-        <span class="ident">Attribute</span>, <span class="ident">HirComparisonOperator</span>, <span class="ident">HirConditionalBranch</span>, <span class="ident">HirConstValue</span>, <span class="ident">HirControlFlow</span>,
-        <span class="ident">HirControlKind</span>, <span class="ident">HirDeclarationMode</span>, <span class="ident">HirExpression</span>, <span class="ident">HirFormatStringMember</span>, <span class="ident">HirFunction</span>,
-        <span class="ident">HirFunctionCall</span>, <span class="ident">HirFunctionName</span>, <span class="ident">HirImport</span>, <span class="ident">HirInfiniteLoop</span>, <span class="ident">HirInfix</span>, <span class="ident">HirInfixOperator</span>,
-        <span class="ident">HirModule</span>, <span class="ident">HirObject</span>, <span class="ident">HirParameterDeclaration</span>, <span class="ident">HirPrefix</span>, <span class="ident">HirPrefixOperator</span>,
-        <span class="ident">HirPropertyDeclaration</span>, <span class="ident">HirStatement</span>, <span class="ident">HirStruct</span>, <span class="ident">HirStructInitialization</span>,
-        <span class="ident">HirTupleInitialization</span>, <span class="ident">HirTypePattern</span>, <span class="ident">HirVariableInitialization</span>, <span class="ident">HirVariablePattern</span>,
-        <span class="ident">HirVariableUpdate</span>,
+<span class="kw">use crate</span>::{
+    hir_nodes::{
+        Attribute, HirComparisonOperator, HirConditionalBranch, HirConstValue, HirControlFlow,
+        HirControlKind, HirDeclarationMode, HirExpression, HirFormatStringMember, HirFunction,
+        HirFunctionCall, HirFunctionName, HirImport, HirInfiniteLoop, HirInfix, HirInfixOperator,
+        HirModule, HirObject, HirParameterDeclaration, HirPrefix, HirPrefixOperator,
+        HirPropertyDeclaration, HirStatement, HirStruct, HirStructInitialization,
+        HirTupleInitialization, HirTypePattern, HirVariableInitialization, HirVariablePattern,
+        HirVariableUpdate,
     },
-    <span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>,
+    IdentifierPath, SpannedIdentifier,
 };
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeId</span>, <span class="ident">CodeRef</span>, <span class="ident">CompileContext</span>};
-<span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">ParseError</span>, <span class="ident">SingleCompileError</span>};
-<span class="kw">use</span> <span class="ident">debris_parser</span>::{
-    <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">Ast</span>, <span class="ident">AstToken</span>, <span class="ident">FormatStringComponent</span>},
-    <span class="ident">error::ExpectedItem</span>,
-    <span class="ident">parser::parse</span>,
-    <span class="ident">token::PrefixOperator</span>,
-};
-
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">hir_nodes</span>::{<span class="ident">HirBlock</span>, <span class="ident">HirItem</span>},
-    <span class="ident">HirContext</span>, <span class="ident">ImportDependencies</span>,
+<span class="kw">use </span>debris_common::{CodeId, CodeRef, CompileContext};
+<span class="kw">use </span>debris_error::{ParseError, SingleCompileError};
+<span class="kw">use </span>debris_parser::{
+    ast::{<span class="self">self</span>, Ast, AstToken, FormatStringComponent},
+    error::ExpectedItem,
+    parser::parse,
+    token::PrefixOperator,
 };
 
-<span class="doccomment">/// This struct stores the high-level intermediate representation of a single file.</span>
-<span class="doccomment">/// A [`HirFile`] is very similar to a [`super::hir_nodes::HirModule`], but it can store a</span>
-<span class="doccomment">/// list of imports</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HirFile</span> {
-    <span class="kw">pub</span> <span class="ident">main_function</span>: <span class="ident">HirBlock</span>,
-    <span class="kw">pub</span> <span class="ident">code_id</span>: <span class="ident">CodeId</span>,
+<span class="kw">use super</span>::{
+    hir_nodes::{HirBlock, HirItem},
+    HirContext, ImportDependencies,
+};
+
+<span class="doccomment">/// This struct stores the high-level intermediate representation of a single file.
+/// A [`HirFile`] is very similar to a [`super::hir_nodes::HirModule`], but it can store a
+/// list of imports
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>HirFile {
+    <span class="kw">pub </span>main_function: HirBlock,
+    <span class="kw">pub </span>code_id: CodeId,
 }
 
-<span class="kw">impl</span> <span class="ident">HirFile</span> {
-    <span class="doccomment">/// Creates a [`HirFile`] from code.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_code</span>(
-        <span class="ident">input</span>: <span class="ident">CodeRef</span>,
-        <span class="ident">compile_context</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>,
-        <span class="ident">dependencies</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ImportDependencies</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SingleCompileError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">HirContext::new</span>(<span class="ident">input</span>, <span class="ident">compile_context</span>, <span class="ident">dependencies</span>);
+<span class="kw">impl </span>HirFile {
+    <span class="doccomment">/// Creates a [`HirFile`] from code.
+    </span><span class="kw">pub fn </span>from_code(
+        input: CodeRef,
+        compile_context: <span class="kw-2">&amp;</span>CompileContext,
+        dependencies: <span class="kw-2">&amp;mut </span>ImportDependencies,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Vec&lt;SingleCompileError&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>context = HirContext::new(input, compile_context, dependencies);
 
-        <span class="kw">let</span> <span class="ident">syntax_tree</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">get_code</span>().<span class="ident">source</span>));
-        <span class="comment">// println!(&quot;{}&quot;, syntax_tree.debug_fmt(&amp;input.get_code().source));</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">syntax_tree</span>.<span class="ident">errors</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syntax_tree</span>
-                .<span class="ident">errors</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">handle_parse_error</span>(<span class="ident">error</span>).<span class="ident">into</span>())
-                .<span class="ident">collect</span>());
+        <span class="kw">let </span>syntax_tree = Rc::new(parse(<span class="kw-2">&amp;</span>input.get_code().source));
+        <span class="comment">// println!(&quot;{}&quot;, syntax_tree.debug_fmt(&amp;input.get_code().source));
+        </span><span class="kw">if </span>!syntax_tree.errors.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(syntax_tree
+                .errors
+                .iter()
+                .map(|error| context.handle_parse_error(error).into())
+                .collect());
         }
 
-        <span class="kw">let</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">Ast::from</span>(<span class="ident">syntax_tree</span>);
-        <span class="kw">let</span> <span class="ident">program</span> <span class="op">=</span> <span class="ident">ast</span>.<span class="ident">program</span>;
+        <span class="kw">let </span>ast = Ast::from(syntax_tree);
+        <span class="kw">let </span>program = ast.program;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">objects</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">program</span>.<span class="ident">statements</span>() {
-            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">handle_item</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>);
-            <span class="kw">match</span> <span class="ident">item</span> {
-                <span class="ident">HirItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">stmt</span>),
-                <span class="ident">HirItem::Object</span>(<span class="ident">obj</span>) =&gt; <span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">obj</span>),
+        <span class="kw">let </span><span class="kw-2">mut </span>objects = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
+        <span class="kw">for </span>item <span class="kw">in </span>program.statements() {
+            <span class="kw">let </span>item = context.handle_item(<span class="kw-2">&amp;</span>item);
+            <span class="kw">match </span>item {
+                HirItem::Statement(stmt) =&gt; statements.push(stmt),
+                HirItem::Object(obj) =&gt; objects.push(obj),
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">errors</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">errors</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>).<span class="ident">collect</span>());
+        <span class="kw">if </span>!context.errors.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(context.errors.into_iter().map(Into::into).collect());
         }
 
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">program</span>);
-        <span class="kw">let</span> <span class="ident">hir_file</span> <span class="op">=</span> <span class="ident">HirFile</span> {
-            <span class="ident">main_function</span>: <span class="ident">HirBlock</span> {
-                <span class="ident">objects</span>,
-                <span class="ident">return_value</span>: <span class="prelude-val">None</span>,
-                <span class="ident">statements</span>,
-                <span class="ident">span</span>,
+        <span class="kw">let </span>span = context.item_span(<span class="kw-2">&amp;</span>program);
+        <span class="kw">let </span>hir_file = HirFile {
+            main_function: HirBlock {
+                objects,
+                return_value: <span class="prelude-val">None</span>,
+                statements,
+                span,
             },
-            <span class="ident">code_id</span>: <span class="ident">input</span>.<span class="ident">file</span>,
+            code_id: input.file,
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">hir_file</span>)
+        <span class="prelude-val">Ok</span>(hir_file)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">HirContext</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates an expression that accesses `lhs` on `rhs` and tries to</span>
-    <span class="doccomment">/// avoid creating `BinaryExpression`s</span>
-    <span class="kw">fn</span> <span class="ident">build_accessor</span>(<span class="ident">lhs</span>: <span class="ident">HirExpression</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">HirExpression</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">let</span> <span class="ident">rhs_opt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rhs</span> {
-            <span class="ident">HirExpression::Variable</span>(<span class="ident">ident</span>) =&gt; <span class="kw-2">*</span><span class="ident">ident</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;rhs must always be an ident&quot;</span>),
+<span class="kw">impl </span>HirContext&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+    <span class="doccomment">/// Creates an expression that accesses `lhs` on `rhs` and tries to
+    /// avoid creating `BinaryExpression`s
+    </span><span class="kw">fn </span>build_accessor(lhs: HirExpression, rhs: <span class="kw-2">&amp;</span>HirExpression) -&gt; HirExpression {
+        <span class="kw">let </span>rhs_opt = <span class="kw">match </span>rhs {
+            HirExpression::Variable(ident) =&gt; <span class="kw-2">*</span>ident,
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;rhs must always be an ident&quot;</span>),
         };
 
-        <span class="kw">match</span> (<span class="ident">lhs</span>, <span class="ident">rhs_opt</span>) {
-            (<span class="ident">HirExpression::Variable</span>(<span class="ident">var</span>), <span class="ident">rhs</span>) =&gt; {
-                <span class="ident">HirExpression::Path</span>(<span class="ident">IdentifierPath::new</span>(<span class="macro">vec!</span>[<span class="ident">var</span>, <span class="ident">rhs</span>]))
+        <span class="kw">match </span>(lhs, rhs_opt) {
+            (HirExpression::Variable(var), rhs) =&gt; {
+                HirExpression::Path(IdentifierPath::new(<span class="macro">vec!</span>[var, rhs]))
             }
-            (<span class="ident">HirExpression::Path</span>(<span class="ident">path</span>), <span class="ident">rhs</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_parts</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">into_inner</span>();
-                <span class="ident">prev_parts</span>.<span class="ident">push</span>(<span class="ident">rhs</span>);
-                <span class="ident">HirExpression::Path</span>(<span class="ident">IdentifierPath::new</span>(<span class="ident">prev_parts</span>))
+            (HirExpression::Path(path), rhs) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>prev_parts = path.into_inner();
+                prev_parts.push(rhs);
+                HirExpression::Path(IdentifierPath::new(prev_parts))
             }
-            (<span class="ident">lhs</span>, <span class="ident">rhs</span>) =&gt; <span class="ident">HirExpression::PropertyAccess</span> {
-                <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
-                <span class="ident">rhs</span>,
+            (lhs, rhs) =&gt; HirExpression::PropertyAccess {
+                lhs: Box::new(lhs),
+                rhs,
             },
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_assignment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">assignment</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Assignment</span>) -&gt; <span class="ident">HirVariableInitialization</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">assignment</span>);
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">assignment</span>.<span class="ident">pattern</span>());
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">assignment</span>.<span class="ident">value</span>());
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">pattern</span> {
-            <span class="ident">HirVariablePattern::Path</span>(<span class="ident">path</span>) <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">single_ident</span>().<span class="ident">is_some</span>() =&gt; <span class="ident">Box::new</span>(
-                <span class="ident"><span class="self">Self</span>::maybe_add_name_to_expression</span>(<span class="ident">value</span>, <span class="kw-2">*</span><span class="ident">path</span>.<span class="ident">single_ident</span>().<span class="ident">unwrap</span>()),
+    <span class="kw">fn </span>handle_assignment(<span class="kw-2">&amp;mut </span><span class="self">self</span>, assignment: <span class="kw-2">&amp;</span>ast::Assignment) -&gt; HirVariableInitialization {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(assignment);
+        <span class="kw">let </span>pattern = <span class="self">self</span>.handle_pattern(<span class="kw-2">&amp;</span>assignment.pattern());
+        <span class="kw">let </span>value = <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>assignment.value());
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="kw-2">&amp;</span>pattern {
+            HirVariablePattern::Path(path) <span class="kw">if </span>path.single_ident().is_some() =&gt; Box::new(
+                <span class="self">Self</span>::maybe_add_name_to_expression(value, <span class="kw-2">*</span>path.single_ident().unwrap()),
             ),
-            <span class="kw">_</span> =&gt; <span class="ident">Box::new</span>(<span class="ident">value</span>),
+            <span class="kw">_ </span>=&gt; Box::new(value),
         };
 
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assignment</span>.<span class="ident">assign_mode</span>() {
-            <span class="ident">ast::AssignMode::Let</span>(<span class="kw">_</span>) =&gt; <span class="ident">HirDeclarationMode::Let</span>,
-            <span class="ident">ast::AssignMode::Comptime</span>(<span class="kw">_</span>) =&gt; <span class="ident">HirDeclarationMode::Comptime</span>,
+        <span class="kw">let </span>mode = <span class="kw">match </span>assignment.assign_mode() {
+            ast::AssignMode::Let(<span class="kw">_</span>) =&gt; HirDeclarationMode::Let,
+            ast::AssignMode::Comptime(<span class="kw">_</span>) =&gt; HirDeclarationMode::Comptime,
         };
-        <span class="ident">HirVariableInitialization</span> {
-            <span class="ident">span</span>,
-            <span class="ident">pattern</span>,
-            <span class="ident">value</span>,
-            <span class="ident">mode</span>,
+        HirVariableInitialization {
+            span,
+            pattern,
+            value,
+            mode,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_attribute_list</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">ast::AttributeList</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
-        <span class="ident">list</span>.<span class="ident">attributes</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="ident">Attribute</span> {
-                <span class="ident">expression</span>: <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">attr</span>),
+    <span class="kw">fn </span>handle_attribute_list(<span class="kw-2">&amp;mut </span><span class="self">self</span>, list: <span class="kw-2">&amp;</span>ast::AttributeList) -&gt; Vec&lt;Attribute&gt; {
+        list.attributes()
+            .map(|attr| Attribute {
+                expression: <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>attr),
             })
-            .<span class="ident">collect</span>()
+            .collect()
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_block</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Block</span>) -&gt; <span class="ident">HirBlock</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">block</span>);
+    <span class="kw">fn </span>handle_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>ast::Block) -&gt; HirBlock {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(block);
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">statements</span>, <span class="kw-2">mut</span> <span class="ident">objects</span>) <span class="op">=</span> (<span class="ident">Vec::new</span>(), <span class="ident">Vec::new</span>());
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">statements</span>() {
-            <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_item</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>);
-            <span class="kw">match</span> <span class="ident">item</span> {
-                <span class="ident">HirItem::Object</span>(<span class="ident">obj</span>) =&gt; <span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">obj</span>),
-                <span class="ident">HirItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="ident">statements</span>.<span class="ident">push</span>(<span class="ident">stmt</span>),
+        <span class="kw">let </span>(<span class="kw-2">mut </span>statements, <span class="kw-2">mut </span>objects) = (Vec::new(), Vec::new());
+        <span class="kw">for </span>item <span class="kw">in </span>block.statements() {
+            <span class="kw">let </span>item = <span class="self">self</span>.handle_item(<span class="kw-2">&amp;</span>item);
+            <span class="kw">match </span>item {
+                HirItem::Object(obj) =&gt; objects.push(obj),
+                HirItem::Statement(stmt) =&gt; statements.push(stmt),
             }
         }
 
-        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="ident">block</span>
-            .<span class="ident">last_expr</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>))
-            .<span class="ident">map</span>(<span class="ident">Box::new</span>);
-        <span class="ident">HirBlock</span> {
-            <span class="ident">span</span>,
-            <span class="ident">statements</span>,
-            <span class="ident">return_value</span>,
-            <span class="ident">objects</span>,
+        <span class="kw">let </span>return_value = block
+            .last_expr()
+            .map(|expr| <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>expr))
+            .map(Box::new);
+        HirBlock {
+            span,
+            statements,
+            return_value,
+            objects,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_branch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">branch</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Branch</span>) -&gt; <span class="ident">HirConditionalBranch</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">branch</span>);
-        <span class="kw">let</span> <span class="ident">is_comptime</span> <span class="op">=</span> <span class="ident">branch</span>.<span class="ident">comptime_token</span>().<span class="ident">is_some</span>();
-        <span class="kw">let</span> <span class="ident">condition</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">condition</span>()));
-        <span class="kw">let</span> <span class="ident">block_positive</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">branch</span>.<span class="ident">block</span>()));
-        <span class="kw">let</span> <span class="ident">block_negative</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">branch</span>.<span class="ident">else_branch</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">ast::BranchElse::Block</span>(<span class="ident">block</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>))),
-            <span class="prelude-val">Some</span>(<span class="ident">ast::BranchElse::Branch</span>(<span class="ident">else_branch</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">else_branch</span>);
-                <span class="kw">let</span> <span class="ident">else_branch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_branch</span>(<span class="kw-2">&amp;</span><span class="ident">else_branch</span>);
-                <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">HirBlock</span> {
-                    <span class="ident">span</span>,
-                    <span class="ident">objects</span>: <span class="ident">Vec::new</span>(),
-                    <span class="ident">statements</span>: <span class="ident">Vec::new</span>(),
-                    <span class="ident">return_value</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">HirExpression::ConditionalBranch</span>(<span class="ident">else_branch</span>))),
+    <span class="kw">fn </span>handle_branch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, branch: <span class="kw-2">&amp;</span>ast::Branch) -&gt; HirConditionalBranch {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(branch);
+        <span class="kw">let </span>is_comptime = branch.comptime_token().is_some();
+        <span class="kw">let </span>condition = Box::new(<span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>branch.condition()));
+        <span class="kw">let </span>block_positive = Box::new(<span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>branch.block()));
+        <span class="kw">let </span>block_negative = <span class="kw">match </span>branch.else_branch() {
+            <span class="prelude-val">Some</span>(ast::BranchElse::Block(block)) =&gt; <span class="prelude-val">Some</span>(Box::new(<span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>block))),
+            <span class="prelude-val">Some</span>(ast::BranchElse::Branch(else_branch)) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>else_branch);
+                <span class="kw">let </span>else_branch = <span class="self">self</span>.handle_branch(<span class="kw-2">&amp;</span>else_branch);
+                <span class="kw">let </span>block = HirBlock {
+                    span,
+                    objects: Vec::new(),
+                    statements: Vec::new(),
+                    return_value: <span class="prelude-val">Some</span>(Box::new(HirExpression::ConditionalBranch(else_branch))),
                 };
-                <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">block</span>))
+                <span class="prelude-val">Some</span>(Box::new(block))
             }
-            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
         };
 
-        <span class="ident">HirConditionalBranch</span> {
-            <span class="ident">span</span>,
-            <span class="ident">is_comptime</span>,
-            <span class="ident">condition</span>,
-            <span class="ident">block_positive</span>,
-            <span class="ident">block_negative</span>,
+        HirConditionalBranch {
+            span,
+            is_comptime,
+            condition,
+            block_positive,
+            block_negative,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_control_flow</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">control_flow</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ControlFlowOperation</span>) -&gt; <span class="ident">HirControlFlow</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">control_flow</span>);
-        <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">control_flow</span>.<span class="ident">op</span>().<span class="ident">to_token</span>();
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">op</span>.<span class="ident">kind</span>.<span class="ident">control_flow_operator</span>().<span class="ident">unwrap</span>() {
-            <span class="ident">debris_parser::token::ControlFlowOperator::Break</span> =&gt; <span class="ident">HirControlKind::Break</span>,
-            <span class="ident">debris_parser::token::ControlFlowOperator::Continue</span> =&gt; <span class="ident">HirControlKind::Continue</span>,
-            <span class="ident">debris_parser::token::ControlFlowOperator::Return</span> =&gt; <span class="ident">HirControlKind::Return</span>,
+    <span class="kw">fn </span>handle_control_flow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, control_flow: <span class="kw-2">&amp;</span>ast::ControlFlowOperation) -&gt; HirControlFlow {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(control_flow);
+        <span class="kw">let </span>op = control_flow.op().to_token();
+        <span class="kw">let </span>kind = <span class="kw">match </span>op.kind.control_flow_operator().unwrap() {
+            debris_parser::token::ControlFlowOperator::Break =&gt; HirControlKind::Break,
+            debris_parser::token::ControlFlowOperator::Continue =&gt; HirControlKind::Continue,
+            debris_parser::token::ControlFlowOperator::Return =&gt; HirControlKind::Return,
         };
-        <span class="kw">let</span> <span class="ident">expression</span> <span class="op">=</span> <span class="ident">control_flow</span>
-            .<span class="ident">expr</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">expr</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>))
-            .<span class="ident">map</span>(<span class="ident">Box::new</span>);
-        <span class="ident">HirControlFlow</span> {
-            <span class="ident">span</span>,
-            <span class="ident">kind</span>,
-            <span class="ident">expression</span>,
+        <span class="kw">let </span>expression = control_flow
+            .expr()
+            .map(|expr| <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>expr))
+            .map(Box::new);
+        HirControlFlow {
+            span,
+            kind,
+            expression,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_expression</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Expression</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">match</span> <span class="ident">expression</span> {
-            <span class="ident">ast::Expression::InfixOp</span>(<span class="ident">op</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_infix_op</span>(<span class="ident">op</span>),
-            <span class="ident">ast::Expression::PrefixOp</span>(<span class="ident">op</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_prefix_op</span>(<span class="ident">op</span>),
-            <span class="ident">ast::Expression::PostfixOp</span>(<span class="ident">op</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_postfix_op</span>(<span class="ident">op</span>),
-            <span class="ident">ast::Expression::Value</span>(<span class="ident">value</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_value</span>(<span class="ident">value</span>),
+    <span class="kw">fn </span>handle_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expression: <span class="kw-2">&amp;</span>ast::Expression) -&gt; HirExpression {
+        <span class="kw">match </span>expression {
+            ast::Expression::InfixOp(op) =&gt; <span class="self">self</span>.handle_infix_op(op),
+            ast::Expression::PrefixOp(op) =&gt; <span class="self">self</span>.handle_prefix_op(op),
+            ast::Expression::PostfixOp(op) =&gt; <span class="self">self</span>.handle_postfix_op(op),
+            ast::Expression::Value(value) =&gt; <span class="self">self</span>.handle_value(value),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Function</span>) -&gt; <span class="ident">HirFunction</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">function</span>);
-        <span class="kw">let</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">function</span>
-            .<span class="ident">attributes</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_attribute_list</span>(<span class="kw-2">&amp;</span><span class="ident">attr</span>))
-            .<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">is_comptime</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">comptime_token</span>().<span class="ident">is_some</span>();
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">block</span>());
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">function</span>.<span class="ident">ident</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">ident</span>) =&gt; <span class="ident">HirFunctionName::Ident</span>(<span class="self">self</span>.<span class="ident">span</span>(<span class="ident">ident</span>.<span class="ident">to_token</span>()).<span class="ident">into</span>()),
-            <span class="prelude-val">None</span> =&gt; <span class="ident">HirFunctionName::Unnamed</span> {
-                <span class="ident">file</span>: <span class="self">self</span>.<span class="ident">input_file</span>.<span class="ident">file</span>,
-                <span class="ident">pos</span>: <span class="ident">span</span>,
+    <span class="kw">fn </span>handle_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: <span class="kw-2">&amp;</span>ast::Function) -&gt; HirFunction {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(function);
+        <span class="kw">let </span>attributes = function
+            .attributes()
+            .map(|attr| <span class="self">self</span>.handle_attribute_list(<span class="kw-2">&amp;</span>attr))
+            .unwrap_or_default();
+        <span class="kw">let </span>is_comptime = function.comptime_token().is_some();
+        <span class="kw">let </span>block = <span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>function.block());
+        <span class="kw">let </span>ident = <span class="kw">match </span>function.ident() {
+            <span class="prelude-val">Some</span>(ident) =&gt; HirFunctionName::Ident(<span class="self">self</span>.span(ident.to_token()).into()),
+            <span class="prelude-val">None </span>=&gt; HirFunctionName::Unnamed {
+                file: <span class="self">self</span>.input_file.file,
+                pos: span,
             },
         };
 
-        <span class="kw">let</span> <span class="ident">param_list</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">param_declaration_list</span>();
-        <span class="kw">let</span> <span class="ident">parameter_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">param_list</span>);
-        <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">param_list</span>
-            .<span class="ident">declarations</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">decl</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>);
-                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">lhs</span>()).<span class="ident">into</span>();
-                <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">decl</span>.<span class="ident">rhs</span>());
+        <span class="kw">let </span>param_list = function.param_declaration_list();
+        <span class="kw">let </span>parameter_span = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>param_list);
+        <span class="kw">let </span>parameters = param_list
+            .declarations()
+            .map(|decl| {
+                <span class="kw">let </span>span = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>decl);
+                <span class="kw">let </span>ident = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>decl.lhs()).into();
+                <span class="kw">let </span>typ = <span class="self">self</span>.handle_type_pattern(<span class="kw-2">&amp;</span>decl.rhs());
 
-                <span class="ident">HirParameterDeclaration</span> { <span class="ident">span</span>, <span class="ident">ident</span>, <span class="ident">typ</span> }
+                HirParameterDeclaration { span, ident, typ }
             })
-            .<span class="ident">collect</span>();
+            .collect();
 
-        <span class="kw">let</span> <span class="ident">ret_decl</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">ret_declaration</span>();
-        <span class="kw">let</span> <span class="ident">signature_span</span> <span class="op">=</span> <span class="ident">ret_decl</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="ident">parameter_span</span>, <span class="op">|</span><span class="ident">ret_decl</span><span class="op">|</span> {
-            <span class="ident">parameter_span</span>.<span class="ident">until</span>(<span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">ret_decl</span>))
+        <span class="kw">let </span>ret_decl = function.ret_declaration();
+        <span class="kw">let </span>signature_span = ret_decl.as_ref().map_or(parameter_span, |ret_decl| {
+            parameter_span.until(<span class="self">self</span>.item_span(ret_decl))
         });
-        <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="ident">ret_decl</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">typ</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">typ</span>));
+        <span class="kw">let </span>return_type = ret_decl.map(|typ| <span class="self">self</span>.handle_type_pattern(<span class="kw-2">&amp;</span>typ));
 
-        <span class="ident">HirFunction</span> {
-            <span class="ident">span</span>,
-            <span class="ident">signature_span</span>,
-            <span class="ident">parameter_span</span>,
-            <span class="ident">is_comptime</span>,
-            <span class="ident">attributes</span>,
-            <span class="ident">ident</span>,
-            <span class="ident">block</span>,
-            <span class="ident">parameters</span>,
-            <span class="ident">return_type</span>,
+        HirFunction {
+            span,
+            signature_span,
+            parameter_span,
+            is_comptime,
+            attributes,
+            ident,
+            block,
+            parameters,
+            return_type,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_import</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">import</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Import</span>) -&gt; <span class="ident">HirImport</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">import</span>);
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">import</span>.<span class="ident">ident</span>()).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_import_file</span>(<span class="ident">ident</span>);
-        <span class="ident">HirImport</span> { <span class="ident">span</span>, <span class="ident">ident</span>, <span class="ident">id</span> }
+    <span class="kw">fn </span>handle_import(<span class="kw-2">&amp;mut </span><span class="self">self</span>, import: <span class="kw-2">&amp;</span>ast::Import) -&gt; HirImport {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(import);
+        <span class="kw">let </span>ident = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>import.ident()).into();
+        <span class="kw">let </span>id = <span class="self">self</span>.add_import_file(ident);
+        HirImport { span, ident, id }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_infinite_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">inf_loop</span>: <span class="kw-2">&amp;</span><span class="ident">ast::InfLoop</span>) -&gt; <span class="ident">HirInfiniteLoop</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">inf_loop</span>);
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">inf_loop</span>.<span class="ident">block</span>()));
-        <span class="ident">HirInfiniteLoop</span> { <span class="ident">span</span>, <span class="ident">block</span> }
+    <span class="kw">fn </span>handle_infinite_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, inf_loop: <span class="kw-2">&amp;</span>ast::InfLoop) -&gt; HirInfiniteLoop {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(inf_loop);
+        <span class="kw">let </span>block = Box::new(<span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>inf_loop.block()));
+        HirInfiniteLoop { span, block }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_infix_op</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">ast::InfixOp</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">left</span>());
+    <span class="kw">fn </span>handle_infix_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>ast::InfixOp) -&gt; HirExpression {
+        <span class="kw">let </span>left = <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>op.left());
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">right</span>) <span class="op">=</span> <span class="ident">op</span>.<span class="ident">right</span>() {
-            <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">right</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(right) = op.right() {
+            <span class="kw">let </span>right = <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>right);
 
-            <span class="kw">let</span> <span class="ident">op_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">op</span>);
-            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">op</span>
-                .<span class="ident">operator</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Cannot be missing operator with rhs existing&quot;</span>)
-                .<span class="ident">to_token</span>()
-                .<span class="ident">kind</span>
-                .<span class="ident">infix_operator</span>()
-                .<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">op</span> {
-                <span class="ident">debris_parser::token::InfixOperator::Dot</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::build_accessor</span>(<span class="ident">left</span>, <span class="kw-2">&amp;</span><span class="ident">right</span>)
+            <span class="kw">let </span>op_span = <span class="self">self</span>.item_span(op);
+            <span class="kw">let </span>op = op
+                .operator()
+                .expect(<span class="string">&quot;Cannot be missing operator with rhs existing&quot;</span>)
+                .to_token()
+                .kind
+                .infix_operator()
+                .unwrap();
+            <span class="kw">let </span>op = <span class="kw">match </span>op {
+                debris_parser::token::InfixOperator::Dot =&gt; {
+                    <span class="kw">return </span><span class="self">Self</span>::build_accessor(left, <span class="kw-2">&amp;</span>right)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::Plus</span> =&gt; <span class="ident">HirInfixOperator::Plus</span>,
-                <span class="ident">debris_parser::token::InfixOperator::Minus</span> =&gt; <span class="ident">HirInfixOperator::Minus</span>,
-                <span class="ident">debris_parser::token::InfixOperator::Times</span> =&gt; <span class="ident">HirInfixOperator::Times</span>,
-                <span class="ident">debris_parser::token::InfixOperator::Divide</span> =&gt; <span class="ident">HirInfixOperator::Divide</span>,
-                <span class="ident">debris_parser::token::InfixOperator::Modulo</span> =&gt; <span class="ident">HirInfixOperator::Modulo</span>,
-                <span class="ident">debris_parser::token::InfixOperator::Equal</span> =&gt; {
-                    <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Eq</span>)
+                debris_parser::token::InfixOperator::Plus =&gt; HirInfixOperator::Plus,
+                debris_parser::token::InfixOperator::Minus =&gt; HirInfixOperator::Minus,
+                debris_parser::token::InfixOperator::Times =&gt; HirInfixOperator::Times,
+                debris_parser::token::InfixOperator::Divide =&gt; HirInfixOperator::Divide,
+                debris_parser::token::InfixOperator::Modulo =&gt; HirInfixOperator::Modulo,
+                debris_parser::token::InfixOperator::Equal =&gt; {
+                    HirInfixOperator::Comparison(HirComparisonOperator::Eq)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::NotEqual</span> =&gt; {
-                    <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Ne</span>)
+                debris_parser::token::InfixOperator::NotEqual =&gt; {
+                    HirInfixOperator::Comparison(HirComparisonOperator::Ne)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::GreaterOrEqual</span> =&gt; {
-                    <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Ge</span>)
+                debris_parser::token::InfixOperator::GreaterOrEqual =&gt; {
+                    HirInfixOperator::Comparison(HirComparisonOperator::Ge)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::Greater</span> =&gt; {
-                    <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Gt</span>)
+                debris_parser::token::InfixOperator::Greater =&gt; {
+                    HirInfixOperator::Comparison(HirComparisonOperator::Gt)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::LessOrEqual</span> =&gt; {
-                    <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Le</span>)
+                debris_parser::token::InfixOperator::LessOrEqual =&gt; {
+                    HirInfixOperator::Comparison(HirComparisonOperator::Le)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::Less</span> =&gt; {
-                    <span class="ident">HirInfixOperator::Comparison</span>(<span class="ident">HirComparisonOperator::Lt</span>)
+                debris_parser::token::InfixOperator::Less =&gt; {
+                    HirInfixOperator::Comparison(HirComparisonOperator::Lt)
                 }
-                <span class="ident">debris_parser::token::InfixOperator::And</span> =&gt; <span class="ident">HirInfixOperator::And</span>,
-                <span class="ident">debris_parser::token::InfixOperator::Or</span> =&gt; <span class="ident">HirInfixOperator::Or</span>,
+                debris_parser::token::InfixOperator::And =&gt; HirInfixOperator::And,
+                debris_parser::token::InfixOperator::Or =&gt; HirInfixOperator::Or,
             };
-            <span class="kw">let</span> <span class="ident">operation</span> <span class="op">=</span> <span class="ident">HirInfix</span> {
-                <span class="ident">operator</span>: <span class="ident">op</span>,
-                <span class="ident">span</span>: <span class="ident">op_span</span>,
+            <span class="kw">let </span>operation = HirInfix {
+                operator: op,
+                span: op_span,
             };
 
-            <span class="ident">HirExpression::BinaryOperation</span> {
-                <span class="ident">operation</span>,
-                <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">left</span>),
-                <span class="ident">rhs</span>: <span class="ident">Box::new</span>(<span class="ident">right</span>),
+            HirExpression::BinaryOperation {
+                operation,
+                lhs: Box::new(left),
+                rhs: Box::new(right),
             }
-        } <span class="kw">else</span> {
-            <span class="ident">left</span>
+        } <span class="kw">else </span>{
+            left
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Statement</span>) -&gt; <span class="ident">HirItem</span> {
-        <span class="kw">use</span> <span class="ident">ast::Statement</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">Assignment</span>(<span class="ident">assignment</span>) =&gt; <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::VariableDecl</span>(
-                <span class="self">self</span>.<span class="ident">handle_assignment</span>(<span class="ident">assignment</span>),
+    <span class="kw">fn </span>handle_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, statement: <span class="kw-2">&amp;</span>ast::Statement) -&gt; HirItem {
+        <span class="kw">use </span>ast::Statement::<span class="kw-2">*</span>;
+        <span class="kw">match </span>statement {
+            Assignment(assignment) =&gt; HirItem::Statement(HirStatement::VariableDecl(
+                <span class="self">self</span>.handle_assignment(assignment),
             )),
-            <span class="ident">Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::Block</span>(<span class="self">self</span>.<span class="ident">handle_block</span>(<span class="ident">block</span>))),
-            <span class="ident">Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::ConditionalBranch</span>(<span class="self">self</span>.<span class="ident">handle_branch</span>(<span class="ident">branch</span>)))
+            Block(block) =&gt; HirItem::Statement(HirStatement::Block(<span class="self">self</span>.handle_block(block))),
+            Branch(branch) =&gt; {
+                HirItem::Statement(HirStatement::ConditionalBranch(<span class="self">self</span>.handle_branch(branch)))
             }
-            <span class="ident">Expression</span>(<span class="ident">expr</span>) =&gt; {
-                <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::Expression</span>(<span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="ident">expr</span>)))
+            Expression(expr) =&gt; {
+                HirItem::Statement(HirStatement::Expression(<span class="self">self</span>.handle_expression(expr)))
             }
-            <span class="ident">Function</span>(<span class="ident">function</span>) =&gt; {
-                <span class="ident">HirItem::Object</span>(<span class="ident">HirObject::Function</span>(<span class="self">self</span>.<span class="ident">handle_function</span>(<span class="ident">function</span>)))
+            Function(function) =&gt; {
+                HirItem::Object(HirObject::Function(<span class="self">self</span>.handle_function(function)))
             }
-            <span class="ident">Import</span>(<span class="ident">import</span>) =&gt; <span class="ident">HirItem::Object</span>(<span class="ident">HirObject::Import</span>(<span class="self">self</span>.<span class="ident">handle_import</span>(<span class="ident">import</span>))),
-            <span class="ident">InfLoop</span>(<span class="ident">inf_loop</span>) =&gt; <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::InfiniteLoop</span>(
-                <span class="self">self</span>.<span class="ident">handle_infinite_loop</span>(<span class="ident">inf_loop</span>),
+            Import(import) =&gt; HirItem::Object(HirObject::Import(<span class="self">self</span>.handle_import(import))),
+            InfLoop(inf_loop) =&gt; HirItem::Statement(HirStatement::InfiniteLoop(
+                <span class="self">self</span>.handle_infinite_loop(inf_loop),
             )),
-            <span class="ident">Module</span>(<span class="ident">module</span>) =&gt; <span class="ident">HirItem::Object</span>(<span class="ident">HirObject::Module</span>(<span class="self">self</span>.<span class="ident">handle_module</span>(<span class="ident">module</span>))),
-            <span class="ident">Update</span>(<span class="ident">update</span>) =&gt; {
-                <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::VariableUpdate</span>(<span class="self">self</span>.<span class="ident">handle_update</span>(<span class="ident">update</span>)))
+            Module(module) =&gt; HirItem::Object(HirObject::Module(<span class="self">self</span>.handle_module(module))),
+            Update(update) =&gt; {
+                HirItem::Statement(HirStatement::VariableUpdate(<span class="self">self</span>.handle_update(update)))
             }
-            <span class="ident">Struct</span>(<span class="ident">strukt</span>) =&gt; <span class="ident">HirItem::Object</span>(<span class="ident">HirObject::Struct</span>(<span class="self">self</span>.<span class="ident">handle_struct</span>(<span class="ident">strukt</span>))),
-            <span class="ident">WhileLoop</span>(<span class="ident">while_loop</span>) =&gt; <span class="ident">HirItem::Statement</span>(<span class="ident">HirStatement::InfiniteLoop</span>(
-                <span class="self">self</span>.<span class="ident">handle_while_loop</span>(<span class="ident">while_loop</span>),
+            Struct(strukt) =&gt; HirItem::Object(HirObject::Struct(<span class="self">self</span>.handle_struct(strukt))),
+            WhileLoop(while_loop) =&gt; HirItem::Statement(HirStatement::InfiniteLoop(
+                <span class="self">self</span>.handle_while_loop(while_loop),
             )),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_module</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Module</span>) -&gt; <span class="ident">HirModule</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">module</span>);
-        <span class="kw">let</span> <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">module</span>.<span class="ident">ident</span>().<span class="ident">to_token</span>()).<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">module</span>.<span class="ident">block</span>());
-        <span class="ident">HirModule</span> {
-            <span class="ident">span</span>,
-            <span class="ident">attributes</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">ident</span>,
-            <span class="ident">block</span>,
+    <span class="kw">fn </span>handle_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>ast::Module) -&gt; HirModule {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(module);
+        <span class="kw">let </span>ident: SpannedIdentifier = <span class="self">self</span>.span(module.ident().to_token()).into();
+        <span class="kw">let </span>block = <span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>module.block());
+        HirModule {
+            span,
+            attributes: Vec::new(),
+            ident,
+            block,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Path</span>) -&gt; <span class="ident">IdentifierPath</span> {
-        <span class="kw">let</span> <span class="ident">idents</span> <span class="op">=</span> <span class="ident">path</span>
-            .<span class="ident">segments</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">segment</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">segment</span>.<span class="ident">to_token</span>()))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">span</span><span class="op">|</span> <span class="ident">SpannedIdentifier</span> { <span class="ident">span</span> })
-            .<span class="ident">collect</span>();
-        <span class="ident">IdentifierPath::new</span>(<span class="ident">idents</span>)
+    <span class="kw">fn </span>handle_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>ast::Path) -&gt; IdentifierPath {
+        <span class="kw">let </span>idents = path
+            .segments()
+            .map(|segment| <span class="self">self</span>.span(segment.to_token()))
+            .map(|span| SpannedIdentifier { span })
+            .collect();
+        IdentifierPath::new(idents)
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_parse_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">error</span>: <span class="kw-2">&amp;</span><span class="ident">debris_parser::error::ParseErrorKind</span>) -&gt; <span class="ident">ParseError</span> {
-        <span class="kw">match</span> <span class="ident">error</span> {
-            <span class="ident">debris_parser::error::ParseErrorKind::LeftOverInput</span>(<span class="ident">ident</span>) =&gt; {
-                <span class="ident">ParseError::LeftoverInput</span> {
-                    <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
+    <span class="kw">fn </span>handle_parse_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, error: <span class="kw-2">&amp;</span>debris_parser::error::ParseErrorKind) -&gt; ParseError {
+        <span class="kw">match </span>error {
+            debris_parser::error::ParseErrorKind::LeftOverInput(ident) =&gt; {
+                ParseError::LeftoverInput {
+                    span: <span class="self">self</span>.span(<span class="kw-2">*</span>ident),
                 }
             }
-            <span class="ident">debris_parser::error::ParseErrorKind::UnexpectedComma</span>(<span class="ident">ident</span>) =&gt; {
-                <span class="ident">ParseError::UnexpectedComma</span> {
-                    <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
+            debris_parser::error::ParseErrorKind::UnexpectedComma(ident) =&gt; {
+                ParseError::UnexpectedComma {
+                    span: <span class="self">self</span>.span(<span class="kw-2">*</span>ident),
                 }
             }
-            <span class="ident">debris_parser::error::ParseErrorKind::UnexpectedFunctionIdent</span>(<span class="ident">ident</span>) =&gt; {
-                <span class="ident">ParseError::UnexpectedFunctionIdent</span> {
-                    <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
+            debris_parser::error::ParseErrorKind::UnexpectedFunctionIdent(ident) =&gt; {
+                ParseError::UnexpectedFunctionIdent {
+                    span: <span class="self">self</span>.span(<span class="kw-2">*</span>ident),
                 }
             }
-            <span class="ident">debris_parser::error::ParseErrorKind::UnexpectedPath</span>(<span class="ident">span</span>) =&gt; {
-                <span class="ident">ParseError::UnexpectedPath</span> {
-                    <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">normalize_local_span</span>(<span class="kw-2">*</span><span class="ident">span</span>),
+            debris_parser::error::ParseErrorKind::UnexpectedPath(span) =&gt; {
+                ParseError::UnexpectedPath {
+                    span: <span class="self">self</span>.normalize_local_span(<span class="kw-2">*</span>span),
                 }
             }
-            <span class="ident">debris_parser::error::ParseErrorKind::UnexpectedToken</span> { <span class="ident">got</span>, <span class="ident">expected</span> } =&gt; {
-                <span class="ident">ParseError::UnexpectedToken</span> {
-                    <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>(<span class="kw-2">*</span><span class="ident">got</span>),
-                    <span class="ident">expected</span>: <span class="ident">expected</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">kind</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">kind</span> {
-                            <span class="ident">ExpectedItem::ControlFlowOperator</span> =&gt; {
-                                <span class="string">&quot;control flow operator&quot;</span>.<span class="ident">to_string</span>()
+            debris_parser::error::ParseErrorKind::UnexpectedToken { got, expected } =&gt; {
+                ParseError::UnexpectedToken {
+                    span: <span class="self">self</span>.span(<span class="kw-2">*</span>got),
+                    expected: expected
+                        .iter()
+                        .map(|kind| <span class="kw">match </span>kind {
+                            ExpectedItem::ControlFlowOperator =&gt; {
+                                <span class="string">&quot;control flow operator&quot;</span>.to_string()
                             }
-                            <span class="ident">ExpectedItem::FormatString</span> =&gt; <span class="string">&quot;format string&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">ExpectedItem::TokenKind</span>(<span class="ident">kind</span>) =&gt; <span class="ident">kind</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">ExpectedItem::Statement</span> =&gt; <span class="string">&quot;statement&quot;</span>.<span class="ident">to_string</span>(),
-                            <span class="ident">ExpectedItem::Value</span> =&gt; <span class="string">&quot;value&quot;</span>.<span class="ident">to_string</span>(),
+                            ExpectedItem::FormatString =&gt; <span class="string">&quot;format string&quot;</span>.to_string(),
+                            ExpectedItem::TokenKind(kind) =&gt; kind.to_string(),
+                            ExpectedItem::Statement =&gt; <span class="string">&quot;statement&quot;</span>.to_string(),
+                            ExpectedItem::Value =&gt; <span class="string">&quot;value&quot;</span>.to_string(),
                         })
-                        .<span class="ident">collect</span>(),
+                        .collect(),
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_pattern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Pattern</span>) -&gt; <span class="ident">HirVariablePattern</span> {
-        <span class="kw">match</span> <span class="ident">pattern</span> {
-            <span class="ident">ast::Pattern::Function</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident">ast::Pattern::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">HirVariablePattern::Path</span>(<span class="self">self</span>.<span class="ident">handle_path</span>(<span class="ident">path</span>)),
-            <span class="ident">ast::Pattern::Tuple</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">HirVariablePattern::Tuple</span>(
-                <span class="ident">tuple</span>
-                    .<span class="ident">sub_patterns</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pat</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">pat</span>))
-                    .<span class="ident">collect</span>(),
+    <span class="kw">fn </span>handle_pattern(<span class="kw-2">&amp;</span><span class="self">self</span>, pattern: <span class="kw-2">&amp;</span>ast::Pattern) -&gt; HirVariablePattern {
+        <span class="kw">match </span>pattern {
+            ast::Pattern::Function(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            ast::Pattern::Path(path) =&gt; HirVariablePattern::Path(<span class="self">self</span>.handle_path(path)),
+            ast::Pattern::Tuple(tuple) =&gt; HirVariablePattern::Tuple(
+                tuple
+                    .sub_patterns()
+                    .map(|pat| <span class="self">self</span>.handle_pattern(<span class="kw-2">&amp;</span>pat))
+                    .collect(),
             ),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_postfix_op</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">ast::PostfixOp</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">op</span>);
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">value</span>());
-        <span class="kw">match</span> <span class="ident">op</span>.<span class="ident">op</span>() {
-            <span class="ident">ast::PostfixOperator::ParamList</span>(<span class="ident">params</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">parameters_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">params</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirExpression</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">params</span>
-                    .<span class="ident">arguments</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>))
-                    .<span class="ident">collect</span>();
+    <span class="kw">fn </span>handle_postfix_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>ast::PostfixOp) -&gt; HirExpression {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(op);
+        <span class="kw">let </span>value = <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>op.value());
+        <span class="kw">match </span>op.op() {
+            ast::PostfixOperator::ParamList(params) =&gt; {
+                <span class="kw">let </span>parameters_span = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>params);
+                <span class="kw">let </span><span class="kw-2">mut </span>parameters: Vec&lt;HirExpression&gt; = params
+                    .arguments()
+                    .map(|arg| <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>arg))
+                    .collect();
 
-                <span class="comment">// syntax: ```function() { block(); };```</span>
-                <span class="comment">// The block gets converted into a lambda function and added as the last parameter</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lambda_block</span>) <span class="op">=</span> <span class="ident">params</span>.<span class="ident">lambda</span>() {
-                    <span class="kw">let</span> <span class="ident">block_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">lambda_block</span>);
-                    <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">HirFunction</span> {
-                        <span class="ident">attributes</span>: <span class="ident">Vec::new</span>(),
-                        <span class="ident">is_comptime</span>: <span class="bool-val">false</span>,
-                        <span class="ident">block</span>: <span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">lambda_block</span>),
-                        <span class="ident">ident</span>: <span class="ident">HirFunctionName::Unnamed</span> {
-                            <span class="ident">file</span>: <span class="self">self</span>.<span class="ident">input_file</span>.<span class="ident">file</span>,
-                            <span class="ident">pos</span>: <span class="ident">block_span</span>,
+                <span class="comment">// syntax: ```function() { block(); };```
+                // The block gets converted into a lambda function and added as the last parameter
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(lambda_block) = params.lambda() {
+                    <span class="kw">let </span>block_span = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>lambda_block);
+                    <span class="kw">let </span>function = HirFunction {
+                        attributes: Vec::new(),
+                        is_comptime: <span class="bool-val">false</span>,
+                        block: <span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>lambda_block),
+                        ident: HirFunctionName::Unnamed {
+                            file: <span class="self">self</span>.input_file.file,
+                            pos: block_span,
                         },
-                        <span class="ident">parameter_span</span>: <span class="ident">block_span</span>.<span class="ident">at_start</span>(),
-                        <span class="ident">parameters</span>: <span class="ident">Vec::new</span>(),
-                        <span class="ident">return_type</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">signature_span</span>: <span class="ident">block_span</span>.<span class="ident">at_start</span>(),
-                        <span class="ident">span</span>: <span class="ident">block_span</span>,
+                        parameter_span: block_span.at_start(),
+                        parameters: Vec::new(),
+                        return_type: <span class="prelude-val">None</span>,
+                        signature_span: block_span.at_start(),
+                        span: block_span,
                     };
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">HirExpression::Function</span>(<span class="ident">function</span>));
+                    parameters.push(HirExpression::Function(function));
                 }
-                <span class="ident">HirExpression::FunctionCall</span>(<span class="ident">HirFunctionCall</span> {
-                    <span class="ident">span</span>,
-                    <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">value</span>),
-                    <span class="ident">parameters</span>,
-                    <span class="ident">parameters_span</span>,
+                HirExpression::FunctionCall(HirFunctionCall {
+                    span,
+                    value: Box::new(value),
+                    parameters,
+                    parameters_span,
                 })
             }
-            <span class="ident">ast::PostfixOperator::StructLiteral</span>(<span class="ident">struct_literal</span>) =&gt; {
-                <span class="ident">HirExpression::StructInitialization</span>(
-                    <span class="self">self</span>.<span class="ident">handle_struct_literal</span>(<span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">struct_literal</span>),
+            ast::PostfixOperator::StructLiteral(struct_literal) =&gt; {
+                HirExpression::StructInitialization(
+                    <span class="self">self</span>.handle_struct_literal(value, <span class="kw-2">&amp;</span>struct_literal),
                 )
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_prefix_op</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">ast::PrefixOp</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">expr</span>());
+    <span class="kw">fn </span>handle_prefix_op(<span class="kw-2">&amp;mut </span><span class="self">self</span>, op: <span class="kw-2">&amp;</span>ast::PrefixOp) -&gt; HirExpression {
+        <span class="kw">let </span>value = <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>op.expr());
 
-        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">op</span>.<span class="ident">op</span>().<span class="ident">to_token</span>();
-        <span class="kw">let</span> <span class="ident">prefix_op</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">kind</span>.<span class="ident">prefix_operator</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">hir_operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">prefix_op</span> {
-            <span class="ident">PrefixOperator::Minus</span> =&gt; <span class="ident">HirPrefixOperator::Minus</span>,
-            <span class="ident">PrefixOperator::Not</span> =&gt; <span class="ident">HirPrefixOperator::Not</span>,
+        <span class="kw">let </span>token = op.op().to_token();
+        <span class="kw">let </span>prefix_op = token.kind.prefix_operator().unwrap();
+        <span class="kw">let </span>hir_operator = <span class="kw">match </span>prefix_op {
+            PrefixOperator::Minus =&gt; HirPrefixOperator::Minus,
+            PrefixOperator::Not =&gt; HirPrefixOperator::Not,
         };
-        <span class="ident">HirExpression::UnaryOperation</span> {
-            <span class="ident">operation</span>: <span class="ident">HirPrefix</span> {
-                <span class="ident">operator</span>: <span class="ident">hir_operator</span>,
-                <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">token</span>),
+        HirExpression::UnaryOperation {
+            operation: HirPrefix {
+                operator: hir_operator,
+                span: <span class="self">self</span>.span(token),
             },
-            <span class="ident">value</span>: <span class="ident">Box::new</span>(<span class="ident">value</span>),
+            value: Box::new(value),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_struct</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strukt</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Struct</span>) -&gt; <span class="ident">HirStruct</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">strukt</span>);
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">strukt</span>.<span class="ident">ident</span>().<span class="ident">unwrap</span>().<span class="ident">to_token</span>()).<span class="ident">into</span>();
+    <span class="kw">fn </span>handle_struct(<span class="kw-2">&amp;mut </span><span class="self">self</span>, strukt: <span class="kw-2">&amp;</span>ast::Struct) -&gt; HirStruct {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(strukt);
+        <span class="kw">let </span>ident = <span class="self">self</span>.span(strukt.ident().unwrap().to_token()).into();
 
-        <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">strukt</span>.<span class="ident">variables</span>().<span class="ident">map_or_else</span>(<span class="ident">Vec::new</span>, <span class="op">|</span><span class="ident">variables</span><span class="op">|</span> {
-            <span class="ident">variables</span>
-                .<span class="ident">vars</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">property</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">property</span>);
-                    <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">property</span>.<span class="ident">ident</span>().<span class="ident">to_token</span>()).<span class="ident">into</span>();
-                    <span class="kw">let</span> <span class="ident">datatype</span> <span class="op">=</span> <span class="ident">HirTypePattern::Path</span>(<span class="ident">IdentifierPath::new</span>(
-                        <span class="ident">property</span>
-                            .<span class="ident">typ</span>()
-                            .<span class="ident">segments</span>()
-                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">segment</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">segment</span>.<span class="ident">to_token</span>()).<span class="ident">into</span>())
-                            .<span class="ident">collect</span>(),
+        <span class="kw">let </span>properties = strukt.variables().map_or_else(Vec::new, |variables| {
+            variables
+                .vars()
+                .map(|property| {
+                    <span class="kw">let </span>span = <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>property);
+                    <span class="kw">let </span>ident = <span class="self">self</span>.span(property.ident().to_token()).into();
+                    <span class="kw">let </span>datatype = HirTypePattern::Path(IdentifierPath::new(
+                        property
+                            .typ()
+                            .segments()
+                            .map(|segment| <span class="self">self</span>.span(segment.to_token()).into())
+                            .collect(),
                     ));
-                    <span class="ident">HirPropertyDeclaration</span> {
-                        <span class="ident">span</span>,
-                        <span class="ident">ident</span>,
-                        <span class="ident">datatype</span>,
+                    HirPropertyDeclaration {
+                        span,
+                        ident,
+                        datatype,
                     }
                 })
-                .<span class="ident">collect</span>()
+                .collect()
         });
 
-        <span class="kw">let</span> <span class="ident">objects</span> <span class="op">=</span> <span class="ident">strukt</span>
-            .<span class="ident">items</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">HirObject::Function</span>(<span class="self">self</span>.<span class="ident">handle_function</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>)))
-            .<span class="ident">collect</span>();
+        <span class="kw">let </span>objects = strukt
+            .items()
+            .map(|item| HirObject::Function(<span class="self">self</span>.handle_function(<span class="kw-2">&amp;</span>item)))
+            .collect();
 
-        <span class="ident">HirStruct</span> {
-            <span class="ident">span</span>,
-            <span class="ident">ident</span>,
-            <span class="ident">attributes</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">properties</span>,
-            <span class="ident">objects</span>,
+        HirStruct {
+            span,
+            ident,
+            attributes: Vec::new(),
+            properties,
+            objects,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_struct_literal</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">base</span>: <span class="ident">HirExpression</span>,
-        <span class="ident">struct_lit</span>: <span class="kw-2">&amp;</span><span class="ident">ast::StructLiteral</span>,
-    ) -&gt; <span class="ident">HirStructInitialization</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">struct_lit</span>);
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">struct_lit</span>
-            .<span class="ident">items</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> {
+    <span class="kw">fn </span>handle_struct_literal(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        base: HirExpression,
+        struct_lit: <span class="kw-2">&amp;</span>ast::StructLiteral,
+    ) -&gt; HirStructInitialization {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(struct_lit);
+        <span class="kw">let </span>values = struct_lit
+            .items()
+            .map(|item| {
                 (
-                    <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">item</span>.<span class="ident">ident</span>().<span class="ident">to_token</span>()).<span class="ident">into</span>(),
-                    <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>.<span class="ident">expr</span>()),
+                    <span class="self">self</span>.span(item.ident().to_token()).into(),
+                    <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>item.expr()),
                 )
             })
-            .<span class="ident">collect</span>();
+            .collect();
 
-        <span class="ident">HirStructInitialization</span> {
-            <span class="ident">span</span>,
-            <span class="ident">base</span>: <span class="ident">Box::new</span>(<span class="ident">base</span>),
-            <span class="ident">values</span>,
+        HirStructInitialization {
+            span,
+            base: Box::new(base),
+            values,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Pattern</span>) -&gt; <span class="ident">HirTypePattern</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">pattern</span>);
-        <span class="kw">match</span> <span class="ident">pattern</span> {
-            <span class="ident">ast::Pattern::Function</span>(<span class="ident">func</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">func</span>
-                    .<span class="ident">parameters</span>()
-                    .<span class="ident">items</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pattern</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">pattern</span>))
-                    .<span class="ident">collect</span>();
-                <span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="ident">func</span>
-                    .<span class="ident">ret</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pattern</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">pattern</span>))
-                    .<span class="ident">map</span>(<span class="ident">Box::new</span>);
-                <span class="ident">HirTypePattern::Function</span> {
-                    <span class="ident">span</span>,
-                    <span class="ident">parameters</span>,
-                    <span class="ident">return_type</span>,
+    <span class="kw">fn </span>handle_type_pattern(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pattern: <span class="kw-2">&amp;</span>ast::Pattern) -&gt; HirTypePattern {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(pattern);
+        <span class="kw">match </span>pattern {
+            ast::Pattern::Function(func) =&gt; {
+                <span class="kw">let </span>parameters = func
+                    .parameters()
+                    .items()
+                    .map(|pattern| <span class="self">self</span>.handle_type_pattern(<span class="kw-2">&amp;</span>pattern))
+                    .collect();
+                <span class="kw">let </span>return_type = func
+                    .ret()
+                    .map(|pattern| <span class="self">self</span>.handle_type_pattern(<span class="kw-2">&amp;</span>pattern))
+                    .map(Box::new);
+                HirTypePattern::Function {
+                    span,
+                    parameters,
+                    return_type,
                 }
             }
-            <span class="ident">ast::Pattern::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">HirTypePattern::Path</span>(<span class="ident">IdentifierPath::new</span>(
-                <span class="ident">path</span>.<span class="ident">segments</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ident</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">ident</span>.<span class="ident">to_token</span>()).<span class="ident">into</span>())
-                    .<span class="ident">collect</span>(),
+            ast::Pattern::Path(path) =&gt; HirTypePattern::Path(IdentifierPath::new(
+                path.segments()
+                    .map(|ident| <span class="self">self</span>.span(ident.to_token()).into())
+                    .collect(),
             )),
-            <span class="ident">ast::Pattern::Tuple</span>(<span class="ident">tuple</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">tuple</span>);
-                <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">tuple</span>
-                    .<span class="ident">sub_patterns</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pattern</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_type_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">pattern</span>))
-                    .<span class="ident">collect</span>();
-                <span class="ident">HirTypePattern::Tuple</span> { <span class="ident">span</span>, <span class="ident">values</span> }
+            ast::Pattern::Tuple(tuple) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.item_span(tuple);
+                <span class="kw">let </span>values = tuple
+                    .sub_patterns()
+                    .map(|pattern| <span class="self">self</span>.handle_type_pattern(<span class="kw-2">&amp;</span>pattern))
+                    .collect();
+                HirTypePattern::Tuple { span, values }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Update</span>) -&gt; <span class="ident">HirVariableUpdate</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">update</span>);
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">pattern</span>());
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">expr</span>()));
+    <span class="kw">fn </span>handle_update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, update: <span class="kw-2">&amp;</span>ast::Update) -&gt; HirVariableUpdate {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(update);
+        <span class="kw">let </span>pattern = <span class="self">self</span>.handle_pattern(<span class="kw-2">&amp;</span>update.pattern());
+        <span class="kw">let </span>value = Box::new(<span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>update.expr()));
 
-        <span class="kw">let</span> <span class="ident">op_token</span> <span class="op">=</span> <span class="ident">update</span>.<span class="ident">op</span>().<span class="ident">to_token</span>();
+        <span class="kw">let </span>op_token = update.op().to_token();
 
-        <span class="comment">// Emit a normal variable update on normal assignment,</span>
-        <span class="comment">// otherwise desugar `var &lt;op&gt;= value` to `var = var &lt;op&gt; value`</span>
-        <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">op_token</span>.<span class="ident">kind</span>.<span class="ident">assign_operator</span>().<span class="ident">unwrap</span>() {
-            <span class="ident">debris_parser::token::AssignOperator::Assign</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">HirVariableUpdate</span> {
-                    <span class="ident">span</span>,
-                    <span class="ident">pattern</span>,
-                    <span class="ident">value</span>,
+        <span class="comment">// Emit a normal variable update on normal assignment,
+        // otherwise desugar `var &lt;op&gt;= value` to `var = var &lt;op&gt; value`
+        </span><span class="kw">let </span>operator = <span class="kw">match </span>op_token.kind.assign_operator().unwrap() {
+            debris_parser::token::AssignOperator::Assign =&gt; {
+                <span class="kw">return </span>HirVariableUpdate {
+                    span,
+                    pattern,
+                    value,
                 }
             }
-            <span class="ident">debris_parser::token::AssignOperator::AssignPlus</span> =&gt; <span class="ident">HirInfixOperator::Plus</span>,
-            <span class="ident">debris_parser::token::AssignOperator::AssignMinus</span> =&gt; <span class="ident">HirInfixOperator::Minus</span>,
-            <span class="ident">debris_parser::token::AssignOperator::AssignTimes</span> =&gt; <span class="ident">HirInfixOperator::Times</span>,
-            <span class="ident">debris_parser::token::AssignOperator::AssignDivide</span> =&gt; <span class="ident">HirInfixOperator::Divide</span>,
-            <span class="ident">debris_parser::token::AssignOperator::AssignModulo</span> =&gt; <span class="ident">HirInfixOperator::Modulo</span>,
+            debris_parser::token::AssignOperator::AssignPlus =&gt; HirInfixOperator::Plus,
+            debris_parser::token::AssignOperator::AssignMinus =&gt; HirInfixOperator::Minus,
+            debris_parser::token::AssignOperator::AssignTimes =&gt; HirInfixOperator::Times,
+            debris_parser::token::AssignOperator::AssignDivide =&gt; HirInfixOperator::Divide,
+            debris_parser::token::AssignOperator::AssignModulo =&gt; HirInfixOperator::Modulo,
         };
 
-        <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">convert_pattern_to_value</span>(<span class="kw-2">&amp;</span><span class="ident">pattern</span>));
-        <span class="kw">let</span> <span class="ident">operation</span> <span class="op">=</span> <span class="ident">HirInfix</span> {
-            <span class="ident">operator</span>,
-            <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">op_token</span>),
+        <span class="kw">let </span>lhs = Box::new(<span class="self">Self</span>::convert_pattern_to_value(<span class="kw-2">&amp;</span>pattern));
+        <span class="kw">let </span>operation = HirInfix {
+            operator,
+            span: <span class="self">self</span>.span(op_token),
         };
-        <span class="kw">let</span> <span class="ident">full_value</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">HirExpression::BinaryOperation</span> {
-            <span class="ident">operation</span>,
-            <span class="ident">lhs</span>,
-            <span class="ident">rhs</span>: <span class="ident">value</span>,
+        <span class="kw">let </span>full_value = Box::new(HirExpression::BinaryOperation {
+            operation,
+            lhs,
+            rhs: value,
         });
 
-        <span class="ident">HirVariableUpdate</span> {
-            <span class="ident">span</span>,
-            <span class="ident">pattern</span>,
-            <span class="ident">value</span>: <span class="ident">full_value</span>,
+        HirVariableUpdate {
+            span,
+            pattern,
+            value: full_value,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">convert_pattern_to_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">HirVariablePattern</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">match</span> <span class="ident">pattern</span> {
-            <span class="ident">HirVariablePattern::Path</span>(<span class="ident">path</span>) =&gt; <span class="ident">HirExpression::Path</span>(<span class="ident">path</span>.<span class="ident">clone</span>()),
-            <span class="ident">HirVariablePattern::Tuple</span>(<span class="ident">tuple</span>) =&gt; {
-                <span class="ident">HirExpression::TupleInitialization</span>(<span class="ident">HirTupleInitialization</span> {
-                    <span class="ident">span</span>: <span class="ident">pattern</span>.<span class="ident">span</span>(),
-                    <span class="ident">values</span>: <span class="ident">tuple</span>
-                        .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pat</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">convert_pattern_to_value</span>(<span class="ident">pat</span>))
-                        .<span class="ident">collect</span>(),
+    <span class="kw">fn </span>convert_pattern_to_value(pattern: <span class="kw-2">&amp;</span>HirVariablePattern) -&gt; HirExpression {
+        <span class="kw">match </span>pattern {
+            HirVariablePattern::Path(path) =&gt; HirExpression::Path(path.clone()),
+            HirVariablePattern::Tuple(tuple) =&gt; {
+                HirExpression::TupleInitialization(HirTupleInitialization {
+                    span: pattern.span(),
+                    values: tuple.iter().map(<span class="self">Self</span>::convert_pattern_to_value).collect(),
                 })
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_value</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Value</span>) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">ast::Value::Block</span>(<span class="ident">block</span>) =&gt; <span class="ident">HirExpression::Block</span>(<span class="self">self</span>.<span class="ident">handle_block</span>(<span class="ident">block</span>)),
-            <span class="ident">ast::Value::Bool</span>(<span class="ident">bool</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">bool</span>.<span class="ident">to_token</span>());
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bool</span> {
-                    <span class="ident">ast::Bool::True</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                    <span class="ident">ast::Bool::False</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+    <span class="kw">fn </span>handle_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>ast::Value) -&gt; HirExpression {
+        <span class="kw">match </span>value {
+            ast::Value::Block(block) =&gt; HirExpression::Block(<span class="self">self</span>.handle_block(block)),
+            ast::Value::Bool(bool) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.span(bool.to_token());
+                <span class="kw">let </span>value = <span class="kw">match </span>bool {
+                    ast::Bool::True(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    ast::Bool::False(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
                 };
-                <span class="ident">HirExpression::Value</span>(<span class="ident">HirConstValue::Bool</span> { <span class="ident">span</span>, <span class="ident">value</span> })
+                HirExpression::Value(HirConstValue::Bool { span, value })
             }
-            <span class="ident">ast::Value::Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="ident">HirExpression::ConditionalBranch</span>(<span class="self">self</span>.<span class="ident">handle_branch</span>(<span class="ident">branch</span>))
+            ast::Value::Branch(branch) =&gt; {
+                HirExpression::ConditionalBranch(<span class="self">self</span>.handle_branch(branch))
             }
-            <span class="ident">ast::Value::ControlFlow</span>(<span class="ident">control_flow</span>) =&gt; {
-                <span class="ident">HirExpression::ControlFlow</span>(<span class="self">self</span>.<span class="ident">handle_control_flow</span>(<span class="ident">control_flow</span>))
+            ast::Value::ControlFlow(control_flow) =&gt; {
+                HirExpression::ControlFlow(<span class="self">self</span>.handle_control_flow(control_flow))
             }
-            <span class="ident">ast::Value::FormatString</span>(<span class="ident">fmt_string</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">fmt_string</span>);
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">fmt_string</span>
-                    .<span class="ident">components</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">FormatStringComponent::EscapedChar</span>(<span class="ident">char</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">char</span>);
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span>
-                                <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">span</span>).<span class="ident">chars</span>();
-                            <span class="ident">chars</span>.<span class="ident">next</span>();
-                            <span class="ident">HirFormatStringMember::String</span>(<span class="ident">chars</span>.<span class="ident">as_str</span>().<span class="ident">into</span>())
+            ast::Value::FormatString(fmt_string) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.item_span(fmt_string);
+                <span class="kw">let </span>value = fmt_string
+                    .components()
+                    .map(|component| <span class="kw">match </span>component {
+                        FormatStringComponent::EscapedChar(char) =&gt; {
+                            <span class="kw">let </span>span = <span class="self">self</span>.span(char);
+                            <span class="kw">let </span><span class="kw-2">mut </span>chars =
+                                <span class="self">self</span>.compile_context.input_files.get_span_str(span).chars();
+                            chars.next();
+                            HirFormatStringMember::String(chars.as_str().into())
                         }
-                        <span class="ident">FormatStringComponent::StringInner</span>(<span class="ident">string</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">string</span>);
-                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">span</span>);
-                            <span class="ident">HirFormatStringMember::String</span>(<span class="ident">value</span>.<span class="ident">into</span>())
+                        FormatStringComponent::StringInner(string) =&gt; {
+                            <span class="kw">let </span>span = <span class="self">self</span>.span(string);
+                            <span class="kw">let </span>value = <span class="self">self</span>.compile_context.input_files.get_span_str(span);
+                            HirFormatStringMember::String(value.into())
                         }
-                        <span class="ident">FormatStringComponent::Path</span>(<span class="ident">path</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_path</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
-                            <span class="ident">HirFormatStringMember::Variable</span>(<span class="ident">Box::new</span>(<span class="ident">HirExpression::Path</span>(<span class="ident">expr</span>)))
+                        FormatStringComponent::Path(path) =&gt; {
+                            <span class="kw">let </span>expr = <span class="self">self</span>.handle_path(<span class="kw-2">&amp;</span>path);
+                            HirFormatStringMember::Variable(Box::new(HirExpression::Path(expr)))
                         }
                     })
-                    .<span class="ident">collect</span>();
-                <span class="ident">HirExpression::Value</span>(<span class="ident">HirConstValue::FormatString</span> { <span class="ident">span</span>, <span class="ident">value</span> })
+                    .collect();
+                HirExpression::Value(HirConstValue::FormatString { span, value })
             }
-            <span class="ident">ast::Value::Function</span>(<span class="ident">function</span>) =&gt; {
-                <span class="ident">HirExpression::Function</span>(<span class="self">self</span>.<span class="ident">handle_function</span>(<span class="ident">function</span>))
+            ast::Value::Function(function) =&gt; {
+                HirExpression::Function(<span class="self">self</span>.handle_function(function))
             }
-            <span class="ident">ast::Value::Ident</span>(<span class="ident">ident</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">ident</span>.<span class="ident">to_token</span>());
-                <span class="ident">HirExpression::Variable</span>(<span class="ident">SpannedIdentifier::new</span>(<span class="ident">span</span>))
+            ast::Value::Ident(ident) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.span(ident.to_token());
+                HirExpression::Variable(SpannedIdentifier::new(span))
             }
-            <span class="ident">ast::Value::Int</span>(<span class="ident">int</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">int</span>.<span class="ident">to_token</span>());
-                <span class="kw">let</span> <span class="ident">int_str</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">span</span>);
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">int_str</span>.<span class="ident">parse</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
-                    <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">errors</span>
-                            .<span class="ident">push</span>(<span class="ident">ParseError::InvalidIntLiteral</span> { <span class="ident">span</span>, <span class="ident">error</span> });
-                        <span class="number">0</span>
-                    }
+            ast::Value::Int(int) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.span(int.to_token());
+                <span class="kw">let </span>int_str = <span class="self">self</span>.compile_context.input_files.get_span_str(span);
+                <span class="kw">let </span>value = <span class="kw">match </span>int_str.parse() {
+                    <span class="prelude-val">Ok</span>(value) =&gt; value,
+                    <span class="prelude-val">Err</span>(error) =&gt; {
+                        <span class="self">self</span>.errors
+                            .push(ParseError::InvalidIntLiteral { span, error });
+                        <span class="number">0
+                    </span>}
                 };
-                <span class="ident">HirExpression::Value</span>(<span class="ident">HirConstValue::Integer</span> { <span class="ident">span</span>, <span class="ident">value</span> })
+                HirExpression::Value(HirConstValue::Integer { span, value })
             }
-            <span class="ident">ast::Value::InfLoop</span>(<span class="ident">inf_loop</span>) =&gt; {
-                <span class="ident">HirExpression::InfiniteLoop</span>(<span class="self">self</span>.<span class="ident">handle_infinite_loop</span>(<span class="ident">inf_loop</span>))
+            ast::Value::InfLoop(inf_loop) =&gt; {
+                HirExpression::InfiniteLoop(<span class="self">self</span>.handle_infinite_loop(inf_loop))
             }
-            <span class="ident">ast::Value::ParenthesisValue</span>(<span class="ident">value</span>) =&gt; <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">expr</span>()),
-            <span class="ident">ast::Value::String</span>(<span class="ident">string</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>(<span class="ident">string</span>.<span class="ident">to_token</span>());
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_context</span>.<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">span</span>);
-                <span class="comment">// Remove the surrounding &quot;&quot; characters</span>
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">chars</span>();
-                    <span class="ident">chars</span>.<span class="ident">next</span>();
-                    <span class="ident">chars</span>.<span class="ident">next_back</span>();
-                    <span class="ident">chars</span>.<span class="ident">as_str</span>().<span class="ident">into</span>()
+            ast::Value::ParenthesisValue(value) =&gt; <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>value.expr()),
+            ast::Value::String(string) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.span(string.to_token());
+                <span class="kw">let </span>value = <span class="self">self</span>.compile_context.input_files.get_span_str(span);
+                <span class="comment">// Remove the surrounding &quot;&quot; characters
+                </span><span class="kw">let </span>value = {
+                    <span class="kw">let </span><span class="kw-2">mut </span>chars = value.chars();
+                    chars.next();
+                    chars.next_back();
+                    chars.as_str().into()
                 };
-                <span class="ident">HirExpression::Value</span>(<span class="ident">HirConstValue::String</span> { <span class="ident">span</span>, <span class="ident">value</span> })
+                HirExpression::Value(HirConstValue::String { span, value })
             }
-            <span class="ident">ast::Value::Tuple</span>(<span class="ident">tuple</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">tuple</span>);
-                <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">tuple</span>
-                    .<span class="ident">items</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>))
-                    .<span class="ident">collect</span>();
-                <span class="ident">HirExpression::TupleInitialization</span>(<span class="ident">HirTupleInitialization</span> { <span class="ident">span</span>, <span class="ident">values</span> })
+            ast::Value::Tuple(tuple) =&gt; {
+                <span class="kw">let </span>span = <span class="self">self</span>.item_span(tuple);
+                <span class="kw">let </span>values = tuple
+                    .items()
+                    .map(|item| <span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>item))
+                    .collect();
+                HirExpression::TupleInitialization(HirTupleInitialization { span, values })
             }
-            <span class="ident">ast::Value::WhileLoop</span>(<span class="ident">while_loop</span>) =&gt; {
-                <span class="ident">HirExpression::InfiniteLoop</span>(<span class="self">self</span>.<span class="ident">handle_while_loop</span>(<span class="ident">while_loop</span>))
+            ast::Value::WhileLoop(while_loop) =&gt; {
+                HirExpression::InfiniteLoop(<span class="self">self</span>.handle_while_loop(while_loop))
             }
         }
     }
 
-    <span class="doccomment">/// Handles while loops by desugaring them into normal loops with break:</span>
-    <span class="doccomment">/// ```debris</span>
-    <span class="doccomment">/// while condition { block };</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// Gets turned into</span>
-    <span class="doccomment">/// ```debris</span>
-    <span class="doccomment">/// loop {</span>
-    <span class="doccomment">///     if condition { block }</span>
-    <span class="doccomment">///     else { break; }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">handle_while_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">while_loop</span>: <span class="kw-2">&amp;</span><span class="ident">ast::WhileLoop</span>) -&gt; <span class="ident">HirInfiniteLoop</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">item_span</span>(<span class="ident">while_loop</span>);
-        <span class="kw">let</span> <span class="ident">while_loop_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">handle_block</span>(<span class="kw-2">&amp;</span><span class="ident">while_loop</span>.<span class="ident">block</span>());
+    <span class="doccomment">/// Handles while loops by desugaring them into normal loops with break:
+    /// ```debris
+    /// while condition { block };
+    /// ```
+    /// Gets turned into
+    /// ```debris
+    /// loop {
+    ///     if condition { block }
+    ///     else { break; }
+    /// }
+    /// ```
+    </span><span class="kw">fn </span>handle_while_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, while_loop: <span class="kw-2">&amp;</span>ast::WhileLoop) -&gt; HirInfiniteLoop {
+        <span class="kw">let </span>span = <span class="self">self</span>.item_span(while_loop);
+        <span class="kw">let </span>while_loop_block = <span class="self">self</span>.handle_block(<span class="kw-2">&amp;</span>while_loop.block());
 
-        <span class="kw">let</span> <span class="ident">condition_statement</span> <span class="op">=</span> <span class="ident">HirStatement::ConditionalBranch</span>(<span class="ident">HirConditionalBranch</span> {
-            <span class="ident">span</span>,
-            <span class="ident">is_comptime</span>: <span class="bool-val">false</span>, <span class="comment">// TODO: maybe add comptime while</span>
-            <span class="ident">condition</span>: <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">handle_expression</span>(<span class="kw-2">&amp;</span><span class="ident">while_loop</span>.<span class="ident">condition</span>())),
-            <span class="ident">block_positive</span>: <span class="ident">Box::new</span>(<span class="ident">while_loop_block</span>),
-            <span class="ident">block_negative</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">HirBlock</span> {
-                <span class="ident">span</span>,
-                <span class="ident">objects</span>: <span class="ident">Vec::new</span>(),
-                <span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">HirStatement::ControlFlow</span>(<span class="ident">HirControlFlow</span> {
-                    <span class="ident">expression</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">kind</span>: <span class="ident">HirControlKind::Break</span>,
-                    <span class="ident">span</span>: <span class="self">self</span>.<span class="ident">item_span</span>(<span class="kw-2">&amp;</span><span class="ident">while_loop</span>.<span class="ident">condition</span>()),
+        <span class="kw">let </span>condition_statement = HirStatement::ConditionalBranch(HirConditionalBranch {
+            span,
+            is_comptime: <span class="bool-val">false</span>, <span class="comment">// TODO: maybe add comptime while
+            </span>condition: Box::new(<span class="self">self</span>.handle_expression(<span class="kw-2">&amp;</span>while_loop.condition())),
+            block_positive: Box::new(while_loop_block),
+            block_negative: <span class="prelude-val">Some</span>(Box::new(HirBlock {
+                span,
+                objects: Vec::new(),
+                statements: <span class="macro">vec!</span>[HirStatement::ControlFlow(HirControlFlow {
+                    expression: <span class="prelude-val">None</span>,
+                    kind: HirControlKind::Break,
+                    span: <span class="self">self</span>.item_span(<span class="kw-2">&amp;</span>while_loop.condition()),
                 })],
-                <span class="ident">return_value</span>: <span class="prelude-val">None</span>,
+                return_value: <span class="prelude-val">None</span>,
             })),
         });
 
-        <span class="kw">let</span> <span class="ident">block</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">HirBlock</span> {
-            <span class="ident">objects</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">statements</span>: <span class="macro">vec!</span>[<span class="ident">condition_statement</span>],
-            <span class="ident">span</span>,
-            <span class="ident">return_value</span>: <span class="prelude-val">None</span>,
+        <span class="kw">let </span>block = Box::new(HirBlock {
+            objects: Vec::new(),
+            statements: <span class="macro">vec!</span>[condition_statement],
+            span,
+            return_value: <span class="prelude-val">None</span>,
         });
-        <span class="ident">HirInfiniteLoop</span> { <span class="ident">span</span>, <span class="ident">block</span> }
+        HirInfiniteLoop { span, block }
     }
 
-    <span class="kw">fn</span> <span class="ident">maybe_add_name_to_expression</span>(
-        <span class="kw-2">mut</span> <span class="ident">expr</span>: <span class="ident">HirExpression</span>,
-        <span class="ident">ident</span>: <span class="ident">SpannedIdentifier</span>,
-    ) -&gt; <span class="ident">HirExpression</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="ident">expr</span> {
-            <span class="ident">HirExpression::Function</span>(<span class="ident">function</span>) <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">ident</span>.<span class="ident">is_unknown</span>() =&gt; {
-                <span class="ident">function</span>.<span class="ident">ident</span> <span class="op">=</span> <span class="ident">HirFunctionName::Ident</span>(<span class="ident">ident</span>);
+    <span class="kw">fn </span>maybe_add_name_to_expression(
+        <span class="kw-2">mut </span>expr: HirExpression,
+        ident: SpannedIdentifier,
+    ) -&gt; HirExpression {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span>expr {
+            HirExpression::Function(function) <span class="kw">if </span>function.ident.is_unknown() =&gt; {
+                function.ident = HirFunctionName::Ident(ident);
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
-        <span class="ident">expr</span>
+        expr
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

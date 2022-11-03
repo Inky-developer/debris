@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/hir/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_hir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/hir/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_hir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -98,100 +92,99 @@
 <span id="92">92</span>
 <span id="93">93</span>
 <span id="94">94</span>
-</pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This intermediate representation is very similar to a typical abstract syntax tree,</span>
-<span class="doccomment">//! but with some desugaring applied.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! High-level intermediate representation
+//!
+//! This intermediate representation is very similar to a typical abstract syntax tree,
+//! but with some desugaring applied.
 
-<span class="kw">mod</span> <span class="ident">hir_impl</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hir_nodes</span>;
+</span><span class="kw">mod </span>hir_impl;
+<span class="kw">pub mod </span>hir_nodes;
 
-<span class="kw">mod</span> <span class="ident">hir_context</span>;
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CodeId</span>, <span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_context::HirContext</span>;
+<span class="kw">mod </span>hir_context;
+<span class="kw">use </span>debris_common::{CodeId, Ident, Span};
+<span class="kw">pub use </span>hir_context::HirContext;
 
-<span class="kw">use</span> <span class="ident">hir_nodes</span>::{<span class="ident">HirBlock</span>, <span class="ident">HirModule</span>};
+<span class="kw">use </span>hir_nodes::{HirBlock, HirModule};
 
-<span class="kw">mod</span> <span class="ident">identifier</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">identifier</span>::{<span class="ident">IdentifierPath</span>, <span class="ident">SpannedIdentifier</span>};
+<span class="kw">mod </span>identifier;
+<span class="kw">pub use </span>identifier::{IdentifierPath, SpannedIdentifier};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hir_impl::HirFile</span>;
-<span class="kw">use</span> <span class="ident">indexmap::IndexSet</span>;
+<span class="kw">pub use </span>hir_impl::HirFile;
+<span class="kw">use </span>indexmap::IndexSet;
 
-<span class="doccomment">/// The hir representation of an input file and all of its dependencies</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Hir</span> {
-    <span class="kw">pub</span> <span class="ident">main_function</span>: <span class="ident">HirBlock</span>,
-    <span class="kw">pub</span> <span class="ident">code_id</span>: <span class="ident">CodeId</span>,
-    <span class="kw">pub</span> <span class="ident">imported_modules</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HirModule</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The hir representation of an input file and all of its dependencies
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Hir {
+    <span class="kw">pub </span>main_function: HirBlock,
+    <span class="kw">pub </span>code_id: CodeId,
+    <span class="kw">pub </span>imported_modules: Vec&lt;HirModule&gt;,
 }
 
-<span class="doccomment">/// Keeps track of all imported modules, uses indexes as keys</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ImportDependencies</span> {
-    <span class="ident">modules</span>: <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The spans that correspond to the modules.</span>
-    <span class="doccomment">/// Access via the index of the module</span>
-    <span class="ident">spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Keeps track of all imported modules, uses indexes as keys
+</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>ImportDependencies {
+    modules: IndexSet&lt;Ident&gt;,
+    <span class="doccomment">/// The spans that correspond to the modules.
+    /// Access via the index of the module
+    </span>spans: Vec&lt;Span&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ImportDependencies</span> {
-    <span class="doccomment">/// Inserts a dependency and the code span and returns its index</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Ident</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">inserted</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">modules</span>.<span class="ident">insert_full</span>(<span class="ident">value</span>);
+<span class="kw">impl </span>ImportDependencies {
+    <span class="doccomment">/// Inserts a dependency and the code span and returns its index
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Ident, span: Span) -&gt; usize {
+        <span class="kw">let </span>(index, inserted) = <span class="self">self</span>.modules.insert_full(value);
 
-        <span class="comment">// If the module is already listed,</span>
-        <span class="comment">// ignore the span of the second import</span>
-        <span class="kw">if</span> <span class="ident">inserted</span> {
-            <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">push</span>(<span class="ident">span</span>);
+        <span class="comment">// If the module is already listed,
+        // ignore the span of the second import
+        </span><span class="kw">if </span>inserted {
+            <span class="self">self</span>.spans.push(span);
         }
 
-        <span class="ident">index</span>
+        index
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">modules</span>.<span class="ident">len</span>()
+    <span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.modules.len()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">modules</span>.<span class="ident">is_empty</span>()
+    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.modules.is_empty()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="kw-2">&amp;</span><span class="ident">Ident</span>, <span class="ident">Span</span>) {
-        (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">modules</span>[<span class="ident">index</span>], <span class="self">self</span>.<span class="ident">spans</span>[<span class="ident">index</span>])
+    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; (<span class="kw-2">&amp;</span>Ident, Span) {
+        (<span class="kw-2">&amp;</span><span class="self">self</span>.modules[index], <span class="self">self</span>.spans[index])
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">Ident</span>, <span class="ident">Span</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">modules</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">enumerate</span>()
-            .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">index</span>, <span class="ident">ident</span>)<span class="op">|</span> (<span class="ident">ident</span>, <span class="self">self</span>.<span class="ident">spans</span>[<span class="ident">index</span>]))
+    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>Ident, Span)&gt; {
+        <span class="self">self</span>.modules
+            .iter()
+            .enumerate()
+            .map(<span class="kw">move </span>|(index, ident)| (ident, <span class="self">self</span>.spans[index]))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">Code</span>, <span class="ident">CompilationId</span>, <span class="ident">CompileContext</span>};
-    <span class="kw">use</span> <span class="ident">debris_error::SingleCompileError</span>;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>debris_common::{Code, CompilationId, CompileContext};
+    <span class="kw">use </span>debris_error::SingleCompileError;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">HirFile</span>, <span class="ident">ImportDependencies</span>};
+    <span class="kw">use crate</span>::{HirFile, ImportDependencies};
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">HirFile</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SingleCompileError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">CompileContext::new</span>(<span class="ident">CompilationId</span>(<span class="number">0</span>));
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">add_input_file</span>(<span class="ident">Code</span> {
-            <span class="ident">path</span>: <span class="prelude-val">None</span>,
-            <span class="ident">source</span>: <span class="ident">input</span>.<span class="ident">into</span>(),
+    <span class="kw">fn </span>parse(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;HirFile, Vec&lt;SingleCompileError&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>ctx = CompileContext::new(CompilationId(<span class="number">0</span>));
+        <span class="kw">let </span>id = ctx.add_input_file(Code {
+            path: <span class="prelude-val">None</span>,
+            source: input.into(),
         });
-        <span class="kw">let</span> <span class="ident">code_ref</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="ident">id</span>);
-        <span class="ident">HirFile::from_code</span>(<span class="ident">code_ref</span>, <span class="kw-2">&amp;</span><span class="ident">ctx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">ImportDependencies::default</span>())
+        <span class="kw">let </span>code_ref = ctx.input_files.get_code_ref(id);
+        HirFile::from_code(code_ref, <span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;mut </span>ImportDependencies::default())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_not_parses_large_int_literal</span>() {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="string">&quot;let a = 2147483648&quot;</span>;
-        <span class="macro">assert!</span>(<span class="ident">parse</span>(<span class="ident">input</span>).<span class="ident">is_err</span>());
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_not_parses_large_int_literal() {
+        <span class="kw">let </span>input = <span class="string">&quot;let a = 2147483648&quot;</span>;
+        <span class="macro">assert!</span>(parse(input).is_err());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_hir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

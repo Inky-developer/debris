@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_tuple_object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_tuple_object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/objects/obj_tuple_object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>obj_tuple_object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -244,246 +238,245 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">iter::zip</span>, <span class="ident">rc::Rc</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{iter::zip, rc::Rc};
 
-<span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
-<span class="kw">use</span> <span class="ident">debris_error</span>::{<span class="ident">LangErrorKind</span>, <span class="ident">LangResult</span>};
+<span class="kw">use </span>debris_common::Ident;
+<span class="kw">use </span>debris_error::{LangErrorKind, LangResult};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassKind</span>, <span class="ident">ClassRef</span>},
-    <span class="ident">impl_class</span>,
-    <span class="ident">json_format::JsonFormatComponent</span>,
-    <span class="ident">memory::MemoryLayout</span>,
-    <span class="ident">objects</span>::{
-        <span class="ident">obj_class::ObjClass</span>,
-        <span class="ident">obj_format_string</span>::{<span class="ident">FormatStringComponent</span>, <span class="ident">ObjFormatString</span>},
-        <span class="ident">obj_function::FunctionContext</span>,
-        <span class="ident">obj_int_static::ObjStaticInt</span>,
+<span class="kw">use crate</span>::{
+    class::{Class, ClassKind, ClassRef},
+    impl_class,
+    json_format::JsonFormatComponent,
+    memory::MemoryLayout,
+    objects::{
+        obj_class::ObjClass,
+        obj_format_string::{FormatStringComponent, ObjFormatString},
+        obj_function::FunctionContext,
+        obj_int_static::ObjStaticInt,
     },
-    <span class="ident">type_context::TypeContext</span>,
-    <span class="ident">ObjectPayload</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>,
+    type_context::TypeContext,
+    ObjectPayload, ObjectRef, Type,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::obj_class::HasClass</span>;
+<span class="kw">use </span><span class="kw">super</span>::obj_class::HasClass;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TupleRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Tuple</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>TupleRef = Rc&lt;Tuple&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tuple</span> {
-    <span class="kw">pub</span> <span class="ident">layout</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>,
+<span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Tuple {
+    <span class="kw">pub </span>layout: Vec&lt;ClassRef&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Tuple</span> {
-    <span class="doccomment">/// Returns whether the other tuple matches this tuple,</span>
-    <span class="doccomment">/// where this tuple is a pattern</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Tuple</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">layout</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">other</span>.<span class="ident">layout</span>.<span class="ident">len</span>()
-            <span class="op">&amp;&amp;</span> <span class="ident">zip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">layout</span>, <span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">layout</span>).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">pat</span>, <span class="ident">got</span>)<span class="op">|</span> <span class="ident">pat</span>.<span class="ident">matches</span>(<span class="ident">got</span>))
+<span class="kw">impl </span>Tuple {
+    <span class="doccomment">/// Returns whether the other tuple matches this tuple,
+    /// where this tuple is a pattern
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Tuple) -&gt; bool {
+        <span class="self">self</span>.layout.len() == other.layout.len()
+            &amp;&amp; zip(<span class="kw-2">&amp;</span><span class="self">self</span>.layout, <span class="kw-2">&amp;</span>other.layout).all(|(pat, got)| pat.matches(got))
     }
 
-    <span class="doccomment">/// Returns whether this tuple diverges.</span>
-    <span class="doccomment">/// This tuple diverges if any of its values diverges.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diverges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">layout</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">diverges</span>())
+    <span class="doccomment">/// Returns whether this tuple diverges.
+    /// This tuple diverges if any of its values diverges.
+    </span><span class="kw">pub fn </span>diverges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.layout.iter().any(|value| value.diverges())
     }
 
-    <span class="doccomment">/// Returns whether every type contained in this tuple</span>
-    <span class="doccomment">/// can be encoded at runtime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">layout</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">all</span>(<span class="op">|</span><span class="ident">class</span><span class="op">|</span> <span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">runtime_encodable</span>())
+    <span class="doccomment">/// Returns whether every type contained in this tuple
+    /// can be encoded at runtime.
+    </span><span class="kw">pub fn </span>runtime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.layout
+            .iter()
+            .all(|class| class.kind.runtime_encodable())
     }
 
-    <span class="doccomment">/// Returns true if any of the contained fields of this tuple</span>
-    <span class="doccomment">/// should be const</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">layout</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">class</span><span class="op">|</span> <span class="ident">class</span>.<span class="ident">kind</span>.<span class="ident">comptime_encodable</span>())
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Tuple</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Tuple</span> { <span class="ident">layout</span>: <span class="ident">values</span> }
+    <span class="doccomment">/// Returns true if any of the contained fields of this tuple
+    /// should be const
+    </span><span class="kw">pub fn </span>comptime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.layout
+            .iter()
+            .any(|class| class.kind.comptime_encodable())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">Tuple</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">layout</span>.<span class="ident">as_slice</span>() {
-            [] =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;()&quot;</span>),
-            [<span class="ident">single</span>] =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({single})&quot;</span>),
-            [<span class="ident">first</span>, <span class="ident">rest</span> @ ..] =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({first}&quot;</span>)<span class="question-mark">?</span>;
-                <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">rest</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;, {value}&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>From&lt;Vec&lt;ClassRef&gt;&gt; <span class="kw">for </span>Tuple {
+    <span class="kw">fn </span>from(values: Vec&lt;ClassRef&gt;) -&gt; <span class="self">Self </span>{
+        Tuple { layout: values }
+    }
+}
+
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>Tuple {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self</span>.layout.as_slice() {
+            [] =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;()&quot;</span>),
+            [single] =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;({single})&quot;</span>),
+            [first, rest @ ..] =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;({first}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">for </span>value <span class="kw">in </span>rest {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;, {value}&quot;</span>)<span class="question-mark">?</span>;
                 }
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;)&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">&quot;)&quot;</span>)
             }
         }
     }
 }
 
-<span class="doccomment">/// A heterogenous, compile-time known collection</span>
-<span class="doccomment">/// of objects.</span>
-<span class="doccomment">/// Todo: Consider making the construction of tuples which share all but</span>
-<span class="doccomment">/// a few elements with another tuple cheaper.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjTupleObject</span> {
-    <span class="kw">pub</span> <span class="ident">class</span>: <span class="ident">TupleRef</span>,
-    <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>,
-    <span class="ident">memory_layout</span>: <span class="ident">MemoryLayout</span>,
+<span class="doccomment">/// A heterogenous, compile-time known collection
+/// of objects.
+/// Todo: Consider making the construction of tuples which share all but
+/// a few elements with another tuple cheaper.
+</span><span class="attr">#[derive(PartialEq, Eq)]
+</span><span class="kw">pub struct </span>ObjTupleObject {
+    <span class="kw">pub </span>class: TupleRef,
+    <span class="kw">pub </span>values: Vec&lt;ObjectRef&gt;,
+    memory_layout: MemoryLayout,
 }
 
-<span class="macro">impl_class!</span> {<span class="ident">ObjTupleObject</span>, <span class="ident">Type::TupleObject</span>, {
-    <span class="string">&quot;get&quot;</span> =&gt; <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">index</span>: <span class="kw-2">&amp;</span><span class="ident">ObjStaticInt</span><span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">self_value_as</span>::<span class="op">&lt;</span><span class="ident">ObjTupleObject</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+<span class="macro">impl_class! </span>{ObjTupleObject, Type::TupleObject, {
+    <span class="string">&quot;get&quot; </span>=&gt; |ctx: <span class="kw-2">&amp;</span>FunctionContext, index: <span class="kw-2">&amp;</span>ObjStaticInt| -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="kw">let </span>this = ctx.self_value_as::&lt;ObjTupleObject&gt;()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span>.<span class="ident">value</span>;
-        <span class="prelude-val">Some</span>(<span class="ident">index</span>.<span class="ident">try_into</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">idx</span>: <span class="ident">usize</span><span class="op">|</span> <span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">get</span>(<span class="ident">idx</span>).<span class="ident">cloned</span>()).<span class="ident">ok_or</span>(
-            <span class="ident">LangErrorKind::IndexOutOfBounds</span> { <span class="ident">index</span>, <span class="ident">max</span>: <span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span> }
+        <span class="kw">let </span>index = index.value;
+        <span class="prelude-val">Some</span>(index.try_into().ok().and_then(|idx: usize| this.values.get(idx).cloned()).ok_or(
+            LangErrorKind::IndexOutOfBounds { index, max: this.values.len() <span class="kw">as </span>i64 }
         ))
     },
 
-    <span class="string">&quot;length&quot;</span> =&gt; <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span><span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">self_value_as</span>::<span class="op">&lt;</span><span class="ident">ObjTupleObject</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;Tuple contains too many elements&quot;</span>))
+    <span class="string">&quot;length&quot; </span>=&gt; |ctx: <span class="kw-2">&amp;</span>FunctionContext| -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
+        <span class="kw">let </span>this = ctx.self_value_as::&lt;ObjTupleObject&gt;()<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(this.values.len().try_into().expect(<span class="string">&quot;Tuple contains too many elements&quot;</span>))
     },
 
-    <span class="string">&quot;added&quot;</span> =&gt; <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span>[<span class="ident">ObjectRef</span>]<span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjTupleObject</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">self_value_as</span>::<span class="op">&lt;</span><span class="ident">ObjTupleObject</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+    <span class="string">&quot;added&quot; </span>=&gt; |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, parameters: <span class="kw-2">&amp;</span>[ObjectRef]| -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjTupleObject&gt;&gt; {
+        <span class="kw">let </span>this = ctx.self_value_as::&lt;ObjTupleObject&gt;()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">parameters</span>.<span class="ident">len</span>());
-        <span class="ident">values</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">values</span>);
-        <span class="ident">values</span>.<span class="ident">extend_from_slice</span>(<span class="ident">parameters</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>values = Vec::with_capacity(this.values.len() + parameters.len());
+        values.extend_from_slice(<span class="kw-2">&amp;</span>this.values);
+        values.extend_from_slice(parameters);
 
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">ObjTupleObject::new</span>(<span class="ident">values</span>)))
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(ObjTupleObject::new(values)))
     },
 
-    <span class="string">&quot;join&quot;</span> =&gt; <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">FunctionContext</span>, <span class="ident">sep</span>: <span class="kw-2">&amp;</span><span class="ident">ObjFormatString</span><span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjFormatString</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">self_value_as</span>::<span class="op">&lt;</span><span class="ident">ObjTupleObject</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+    <span class="string">&quot;join&quot; </span>=&gt; |ctx: <span class="kw-2">&amp;</span>FunctionContext, sep: <span class="kw-2">&amp;</span>ObjFormatString| -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjFormatString&gt;&gt; {
+        <span class="kw">let </span>this = ctx.self_value_as::&lt;ObjTupleObject&gt;()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">components</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">iter</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>components = Vec::with_capacity(this.values.len() * <span class="number">2</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = this.values.iter();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="ident">components</span>.<span class="ident">push</span>(<span class="ident">FormatStringComponent::Value</span>(<span class="ident">first</span>.<span class="ident">clone</span>()));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = iter.next() {
+            components.push(FormatStringComponent::Value(first.clone()));
 
-            <span class="kw">for</span> <span class="ident">rest</span> <span class="kw">in</span> <span class="ident">iter</span> {
-                <span class="ident">components</span>.<span class="ident">extend</span>(<span class="ident">sep</span>.<span class="ident">components</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
-                <span class="ident">components</span>.<span class="ident">push</span>(<span class="ident">FormatStringComponent::Value</span>(<span class="ident">rest</span>.<span class="ident">clone</span>()));
+            <span class="kw">for </span>rest <span class="kw">in </span>iter {
+                components.extend(sep.components.iter().cloned());
+                components.push(FormatStringComponent::Value(rest.clone()));
             }
         }
-        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">ObjFormatString::new</span>(<span class="ident">components</span>)))
+        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(ObjFormatString::new(components)))
     },
 
-    <span class="ident">Promote</span> =&gt; <span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FunctionContext</span>, <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">ObjTupleObject</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">ObjClass</span><span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LangResult</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">target</span>.<span class="ident">class</span>.<span class="ident">kind</span> {
-            <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">tuple</span>.<span class="ident">layout</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+    Promote =&gt; |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, this: <span class="kw-2">&amp;</span>ObjTupleObject, target: <span class="kw-2">&amp;</span>ObjClass| -&gt; <span class="prelude-ty">Option</span>&lt;LangResult&lt;ObjectRef&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span>target.class.kind {
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) =&gt; {
+                <span class="kw">if </span>tuple.layout.len() != this.values.len() {
+                    <span class="kw">return </span><span class="prelude-val">None</span>;
                 }
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">promoted_values</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">this</span>.<span class="ident">values</span>.<span class="ident">len</span>());
-                <span class="kw">for</span> (<span class="ident">value</span>, <span class="ident">target</span>) <span class="kw">in</span> <span class="ident">zip</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">values</span>, <span class="kw-2">&amp;</span><span class="ident">tuple</span>.<span class="ident">layout</span>) {
-                    <span class="comment">// Check if the value must be promoted and if so, try to promote it</span>
-                    <span class="comment">// Since the target is a pattern, the match must be &quot;the other way around&quot;</span>
-                    <span class="kw">if</span> <span class="ident">target</span>.<span class="ident">matches_type</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">class</span>) {
-                        <span class="ident">promoted_values</span>.<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">clone</span>());
-                    } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="ident">promoted</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ctx</span>.<span class="ident">promote_obj</span>(<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">ObjClass::new</span>(<span class="ident">target</span>.<span class="ident">clone</span>()).<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())) {
-                            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">value</span>)) =&gt; <span class="ident">value</span>,
-                            <span class="ident">other</span> =&gt; <span class="kw">return</span> <span class="ident">other</span>,
+                <span class="kw">let </span><span class="kw-2">mut </span>promoted_values = Vec::with_capacity(this.values.len());
+                <span class="kw">for </span>(value, target) <span class="kw">in </span>zip(<span class="kw-2">&amp;</span>this.values, <span class="kw-2">&amp;</span>tuple.layout) {
+                    <span class="comment">// Check if the value must be promoted and if so, try to promote it
+                    // Since the target is a pattern, the match must be &quot;the other way around&quot;
+                    </span><span class="kw">if </span>target.matches_type(<span class="kw-2">&amp;</span>value.class) {
+                        promoted_values.push(value.clone());
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span>promoted = <span class="kw">match </span>ctx.promote_obj(value.clone(), ObjClass::new(target.clone()).into_object(ctx.type_ctx())) {
+                            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(value)) =&gt; value,
+                            other =&gt; <span class="kw">return </span>other,
                         };
-                        <span class="ident">promoted_values</span>.<span class="ident">push</span>(<span class="ident">promoted</span>);
+                        promoted_values.push(promoted);
                     }
                 }
 
-                <span class="kw">let</span> <span class="ident">promoted_tuple</span> <span class="op">=</span> <span class="ident">ObjTupleObject::new</span>(<span class="ident">promoted_values</span>);
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">promoted_tuple</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>.<span class="ident">type_ctx</span>())))
+                <span class="kw">let </span>promoted_tuple = ObjTupleObject::new(promoted_values);
+                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(promoted_tuple.into_object(ctx.type_ctx())))
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }}
 
-<span class="kw">impl</span> <span class="ident">ObjTupleObject</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">memory_layout</span> <span class="op">=</span> <span class="ident">values</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">payload</span>.<span class="ident">memory_layout</span>())
-            .<span class="ident">collect</span>();
+<span class="kw">impl </span>ObjTupleObject {
+    <span class="kw">pub fn </span>new(values: Vec&lt;ObjectRef&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>memory_layout = values
+            .iter()
+            .map(|obj| obj.payload.memory_layout())
+            .collect();
 
-        <span class="kw">let</span> <span class="ident">type_patterns</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">class</span>.<span class="ident">clone</span>()).<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">Tuple</span> {
-            <span class="ident">layout</span>: <span class="ident">type_patterns</span>,
+        <span class="kw">let </span>type_patterns = values.iter().map(|value| value.class.clone()).collect();
+        <span class="kw">let </span>class = Rc::new(Tuple {
+            layout: type_patterns,
         });
 
-        <span class="ident">ObjTupleObject</span> {
-            <span class="ident">class</span>,
-            <span class="ident">values</span>,
-            <span class="ident">memory_layout</span>,
+        ObjTupleObject {
+            class,
+            values,
+            memory_layout,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">len</span>()
+    <span class="kw">pub fn </span>length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.values.len()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectPayload</span> <span class="kw">for</span> <span class="ident">ObjTupleObject</span> {
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">memory_layout</span>
+<span class="kw">impl </span>ObjectPayload <span class="kw">for </span>ObjTupleObject {
+    <span class="kw">fn </span>memory_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MemoryLayout {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.memory_layout
     }
 
-    <span class="kw">fn</span> <span class="ident">create_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ClassRef</span> {
-        <span class="kw">let</span> <span class="ident">class_kind</span> <span class="op">=</span> <span class="ident">ClassKind::TupleValue</span>(<span class="self">self</span>.<span class="ident">class</span>.<span class="ident">clone</span>());
-        <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">Class</span> {
-            <span class="ident">kind</span>: <span class="ident">class_kind</span>,
-            <span class="ident">properties</span>: <span class="ident"><span class="self">Self</span>::static_class</span>(<span class="ident">ctx</span>).<span class="ident">properties</span>.<span class="ident">clone</span>(),
+    <span class="kw">fn </span>create_class(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; ClassRef {
+        <span class="kw">let </span>class_kind = ClassKind::TupleValue(<span class="self">self</span>.class.clone());
+        <span class="kw">let </span>class = Class {
+            kind: class_kind,
+            properties: <span class="self">Self</span>::static_class(ctx).properties.clone(),
         };
-        <span class="ident">ClassRef::from</span>(<span class="ident">class</span>)
+        ClassRef::from(class)
     }
 
-    <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">ident</span> {
-            <span class="ident">Ident::Value</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ident::Special</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Ident::Index</span>(<span class="ident">idx</span>) =&gt; <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">get</span>(<span class="kw-2">*</span><span class="ident">idx</span>).<span class="ident">cloned</span>(),
+    <span class="kw">fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>TypeContext, ident: <span class="kw-2">&amp;</span>Ident) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectRef&gt; {
+        <span class="kw">match </span>ident {
+            Ident::Value(<span class="kw">_</span>) | Ident::Special(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Ident::Index(idx) =&gt; <span class="self">self</span>.values.get(<span class="kw-2">*</span>idx).cloned(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">json_fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsonFormatComponent</span><span class="op">&gt;</span>) {
-        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="string">&quot;(&quot;</span>.<span class="ident">into</span>()));
+    <span class="kw">fn </span>json_fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;JsonFormatComponent&gt;) {
+        buf.push(JsonFormatComponent::RawText(<span class="string">&quot;(&quot;</span>.into()));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">iter</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
-            <span class="ident">value</span>.<span class="ident">payload</span>.<span class="ident">json_fmt</span>(<span class="ident">buf</span>);
-            <span class="kw">let</span> <span class="ident">sep</span> <span class="op">=</span> <span class="string">&quot;, &quot;</span>.<span class="ident">into</span>();
-            <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">iter</span> {
-                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">sep</span>)));
-                <span class="ident">value</span>.<span class="ident">payload</span>.<span class="ident">json_fmt</span>(<span class="ident">buf</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = <span class="self">self</span>.values.iter();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = iter.next() {
+            value.payload.json_fmt(buf);
+            <span class="kw">let </span>sep = <span class="string">&quot;, &quot;</span>.into();
+            <span class="kw">for </span>value <span class="kw">in </span>iter {
+                buf.push(JsonFormatComponent::RawText(Rc::clone(<span class="kw-2">&amp;</span>sep)));
+                value.payload.json_fmt(buf);
             }
         }
 
-        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="string">&quot;)&quot;</span>.<span class="ident">into</span>()));
+        buf.push(JsonFormatComponent::RawText(<span class="string">&quot;)&quot;</span>.into()));
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjTupleObject</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Tuple({})&quot;</span>, <span class="self">self</span>.<span class="ident">class</span>)
+<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ObjTupleObject {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Tuple({})&quot;</span>, <span class="self">self</span>.class)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">ObjTupleObject</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ObjTupleObject&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;values&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">values</span>)
-            .<span class="ident">finish_non_exhaustive</span>()
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ObjTupleObject {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;ObjTupleObject&quot;</span>)
+            .field(<span class="string">&quot;values&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.values)
+            .finish_non_exhaustive()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/common/src/input_file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>input_file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/common/src/input_file.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>input_file.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -283,285 +277,284 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Input files are used to store the files required for successful compilation</span>
-<span class="doccomment">//! The big advantage of have a global storage of all possible input files is that</span>
-<span class="doccomment">//! this allows for extremely cheap spans which only consist of a (start, length) tuple.</span>
-<span class="doccomment">//! To get the corresponding file for a span, simply check whether the span lies withing</span>
-<span class="doccomment">//! file.offset and file.offset + file.length</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Input files are used to store the files required for successful compilation
+//! The big advantage of have a global storage of all possible input files is that
+//! this allows for extremely cheap spans which only consist of a (start, length) tuple.
+//! To get the corresponding file for a span, simply check whether the span lies withing
+//! file.offset and file.offset + file.length
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Span</span>;
+</span><span class="kw">use </span><span class="kw">crate</span>::Span;
 
-<span class="doccomment">/// The type of a code id, currently just a usize</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CodeId</span> <span class="op">=</span> <span class="ident">usize</span>;
+<span class="doccomment">/// The type of a code id, currently just a usize
+</span><span class="kw">pub type </span>CodeId = usize;
 
-<span class="doccomment">/// A code object contains the source code and optionally a path to the corresponding file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Code</span> {
-    <span class="kw">pub</span> <span class="ident">source</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A code object contains the source code and optionally a path to the corresponding file
+</span><span class="attr">#[derive(Debug, Eq, PartialEq, Hash)]
+</span><span class="kw">pub struct </span>Code {
+    <span class="kw">pub </span>source: Box&lt;str&gt;,
+    <span class="kw">pub </span>path: <span class="prelude-ty">Option</span>&lt;Box&lt;str&gt;&gt;,
 }
 
-<span class="doccomment">/// A handy object to work in a specific input file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">input_files</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">InputFiles</span>,
-    <span class="kw">pub</span> <span class="ident">file</span>: <span class="ident">CodeId</span>,
+<span class="doccomment">/// A handy object to work in a specific input file
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>CodeRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    input_files: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>InputFiles,
+    <span class="kw">pub </span>file: CodeId,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">CodeRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Code</span> {
-        <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="self">self</span>.<span class="ident">file</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CodeRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub fn </span>get_code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Code {
+        <span class="self">self</span>.input_files.get_input(<span class="self">self</span>.file)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">get_input_offset</span>(<span class="self">self</span>.<span class="ident">file</span>)
+    <span class="kw">pub fn </span>get_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.input_files.get_input_offset(<span class="self">self</span>.file)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Span</span> {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">input_files</span>[<span class="self">self</span>.<span class="ident">file</span>];
-        <span class="ident">Span::new</span>(<span class="ident">input</span>.<span class="ident">offset</span>, <span class="ident">input</span>.<span class="ident">code</span>.<span class="ident">source</span>.<span class="ident">len</span>())
+    <span class="kw">pub fn </span>get_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Span {
+        <span class="kw">let </span>input = <span class="kw-2">&amp;</span><span class="self">self</span>.input_files.input_files[<span class="self">self</span>.file];
+        Span::new(input.offset, input.code.source.len())
     }
 
-    <span class="doccomment">/// Returns a span that is relative to the start of this code file</span>
-    <span class="doccomment">/// Returns [`None`] if the span is not within this file</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_relative_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>().<span class="ident">checked_sub</span>(<span class="self">self</span>.<span class="ident">get_offset</span>())<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">input_files</span>[<span class="self">self</span>.<span class="ident">file</span>].<span class="ident">code</span>.<span class="ident">source</span>.<span class="ident">len</span>() {
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Span::new</span>(<span class="ident">start</span>, <span class="ident">span</span>.<span class="ident">len</span>()))
+    <span class="doccomment">/// Returns a span that is relative to the start of this code file
+    /// Returns [`None`] if the span is not within this file
+    </span><span class="kw">pub fn </span>get_relative_span(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt; {
+        <span class="kw">let </span>start = span.start().checked_sub(<span class="self">self</span>.get_offset())<span class="question-mark">?</span>;
+        <span class="kw">if </span>start &gt; <span class="self">self</span>.input_files.input_files[<span class="self">self</span>.file].code.source.len() {
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(Span::new(start, span.len()))
         }
     }
 }
 
-<span class="doccomment">/// A single input file, implementation detail</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InputFile</span> {
-    <span class="doccomment">/// The code of the input file</span>
-    <span class="ident">code</span>: <span class="ident">Code</span>,
-    <span class="doccomment">/// The global offset</span>
-    <span class="ident">offset</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// A single input file, implementation detail
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>InputFile {
+    <span class="doccomment">/// The code of the input file
+    </span>code: Code,
+    <span class="doccomment">/// The global offset
+    </span>offset: usize,
 }
 
-<span class="doccomment">/// Keeps track of all input files and allows to make cheap copy-able spans</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InputFiles</span> {
-    <span class="doccomment">/// All input files which are used in this compiler</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This vector is append-only and the offset of the input files</span>
-    <span class="doccomment">/// is guaranteed to be increasing.</span>
-    <span class="ident">input_files</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InputFile</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Keeps track of all input files and allows to make cheap copy-able spans
+</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>InputFiles {
+    <span class="doccomment">/// All input files which are used in this compiler
+    ///
+    /// This vector is append-only and the offset of the input files
+    /// is guaranteed to be increasing.
+    </span>input_files: Vec&lt;InputFile&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">InputFiles</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">InputFiles::default</span>()
+<span class="kw">impl </span>InputFiles {
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        InputFiles::default()
     }
 
-    <span class="doccomment">/// Adds a code unit and returns its ID</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_input</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">code</span>: <span class="ident">Code</span>) -&gt; <span class="ident">CodeId</span> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_total_offset</span>();
-        <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="ident">InputFile</span> { <span class="ident">code</span>, <span class="ident">offset</span> };
-        <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">push</span>(<span class="ident">input_file</span>);
+    <span class="doccomment">/// Adds a code unit and returns its ID
+    </span><span class="kw">pub fn </span>add_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, code: Code) -&gt; CodeId {
+        <span class="kw">let </span>offset = <span class="self">self</span>.get_total_offset();
+        <span class="kw">let </span>input_file = InputFile { code, offset };
+        <span class="self">self</span>.input_files.push(input_file);
 
-        <span class="self">self</span>.<span class="ident">input_files</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>
-    }
+        <span class="self">self</span>.input_files.len() - <span class="number">1
+    </span>}
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_code_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_id</span>: <span class="ident">CodeId</span>) -&gt; <span class="ident">CodeRef</span> {
-        <span class="ident">CodeRef</span> {
-            <span class="ident">file</span>: <span class="ident">code_id</span>,
-            <span class="ident">input_files</span>: <span class="self">self</span>,
+    <span class="kw">pub fn </span>get_code_ref(<span class="kw-2">&amp;</span><span class="self">self</span>, code_id: CodeId) -&gt; CodeRef {
+        CodeRef {
+            file: code_id,
+            input_files: <span class="self">self</span>,
         }
     }
 
-    <span class="doccomment">/// Searches the registered [`InputFile`]s and returns the first with a matching filename</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_by_filename</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CodeId</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">input_files</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">enumerate</span>()
-            .<span class="ident">find</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">file</span>)<span class="op">|</span> {
-                <span class="ident">file</span>.<span class="ident">code</span>
-                    .<span class="ident">path</span>
-                    .<span class="ident">as_ref</span>()
-                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">fname</span><span class="op">|</span> <span class="ident">fname</span>.<span class="ident">as_ref</span>() <span class="op">==</span> <span class="ident">filename</span>)
+    <span class="doccomment">/// Searches the registered [`InputFile`]s and returns the first with a matching filename
+    </span><span class="kw">pub fn </span>find_by_filename(<span class="kw-2">&amp;</span><span class="self">self</span>, filename: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;CodeId&gt; {
+        <span class="self">self</span>.input_files
+            .iter()
+            .enumerate()
+            .find(|(<span class="kw">_</span>, file)| {
+                file.code
+                    .path
+                    .as_ref()
+                    .map_or(<span class="bool-val">false</span>, |fname| fname.as_ref() == filename)
             })
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">index</span>)
+            .map(|(index, <span class="kw">_</span>)| index)
     }
 
-    <span class="doccomment">/// Gets the input file with this id</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_input</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_id</span>: <span class="ident">CodeId</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Code</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input_files</span>[<span class="ident">code_id</span>].<span class="ident">code</span>
+    <span class="doccomment">/// Gets the input file with this id
+    </span><span class="kw">pub fn </span>get_input(<span class="kw-2">&amp;</span><span class="self">self</span>, code_id: CodeId) -&gt; <span class="kw-2">&amp;</span>Code {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.input_files[code_id].code
     }
 
-    <span class="doccomment">/// Gets the offset of the file with this id</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_input_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_id</span>: <span class="ident">CodeId</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">input_files</span>[<span class="ident">code_id</span>].<span class="ident">offset</span>
+    <span class="doccomment">/// Gets the offset of the file with this id
+    </span><span class="kw">pub fn </span>get_input_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, code_id: CodeId) -&gt; usize {
+        <span class="self">self</span>.input_files[code_id].offset
     }
 
-    <span class="doccomment">/// Calculates the total byte offset</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_total_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">input_files</span>
-            .<span class="ident">last</span>()
-            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">file</span><span class="op">|</span> <span class="ident">file</span>.<span class="ident">offset</span> <span class="op">+</span> <span class="ident">file</span>.<span class="ident">code</span>.<span class="ident">source</span>.<span class="ident">len</span>())
+    <span class="doccomment">/// Calculates the total byte offset
+    </span><span class="kw">pub fn </span>get_total_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.input_files
+            .last()
+            .map_or(<span class="number">0</span>, |file| file.offset + file.code.source.len())
     }
 
-    <span class="doccomment">/// Searches for the input file that contains the given span</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a `(index, &amp;input_file)` tuple.</span>
-    <span class="doccomment">/// Since the input files are stored sorted, the search can be</span>
-    <span class="doccomment">/// completed with O(log n) time complexity</span>
-    <span class="kw">fn</span> <span class="ident">get_span_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; (<span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">InputFile</span>) {
-        <span class="comment">// Determine the index of the file that contains this span</span>
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>
-            .<span class="ident">input_files</span>
-            .<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">span</span>.<span class="ident">start</span>(), <span class="op">|</span><span class="ident">input_file</span><span class="op">|</span> <span class="ident">input_file</span>.<span class="ident">offset</span>)
+    <span class="doccomment">/// Searches for the input file that contains the given span
+    ///
+    /// Returns a `(index, &amp;input_file)` tuple.
+    /// Since the input files are stored sorted, the search can be
+    /// completed with O(log n) time complexity
+    </span><span class="kw">fn </span>get_span_file(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; (usize, <span class="kw-2">&amp;</span>InputFile) {
+        <span class="comment">// Determine the index of the file that contains this span
+        </span><span class="kw">let </span>index = <span class="kw">match </span><span class="self">self
+            </span>.input_files
+            .binary_search_by_key(<span class="kw-2">&amp;</span>span.start(), |input_file| input_file.offset)
         {
-            <span class="prelude-val">Ok</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>,
-            <span class="comment">// The method returns `Err`, if no input_file has the exact same offset</span>
-            <span class="comment">// as the given span, which is the common case.</span>
-            <span class="comment">// The `x` marks the index of the file with the lowest offset greater than</span>
-            <span class="comment">// span&#39;s offset, so we have to subtract one from it to get the correct file</span>
-            <span class="prelude-val">Err</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span> <span class="op">-</span> <span class="number">1</span>,
+            <span class="prelude-val">Ok</span>(x) =&gt; x,
+            <span class="comment">// The method returns `Err`, if no input_file has the exact same offset
+            // as the given span, which is the common case.
+            // The `x` marks the index of the file with the lowest offset greater than
+            // span&#39;s offset, so we have to subtract one from it to get the correct file
+            </span><span class="prelude-val">Err</span>(x) =&gt; x - <span class="number">1</span>,
         };
 
-        (<span class="ident">index</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input_files</span>[<span class="ident">index</span>])
+        (index, <span class="kw-2">&amp;</span><span class="self">self</span>.input_files[index])
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="ident">CodeRef</span> {
-        <span class="kw">let</span> (<span class="ident">index</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_span_file</span>(<span class="ident">span</span>);
-        <span class="ident">CodeRef</span> {
-            <span class="ident">file</span>: <span class="ident">index</span>,
-            <span class="ident">input_files</span>: <span class="self">self</span>,
+    <span class="kw">pub fn </span>get_span_code(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; CodeRef {
+        <span class="kw">let </span>(index, <span class="kw">_</span>) = <span class="self">self</span>.get_span_file(span);
+        CodeRef {
+            file: index,
+            input_files: <span class="self">self</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the str that corresponds to a span</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_span_file</span>(<span class="ident">span</span>).<span class="number">1</span>;
+    <span class="doccomment">/// Returns the str that corresponds to a span
+    </span><span class="kw">pub fn </span>get_span_str(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="kw">let </span>input_file = <span class="self">self</span>.get_span_file(span).<span class="number">1</span>;
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>() <span class="op">-</span> <span class="ident">input_file</span>.<span class="ident">offset</span>;
-        <span class="kw-2">&amp;</span><span class="ident">input_file</span>.<span class="ident">code</span>.<span class="ident">source</span>[<span class="ident">start</span>..<span class="ident">span</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">start</span>]
+        <span class="kw">let </span>start = span.start() - input_file.offset;
+        <span class="kw-2">&amp;</span>input_file.code.source[start..span.len() + start]
     }
 
-    <span class="doccomment">/// Returns the line in a file at which this span begins and the column</span>
-    <span class="doccomment">/// This function starts counting at zero, so that the first character in a file is (0, 0)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line_col</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
-        <span class="kw">let</span> <span class="ident">input_file</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_span_file</span>(<span class="ident">span</span>).<span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">relative_start</span> <span class="op">=</span> <span class="ident">span</span>.<span class="ident">start</span>() <span class="op">-</span> <span class="ident">input_file</span>.<span class="ident">offset</span>;
-        <span class="kw">let</span> (<span class="ident">lines</span>, <span class="ident">line_start_idx</span>) <span class="op">=</span> <span class="ident">input_file</span>.<span class="ident">code</span>.<span class="ident">source</span>[..<span class="ident">relative_start</span>]
-            .<span class="ident">char_indices</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">chr</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">chr</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span>)
-            .<span class="ident">fold</span>((<span class="number">0_usize</span>, <span class="number">0</span>), <span class="op">|</span>(<span class="ident">lines</span>, <span class="kw">_</span>), (<span class="ident">idx</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">lines</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>));
-        <span class="kw">let</span> <span class="ident">col</span> <span class="op">=</span> <span class="ident">input_file</span>.<span class="ident">code</span>.<span class="ident">source</span>[<span class="ident">line_start_idx</span>..<span class="ident">relative_start</span>]
-            .<span class="ident">chars</span>()
-            .<span class="ident">count</span>();
-        (<span class="ident">lines</span>, <span class="ident">col</span>)
+    <span class="doccomment">/// Returns the line in a file at which this span begins and the column
+    /// This function starts counting at zero, so that the first character in a file is (0, 0)
+    </span><span class="kw">pub fn </span>line_col(<span class="kw-2">&amp;</span><span class="self">self</span>, span: Span) -&gt; (usize, usize) {
+        <span class="kw">let </span>input_file = <span class="self">self</span>.get_span_file(span).<span class="number">1</span>;
+        <span class="kw">let </span>relative_start = span.start() - input_file.offset;
+        <span class="kw">let </span>(lines, line_start_idx) = input_file.code.source[..relative_start]
+            .char_indices()
+            .filter(|(<span class="kw">_</span>, chr)| <span class="kw-2">*</span>chr == <span class="string">&#39;\n&#39;</span>)
+            .fold((<span class="number">0_usize</span>, <span class="number">0</span>), |(lines, <span class="kw">_</span>), (idx, <span class="kw">_</span>)| (lines + <span class="number">1</span>, idx + <span class="number">1</span>));
+        <span class="kw">let </span>col = input_file.code.source[line_start_idx..relative_start]
+            .chars()
+            .count();
+        (lines, col)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Code</span>, <span class="ident">InputFiles</span>, <span class="ident">Span</span>};
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use crate</span>::{Code, InputFiles, Span};
 
-    <span class="kw">const</span> <span class="ident">FILE_1</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Hello World!\nFoo&quot;</span>;
-    <span class="kw">const</span> <span class="ident">FILE_2</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Bar\nBaz&quot;</span>;
+    <span class="kw">const </span>FILE_1: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello World!\nFoo&quot;</span>;
+    <span class="kw">const </span>FILE_2: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Bar\nBaz&quot;</span>;
 
-    <span class="kw">fn</span> <span class="ident">input_files</span>() -&gt; <span class="ident">InputFiles</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">InputFiles::new</span>();
+    <span class="kw">fn </span>input_files() -&gt; InputFiles {
+        <span class="kw">let </span><span class="kw-2">mut </span>input_files = InputFiles::new();
 
-        <span class="ident">input_files</span>.<span class="ident">add_input</span>(<span class="ident">Code</span> {
-            <span class="ident">path</span>: <span class="prelude-val">None</span>,
-            <span class="ident">source</span>: <span class="ident">FILE_1</span>.<span class="ident">into</span>(),
+        input_files.add_input(Code {
+            path: <span class="prelude-val">None</span>,
+            source: FILE_1.into(),
         });
 
-        <span class="ident">input_files</span>.<span class="ident">add_input</span>(<span class="ident">Code</span> {
-            <span class="ident">path</span>: <span class="prelude-val">None</span>,
-            <span class="ident">source</span>: <span class="ident">FILE_2</span>.<span class="ident">into</span>(),
+        input_files.add_input(Code {
+            path: <span class="prelude-val">None</span>,
+            source: FILE_2.into(),
         });
 
-        <span class="ident">input_files</span>
+        input_files
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_input_files_members</span>() {
-        <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">0</span>).<span class="ident">source</span>.<span class="ident">as_ref</span>(), <span class="ident">FILE_1</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_input</span>(<span class="number">1</span>).<span class="ident">source</span>.<span class="ident">as_ref</span>(), <span class="ident">FILE_2</span>);
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_input_files_members() {
+        <span class="kw">let </span>input_files = input_files();
+        <span class="macro">assert_eq!</span>(input_files.get_input(<span class="number">0</span>).source.as_ref(), FILE_1);
+        <span class="macro">assert_eq!</span>(input_files.get_input(<span class="number">1</span>).source.as_ref(), FILE_2);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_input_files_offset</span>() {
-        <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
-        <span class="kw">let</span> <span class="ident">offset_1</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_input_offset</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">offset_2</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_input_offset</span>(<span class="number">1</span>);
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_input_files_offset() {
+        <span class="kw">let </span>input_files = input_files();
+        <span class="kw">let </span>offset_1 = input_files.get_input_offset(<span class="number">0</span>);
+        <span class="kw">let </span>offset_2 = input_files.get_input_offset(<span class="number">1</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">offset_1</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">offset_2</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(offset_1, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(offset_2, FILE_1.len());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_code_span</span>() {
-        <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
-        <span class="kw">let</span> <span class="ident">code_1</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">code_2</span> <span class="op">=</span> <span class="ident">input_files</span>.<span class="ident">get_code_ref</span>(<span class="number">1</span>);
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_code_span() {
+        <span class="kw">let </span>input_files = input_files();
+        <span class="kw">let </span>code_1 = input_files.get_code_ref(<span class="number">0</span>);
+        <span class="kw">let </span>code_2 = input_files.get_code_ref(<span class="number">1</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">code_1</span>.<span class="ident">get_span</span>(), <span class="ident">Span::new</span>(<span class="number">0</span>, <span class="ident">FILE_1</span>.<span class="ident">len</span>()));
-        <span class="macro">assert_eq!</span>(<span class="ident">code_2</span>.<span class="ident">get_span</span>(), <span class="ident">Span::new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="ident">FILE_2</span>.<span class="ident">len</span>()));
+        <span class="macro">assert_eq!</span>(code_1.get_span(), Span::new(<span class="number">0</span>, FILE_1.len()));
+        <span class="macro">assert_eq!</span>(code_2.get_span(), Span::new(FILE_1.len(), FILE_2.len()));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_code_from_span</span>() {
-        <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_code_from_span() {
+        <span class="kw">let </span>input_files = input_files();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">1</span>)).<span class="number">0</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_file(Span::new(<span class="number">0</span>, <span class="number">1</span>)).<span class="number">0</span>, <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span::new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>, <span class="number">1</span>)).<span class="number">0</span>,
-            <span class="number">0</span>
-        );
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span::new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>(), <span class="number">0</span>)).<span class="number">0</span>, <span class="number">1</span>);
+            input_files.get_span_file(Span::new(FILE_1.len() - <span class="number">1</span>, <span class="number">1</span>)).<span class="number">0</span>,
+            <span class="number">0
+        </span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_file(Span::new(FILE_1.len(), <span class="number">0</span>)).<span class="number">0</span>, <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(
-            <span class="ident">input_files</span>.<span class="ident">get_span_file</span>(<span class="ident">Span::new</span>(<span class="ident">FILE_1</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>, <span class="number">1</span>)).<span class="number">0</span>,
-            <span class="number">1</span>
-        );
+            input_files.get_span_file(Span::new(FILE_1.len() + <span class="number">1</span>, <span class="number">1</span>)).<span class="number">0</span>,
+            <span class="number">1
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_span_str</span>() {
-        <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_span_str() {
+        <span class="kw">let </span>input_files = input_files();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">0</span>)), <span class="string">&quot;&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">1</span>)), <span class="string">&quot;H&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">5</span>)), <span class="string">&quot;Hello&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">6</span>, <span class="number">5</span>)), <span class="string">&quot;World&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">13</span>, <span class="number">3</span>)), <span class="string">&quot;Foo&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">16</span>, <span class="number">3</span>)), <span class="string">&quot;Bar&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">20</span>, <span class="number">3</span>)), <span class="string">&quot;Baz&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">0</span>, <span class="number">0</span>)), <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">0</span>, <span class="number">1</span>)), <span class="string">&quot;H&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">0</span>, <span class="number">5</span>)), <span class="string">&quot;Hello&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">6</span>, <span class="number">5</span>)), <span class="string">&quot;World&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">13</span>, <span class="number">3</span>)), <span class="string">&quot;Foo&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">16</span>, <span class="number">3</span>)), <span class="string">&quot;Bar&quot;</span>);
+        <span class="macro">assert_eq!</span>(input_files.get_span_str(Span::new(<span class="number">20</span>, <span class="number">3</span>)), <span class="string">&quot;Baz&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_span_str_panic_a</span>() {
-        <span class="ident">input_files</span>().<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">15</span>, <span class="number">3</span>));
+    <span class="attr">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>test_span_str_panic_a() {
+        input_files().get_span_str(Span::new(<span class="number">15</span>, <span class="number">3</span>));
     }
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">should_panic</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_span_str_panic_b</span>() {
-        <span class="ident">input_files</span>().<span class="ident">get_span_str</span>(<span class="ident">Span::new</span>(<span class="number">15</span>, <span class="number">3</span>));
+    <span class="attr">#[test]
+    #[should_panic]
+    </span><span class="kw">fn </span>test_span_str_panic_b() {
+        input_files().get_span_str(Span::new(<span class="number">15</span>, <span class="number">3</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_span_line</span>() {
-        <span class="kw">let</span> <span class="ident">input_files</span> <span class="op">=</span> <span class="ident">input_files</span>();
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_span_line() {
+        <span class="kw">let </span>input_files = input_files();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">0</span>)), (<span class="number">0</span>, <span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">1</span>)), (<span class="number">0</span>, <span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">0</span>, <span class="number">5</span>)), (<span class="number">0</span>, <span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">6</span>, <span class="number">5</span>)), (<span class="number">0</span>, <span class="number">6</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">13</span>, <span class="number">3</span>)), (<span class="number">1</span>, <span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">16</span>, <span class="number">3</span>)), (<span class="number">0</span>, <span class="number">0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">input_files</span>.<span class="ident">line_col</span>(<span class="ident">Span::new</span>(<span class="number">21</span>, <span class="number">2</span>)), (<span class="number">1</span>, <span class="number">1</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">0</span>, <span class="number">0</span>)), (<span class="number">0</span>, <span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">0</span>, <span class="number">1</span>)), (<span class="number">0</span>, <span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">0</span>, <span class="number">5</span>)), (<span class="number">0</span>, <span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">6</span>, <span class="number">5</span>)), (<span class="number">0</span>, <span class="number">6</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">13</span>, <span class="number">3</span>)), (<span class="number">1</span>, <span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">16</span>, <span class="number">3</span>)), (<span class="number">0</span>, <span class="number">0</span>));
+        <span class="macro">assert_eq!</span>(input_files.line_col(Span::new(<span class="number">21</span>, <span class="number">2</span>)), (<span class="number">1</span>, <span class="number">1</span>));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

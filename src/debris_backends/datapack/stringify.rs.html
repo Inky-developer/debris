@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/backends/src/datapack/stringify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stringify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_backends/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_backends/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_backends/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/backends/src/datapack/stringify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stringify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_backends/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -470,472 +464,471 @@
 <span id="464">464</span>
 <span id="465">465</span>
 <span id="466">466</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
-<span class="kw">use</span> <span class="ident">debris_llir</span>::{
-    <span class="ident">llir_nodes::WriteTarget</span>,
-    <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+<span class="kw">use </span>debris_llir::{
+    llir_nodes::WriteTarget,
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation},
 };
-<span class="kw">use</span> <span class="ident">fmt::Display</span>;
+<span class="kw">use </span>fmt::Display;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<span class="ident">ExecuteComponent</span>, <span class="ident">MinecraftCommand</span>, <span class="ident">MinecraftRange</span>};
+<span class="kw">use </span><span class="kw">crate</span>::common::{ExecuteComponent, MinecraftCommand, MinecraftRange};
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">MinecraftCommand</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MinecraftCommand::ScoreboardSet</span> { <span class="ident">player</span>, <span class="ident">value</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard players set {player} {value}&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>MinecraftCommand {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            MinecraftCommand::ScoreboardSet { player, value } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;scoreboard players set {player} {value}&quot;</span>)
             }
-            <span class="ident">MinecraftCommand::ScoreboardSetEqual</span> { <span class="ident">player1</span>, <span class="ident">player2</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard players operation {player1} = {player2}&quot;</span>)
+            MinecraftCommand::ScoreboardSetEqual { player1, player2 } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;scoreboard players operation {player1} = {player2}&quot;</span>)
             }
-            <span class="ident">MinecraftCommand::ScoreboardSetFromResult</span> { <span class="ident">player</span>, <span class="ident">command</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;execute store result score {player} run &quot;</span>)<span class="question-mark">?</span>;
-                <span class="ident">command</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+            MinecraftCommand::ScoreboardSetFromResult { player, command } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;execute store result score {player} run &quot;</span>)<span class="question-mark">?</span>;
+                command.fmt(f)
             }
-            <span class="ident">MinecraftCommand::ScoreboardOperation</span> {
-                <span class="ident">player1</span>,
-                <span class="ident">player2</span>,
-                <span class="ident">operation</span>,
+            MinecraftCommand::ScoreboardOperation {
+                player1,
+                player2,
+                operation,
             } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+                f,
                 <span class="string">&quot;scoreboard players operation {player1} {} {player2}&quot;</span>,
-                <span class="ident">fmt_operation</span>(<span class="kw-2">*</span><span class="ident">operation</span>)
+                fmt_operation(<span class="kw-2">*</span>operation)
             ),
-            <span class="ident">MinecraftCommand::ScoreboardOperationAdd</span> { <span class="ident">player</span>, <span class="ident">value</span> } =&gt; {
-                <span class="kw">let</span> (<span class="ident">mode</span>, <span class="ident">value</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">value</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                    (<span class="string">&quot;remove&quot;</span>, <span class="ident">value</span> <span class="op">*</span> <span class="op">-</span><span class="number">1</span>)
-                } <span class="kw">else</span> {
-                    (<span class="string">&quot;add&quot;</span>, <span class="kw-2">*</span><span class="ident">value</span>)
+            MinecraftCommand::ScoreboardOperationAdd { player, value } =&gt; {
+                <span class="kw">let </span>(mode, value) = <span class="kw">if </span><span class="kw-2">*</span>value &lt; <span class="number">0 </span>{
+                    (<span class="string">&quot;remove&quot;</span>, value * -<span class="number">1</span>)
+                } <span class="kw">else </span>{
+                    (<span class="string">&quot;add&quot;</span>, <span class="kw-2">*</span>value)
                 };
 
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard players {mode} {player} {value}&quot;</span>)
+                <span class="macro">write!</span>(f, <span class="string">&quot;scoreboard players {mode} {player} {value}&quot;</span>)
             }
-            <span class="ident">MinecraftCommand::Execute</span> { <span class="ident">parts</span>, <span class="ident">and_then</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;execute &quot;</span>)<span class="question-mark">?</span>;
+            MinecraftCommand::Execute { parts, and_then } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;execute &quot;</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">parts</span> {
-                    <span class="ident">part</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">for </span>part <span class="kw">in </span>parts {
+                    part.fmt(f)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(f, <span class="string">&quot; &quot;</span>)<span class="question-mark">?</span>;
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">and_then</span>) <span class="op">=</span> <span class="ident">and_then</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;run {and_then}&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(and_then) = and_then {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;run {and_then}&quot;</span>)<span class="question-mark">?</span>;
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">MinecraftCommand::Function</span> { <span class="ident">function</span> } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;function {function}&quot;</span>),
-            <span class="ident">MinecraftCommand::ScoreboardAdd</span> {
-                <span class="ident">name</span>,
-                <span class="ident">criterion</span>,
-                <span class="ident">json_name</span>,
+            MinecraftCommand::Function { function } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;function {function}&quot;</span>),
+            MinecraftCommand::ScoreboardAdd {
+                name,
+                criterion,
+                json_name,
             } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">json</span>) <span class="op">=</span> <span class="ident">json_name</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard objectives add {name} {criterion} {json}&quot;</span>)
-                } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard objectives add {name} {criterion}&quot;</span>)
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(json) = json_name {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;scoreboard objectives add {name} {criterion} {json}&quot;</span>)
+                } <span class="kw">else </span>{
+                    <span class="macro">write!</span>(f, <span class="string">&quot;scoreboard objectives add {name} {criterion}&quot;</span>)
                 }
             }
-            <span class="ident">MinecraftCommand::ScoreboardRemove</span> { <span class="ident">name</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;scoreboard objectives remove {name}&quot;</span>)
+            MinecraftCommand::ScoreboardRemove { name } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;scoreboard objectives remove {name}&quot;</span>)
             }
-            <span class="ident">MinecraftCommand::RawCommand</span> { <span class="ident">command</span> } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{command}&quot;</span>),
-            <span class="ident">MinecraftCommand::JsonMessage</span> { <span class="ident">target</span>, <span class="ident">message</span> } =&gt; <span class="kw">match</span> <span class="ident">target</span> {
-                <span class="ident">WriteTarget::Chat</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;tellraw @a {message}&quot;</span>),
-                <span class="ident">WriteTarget::Actionbar</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;title @a actionbar {message}&quot;</span>),
-                <span class="ident">WriteTarget::Subtitle</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;title @a subtitle {message}&quot;</span>),
-                <span class="ident">WriteTarget::Title</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;title @a title {message}&quot;</span>),
+            MinecraftCommand::RawCommand { command } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{command}&quot;</span>),
+            MinecraftCommand::JsonMessage { target, message } =&gt; <span class="kw">match </span>target {
+                WriteTarget::Chat =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;tellraw @a {message}&quot;</span>),
+                WriteTarget::Actionbar =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;title @a actionbar {message}&quot;</span>),
+                WriteTarget::Subtitle =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;title @a subtitle {message}&quot;</span>),
+                WriteTarget::Title =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;title @a title {message}&quot;</span>),
             },
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ExecuteComponent</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                <span class="ident">player1</span>,
-                <span class="ident">player2</span>,
-                <span class="ident">comparison</span>,
-            } <span class="kw">if</span> <span class="ident">comparison</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">ScoreboardComparison::NotEqual</span> =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ExecuteComponent {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            ExecuteComponent::IfScoreRelation {
+                player1,
+                player2,
+                comparison,
+            } <span class="kw">if </span>comparison == <span class="kw-2">&amp;</span>ScoreboardComparison::NotEqual =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;unless score {player1} {} {player2}&quot;</span>,
-                <span class="ident">fmt_comparison</span>(<span class="ident">ScoreboardComparison::Equal</span>)
+                fmt_comparison(ScoreboardComparison::Equal)
             ),
-            <span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                <span class="ident">player1</span>,
-                <span class="ident">player2</span>,
-                <span class="ident">comparison</span>,
+            ExecuteComponent::IfScoreRelation {
+                player1,
+                player2,
+                comparison,
             } =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+                f,
                 <span class="string">&quot;if score {player1} {} {player2}&quot;</span>,
-                <span class="ident">fmt_comparison</span>(<span class="kw-2">*</span><span class="ident">comparison</span>)
+                fmt_comparison(<span class="kw-2">*</span>comparison)
             ),
-            <span class="ident">ExecuteComponent::IfScoreRange</span> {
-                <span class="ident">player</span>,
-                <span class="ident">range</span>: <span class="ident">MinecraftRange::NotEqual</span>(<span class="ident">val</span>),
+            ExecuteComponent::IfScoreRange {
+                player,
+                range: MinecraftRange::NotEqual(val),
             } =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;unless score {player} matches {}&quot;</span>,
-                    <span class="ident">MinecraftRange::Equal</span>(<span class="kw-2">*</span><span class="ident">val</span>)
+                    MinecraftRange::Equal(<span class="kw-2">*</span>val)
                 )
             }
-            <span class="ident">ExecuteComponent::IfScoreRange</span> { <span class="ident">player</span>, <span class="ident">range</span> } =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;if score {player} matches {range}&quot;</span>)
+            ExecuteComponent::IfScoreRange { player, range } =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;if score {player} matches {range}&quot;</span>)
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MinecraftRange</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MinecraftRange::NotEqual</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Cannot stringify NotEqual range&quot;</span>),
-            <span class="ident">MinecraftRange::Equal</span>(<span class="ident">val</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{val}&quot;</span>),
-            <span class="ident">MinecraftRange::Range</span> { <span class="ident">from</span>, <span class="ident">to</span> } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{from}..{to}&quot;</span>),
-            <span class="ident">MinecraftRange::Minimum</span>(<span class="ident">min</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{min}..&quot;</span>),
-            <span class="ident">MinecraftRange::Maximum</span>(<span class="ident">max</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;..{max}&quot;</span>),
+<span class="kw">impl </span>Display <span class="kw">for </span>MinecraftRange {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            MinecraftRange::NotEqual(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Cannot stringify NotEqual range&quot;</span>),
+            MinecraftRange::Equal(val) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{val}&quot;</span>),
+            MinecraftRange::Range { from, to } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{from}..{to}&quot;</span>),
+            MinecraftRange::Minimum(min) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{min}..&quot;</span>),
+            MinecraftRange::Maximum(max) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;..{max}&quot;</span>),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">fmt_comparison</span>(<span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-    <span class="kw">match</span> <span class="ident">comparison</span> {
-        <span class="ident">ScoreboardComparison::Equal</span> =&gt; <span class="string">&quot;=&quot;</span>,
-        <span class="ident">ScoreboardComparison::Less</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
-        <span class="ident">ScoreboardComparison::LessOrEqual</span> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
-        <span class="ident">ScoreboardComparison::Greater</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
-        <span class="ident">ScoreboardComparison::GreaterOrEqual</span> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
-        <span class="ident">ScoreboardComparison::NotEqual</span> =&gt; <span class="string">&quot;!=&quot;</span>,
+<span class="kw">fn </span>fmt_comparison(comparison: ScoreboardComparison) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">match </span>comparison {
+        ScoreboardComparison::Equal =&gt; <span class="string">&quot;=&quot;</span>,
+        ScoreboardComparison::Less =&gt; <span class="string">&quot;&lt;&quot;</span>,
+        ScoreboardComparison::LessOrEqual =&gt; <span class="string">&quot;&lt;=&quot;</span>,
+        ScoreboardComparison::Greater =&gt; <span class="string">&quot;&gt;&quot;</span>,
+        ScoreboardComparison::GreaterOrEqual =&gt; <span class="string">&quot;&gt;=&quot;</span>,
+        ScoreboardComparison::NotEqual =&gt; <span class="string">&quot;!=&quot;</span>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">fmt_operation</span>(<span class="ident">operation</span>: <span class="ident">ScoreboardOperation</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-    <span class="kw">match</span> <span class="ident">operation</span> {
-        <span class="ident">ScoreboardOperation::Plus</span> =&gt; <span class="string">&quot;+=&quot;</span>,
-        <span class="ident">ScoreboardOperation::Minus</span> =&gt; <span class="string">&quot;-=&quot;</span>,
-        <span class="ident">ScoreboardOperation::Times</span> =&gt; <span class="string">&quot;*=&quot;</span>,
-        <span class="ident">ScoreboardOperation::Divide</span> =&gt; <span class="string">&quot;/=&quot;</span>,
-        <span class="ident">ScoreboardOperation::Modulo</span> =&gt; <span class="string">&quot;%=&quot;</span>,
-        <span class="ident">ScoreboardOperation::Max</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
-        <span class="ident">ScoreboardOperation::Min</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
+<span class="kw">fn </span>fmt_operation(operation: ScoreboardOperation) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">match </span>operation {
+        ScoreboardOperation::Plus =&gt; <span class="string">&quot;+=&quot;</span>,
+        ScoreboardOperation::Minus =&gt; <span class="string">&quot;-=&quot;</span>,
+        ScoreboardOperation::Times =&gt; <span class="string">&quot;*=&quot;</span>,
+        ScoreboardOperation::Divide =&gt; <span class="string">&quot;/=&quot;</span>,
+        ScoreboardOperation::Modulo =&gt; <span class="string">&quot;%=&quot;</span>,
+        ScoreboardOperation::Max =&gt; <span class="string">&quot;&gt;&quot;</span>,
+        ScoreboardOperation::Min =&gt; <span class="string">&quot;&lt;&quot;</span>,
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::rc::Rc;
 
-    <span class="kw">use</span> <span class="ident">debris_llir</span>::{
-        <span class="ident">llir_nodes::WriteTarget</span>,
-        <span class="ident">minecraft_utils</span>::{<span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>},
+    <span class="kw">use </span>debris_llir::{
+        llir_nodes::WriteTarget,
+        minecraft_utils::{ScoreboardComparison, ScoreboardOperation},
     };
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{
-        <span class="ident">ExecuteComponent</span>, <span class="ident">FunctionIdent</span>, <span class="ident">MinecraftCommand</span>, <span class="ident">MinecraftRange</span>, <span class="ident">ObjectiveCriterion</span>,
-        <span class="ident">ScoreboardPlayer</span>,
+    <span class="kw">use </span><span class="kw">crate</span>::common::{
+        ExecuteComponent, FunctionIdent, MinecraftCommand, MinecraftRange, ObjectiveCriterion,
+        ScoreboardPlayer,
     };
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_set</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardSet</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;@s&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_set() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardSet {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;@s&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;debris&quot;</span>.into(),
             },
-            <span class="ident">value</span>: <span class="number">100</span>,
+            value: <span class="number">100</span>,
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard players set @s debris 100&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;scoreboard players set @s debris 100&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_set_equal</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardSetEqual</span> {
-            <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;@s&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_set_equal() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardSetEqual {
+            player1: ScoreboardPlayer {
+                player: <span class="string">&quot;@s&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;debris&quot;</span>.into(),
             },
-            <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;debris.0&quot;</span>.<span class="ident">into</span>(),
+            player2: ScoreboardPlayer {
+                player: <span class="string">&quot;foo&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;debris.0&quot;</span>.into(),
             },
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">command</span>.<span class="ident">to_string</span>(),
-            <span class="string">&quot;scoreboard players operation @s debris = foo debris.0&quot;</span>
-        );
+            command.to_string(),
+            <span class="string">&quot;scoreboard players operation @s debris = foo debris.0&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_set_from_result</span>() {
-        <span class="kw">let</span> <span class="ident">command1</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardSetEqual</span> {
-            <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;@s&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_set_from_result() {
+        <span class="kw">let </span>command1 = MinecraftCommand::ScoreboardSetEqual {
+            player1: ScoreboardPlayer {
+                player: <span class="string">&quot;@s&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;debris&quot;</span>.into(),
             },
-            <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;debris.0&quot;</span>.<span class="ident">into</span>(),
+            player2: ScoreboardPlayer {
+                player: <span class="string">&quot;foo&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;debris.0&quot;</span>.into(),
             },
         };
 
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardSetFromResult</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;me&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardSetFromResult {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;me&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;debris&quot;</span>.into(),
             },
-            <span class="ident">command</span>: <span class="ident">Box::new</span>(<span class="ident">command1</span>),
-        };
-
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">command</span>.<span class="ident">to_string</span>(),
-            <span class="string">&quot;execute store result score me debris run scoreboard players operation @s debris = foo debris.0&quot;</span>
-        );
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_operation</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardOperation</span> {
-            <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;value_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
-            },
-            <span class="ident">operation</span>: <span class="ident">ScoreboardOperation::Modulo</span>,
-            <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;value_2&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
-            },
+            command: Box::new(command1),
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">command</span>.<span class="ident">to_string</span>(),
-            <span class="string">&quot;scoreboard players operation value_1 main %= value_2 main&quot;</span>
-        );
+            command.to_string(),
+            <span class="string">&quot;execute store result score me debris run scoreboard players operation @s debris = foo debris.0&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_operation_add</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardOperationAdd</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;value_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_operation() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardOperation {
+            player1: ScoreboardPlayer {
+                player: <span class="string">&quot;value_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
             },
-            <span class="ident">value</span>: <span class="number">15</span>,
+            operation: ScoreboardOperation::Modulo,
+            player2: ScoreboardPlayer {
+                player: <span class="string">&quot;value_2&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
+            },
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">command</span>.<span class="ident">to_string</span>(),
-            <span class="string">&quot;scoreboard players add value_1 main 15&quot;</span>
-        );
+            command.to_string(),
+            <span class="string">&quot;scoreboard players operation value_1 main %= value_2 main&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_operation_add_neg</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardOperationAdd</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;value_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_operation_add() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardOperationAdd {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;value_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
             },
-            <span class="ident">value</span>: <span class="op">-</span><span class="number">12</span>,
+            value: <span class="number">15</span>,
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">command</span>.<span class="ident">to_string</span>(),
-            <span class="string">&quot;scoreboard players remove value_1 main 12&quot;</span>
-        );
+            command.to_string(),
+            <span class="string">&quot;scoreboard players add value_1 main 15&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_execute</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::Execute</span> {
-            <span class="ident">parts</span>: <span class="macro">vec!</span>[
-                <span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                    <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::GreaterOrEqual</span>,
-                    <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_operation_add_neg() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardOperationAdd {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;value_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
+            },
+            value: -<span class="number">12</span>,
+        };
+
+        <span class="macro">assert_eq!</span>(
+            command.to_string(),
+            <span class="string">&quot;scoreboard players remove value_1 main 12&quot;
+        </span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_execute() {
+        <span class="kw">let </span>command = MinecraftCommand::Execute {
+            parts: <span class="macro">vec!</span>[
+                ExecuteComponent::IfScoreRelation {
+                    comparison: ScoreboardComparison::GreaterOrEqual,
+                    player1: ScoreboardPlayer {
+                        player: <span class="string">&quot;val_1&quot;</span>.into(),
+                        scoreboard: <span class="string">&quot;main&quot;</span>.into(),
                     },
-                    <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
+                    player2: ScoreboardPlayer {
+                        player: <span class="string">&quot;val_2&quot;</span>.into(),
+                        scoreboard: <span class="string">&quot;main2&quot;</span>.into(),
                     },
                 },
-                <span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                    <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::NotEqual</span>,
-                    <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
+                ExecuteComponent::IfScoreRelation {
+                    comparison: ScoreboardComparison::NotEqual,
+                    player1: ScoreboardPlayer {
+                        player: <span class="string">&quot;val_2&quot;</span>.into(),
+                        scoreboard: <span class="string">&quot;main2&quot;</span>.into(),
                     },
-                    <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                        <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                        <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+                    player2: ScoreboardPlayer {
+                        player: <span class="string">&quot;val_1&quot;</span>.into(),
+                        scoreboard: <span class="string">&quot;main&quot;</span>.into(),
                     },
                 },
             ],
-            <span class="ident">and_then</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">MinecraftCommand::RawCommand</span> {
-                <span class="ident">command</span>: <span class="string">&quot;do_something&quot;</span>.<span class="ident">into</span>(),
+            and_then: <span class="prelude-val">Some</span>(Box::new(MinecraftCommand::RawCommand {
+                command: <span class="string">&quot;do_something&quot;</span>.into(),
             })),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 unless score val_2 main2 = val_1 main run do_something&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 unless score val_2 main2 = val_1 main run do_something&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_execute_no_command</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::Execute</span> {
-            <span class="ident">parts</span>: <span class="macro">vec!</span>[<span class="ident">ExecuteComponent::IfScoreRelation</span> {
-                <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::GreaterOrEqual</span>,
-                <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                    <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_execute_no_command() {
+        <span class="kw">let </span>command = MinecraftCommand::Execute {
+            parts: <span class="macro">vec!</span>[ExecuteComponent::IfScoreRelation {
+                comparison: ScoreboardComparison::GreaterOrEqual,
+                player1: ScoreboardPlayer {
+                    player: <span class="string">&quot;val_1&quot;</span>.into(),
+                    scoreboard: <span class="string">&quot;main&quot;</span>.into(),
                 },
-                <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                    <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
+                player2: ScoreboardPlayer {
+                    player: <span class="string">&quot;val_2&quot;</span>.into(),
+                    scoreboard: <span class="string">&quot;main2&quot;</span>.into(),
                 },
             }],
-            <span class="ident">and_then</span>: <span class="prelude-val">None</span>,
+            and_then: <span class="prelude-val">None</span>,
         };
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">command</span>.<span class="ident">to_string</span>(),
-            <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 &quot;</span>
-        );
+            command.to_string(),
+            <span class="string">&quot;execute if score val_1 main &gt;= val_2 main2 &quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_function</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::Function</span> {
-            <span class="ident">function</span>: <span class="ident">Rc::new</span>(<span class="ident">FunctionIdent</span> {
-                <span class="ident">is_collection</span>: <span class="bool-val">false</span>,
-                <span class="ident">namespace</span>: <span class="string">&quot;debris&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">path</span>: <span class="string">&quot;foo/bar&quot;</span>.<span class="ident">to_string</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_function() {
+        <span class="kw">let </span>command = MinecraftCommand::Function {
+            function: Rc::new(FunctionIdent {
+                is_collection: <span class="bool-val">false</span>,
+                namespace: <span class="string">&quot;debris&quot;</span>.into(),
+                path: <span class="string">&quot;foo/bar&quot;</span>.to_string(),
             }),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;function debris:foo/bar&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;function debris:foo/bar&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_add</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardAdd</span> {
-            <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>(),
-            <span class="ident">criterion</span>: <span class="ident">ObjectiveCriterion::Dummy</span>,
-            <span class="ident">json_name</span>: <span class="prelude-val">None</span>,
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_add() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardAdd {
+            name: <span class="string">&quot;foo&quot;</span>.into(),
+            criterion: ObjectiveCriterion::Dummy,
+            json_name: <span class="prelude-val">None</span>,
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;scoreboard objectives add foo dummy&quot;</span>);
     }
 
-    <span class="comment">// #[test]</span>
-    <span class="comment">// fn test_scoreboard_add_json_name() {</span>
-    <span class="comment">//     let command = MinecraftCommand::ScoreboardAdd {</span>
-    <span class="comment">//         name: &quot;foo&quot;.into(),</span>
-    <span class="comment">//         criterion: ObjectiveCriterion::Other(&quot;Health&quot;.to_string()),</span>
-    <span class="comment">//         json_name: Some(r#&quot;{&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#.to_string()),</span>
-    <span class="comment">//     };</span>
+    <span class="comment">// #[test]
+    // fn test_scoreboard_add_json_name() {
+    //     let command = MinecraftCommand::ScoreboardAdd {
+    //         name: &quot;foo&quot;.into(),
+    //         criterion: ObjectiveCriterion::Other(&quot;Health&quot;.to_string()),
+    //         json_name: Some(r#&quot;{&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#.to_string()),
+    //     };
 
-    <span class="comment">//     assert_eq!(</span>
-    <span class="comment">//         command.stringify(),</span>
-    <span class="comment">//         r#&quot;scoreboard objectives add foo Health {&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#</span>
-    <span class="comment">//     )</span>
-    <span class="comment">// }</span>
+    //     assert_eq!(
+    //         command.stringify(),
+    //         r#&quot;scoreboard objectives add foo Health {&quot;text&quot;:&quot;foo&quot;, &quot;color&quot;:&quot;green&quot;}&quot;#
+    //     )
+    // }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_scoreboard_remove</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::ScoreboardRemove</span> { <span class="ident">name</span>: <span class="string">&quot;foo&quot;</span>.<span class="ident">into</span>() };
+    </span><span class="attr">#[test]
+    </span><span class="kw">fn </span>test_scoreboard_remove() {
+        <span class="kw">let </span>command = MinecraftCommand::ScoreboardRemove { name: <span class="string">&quot;foo&quot;</span>.into() };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;scoreboard objectives remove foo&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_raw_command</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::RawCommand</span> {
-            <span class="ident">command</span>: <span class="string">&quot;Hallo Welt&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_raw_command() {
+        <span class="kw">let </span>command = MinecraftCommand::RawCommand {
+            command: <span class="string">&quot;Hallo Welt&quot;</span>.into(),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;Hallo Welt&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;Hallo Welt&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_write_message</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::JsonMessage</span> {
-            <span class="ident">target</span>: <span class="ident">WriteTarget::Actionbar</span>,
-            <span class="ident">message</span>: <span class="string">&quot;Hello World&quot;</span>.<span class="ident">to_string</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_write_message() {
+        <span class="kw">let </span>command = MinecraftCommand::JsonMessage {
+            target: WriteTarget::Actionbar,
+            message: <span class="string">&quot;Hello World&quot;</span>.to_string(),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;title @a actionbar Hello World&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;title @a actionbar Hello World&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_write_message_chat</span>() {
-        <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">MinecraftCommand::JsonMessage</span> {
-            <span class="ident">target</span>: <span class="ident">WriteTarget::Chat</span>,
-            <span class="ident">message</span>: <span class="string">&quot;Hello World&quot;</span>.<span class="ident">to_string</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_write_message_chat() {
+        <span class="kw">let </span>command = MinecraftCommand::JsonMessage {
+            target: WriteTarget::Chat,
+            message: <span class="string">&quot;Hello World&quot;</span>.to_string(),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">command</span>.<span class="ident">to_string</span>(), <span class="string">&quot;tellraw @a Hello World&quot;</span>);
+        <span class="macro">assert_eq!</span>(command.to_string(), <span class="string">&quot;tellraw @a Hello World&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_relation</span>() {
-        <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent::IfScoreRelation</span> {
-            <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Greater</span>,
-            <span class="ident">player1</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_stringify_execute_part_score_relation() {
+        <span class="kw">let </span>part = ExecuteComponent::IfScoreRelation {
+            comparison: ScoreboardComparison::Greater,
+            player1: ScoreboardPlayer {
+                player: <span class="string">&quot;val_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
             },
-            <span class="ident">player2</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;val_2&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main2&quot;</span>.<span class="ident">into</span>(),
+            player2: ScoreboardPlayer {
+                player: <span class="string">&quot;val_2&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main2&quot;</span>.into(),
             },
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main &gt; val_2 main2&quot;</span>);
+        <span class="macro">assert_eq!</span>(part.to_string(), <span class="string">&quot;if score val_1 main &gt; val_2 main2&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_range</span>() {
-        <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent::IfScoreRange</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_stringify_execute_part_score_range() {
+        <span class="kw">let </span>part = ExecuteComponent::IfScoreRange {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;val_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
             },
-            <span class="ident">range</span>: <span class="ident">MinecraftRange::Range</span> { <span class="ident">from</span>: <span class="number">0</span>, <span class="ident">to</span>: <span class="number">99</span> },
+            range: MinecraftRange::Range { from: <span class="number">0</span>, to: <span class="number">99 </span>},
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 0..99&quot;</span>);
+        <span class="macro">assert_eq!</span>(part.to_string(), <span class="string">&quot;if score val_1 main matches 0..99&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_range_greater</span>() {
-        <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent::IfScoreRange</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_stringify_execute_part_score_range_greater() {
+        <span class="kw">let </span>part = ExecuteComponent::IfScoreRange {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;val_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
             },
-            <span class="ident">range</span>: <span class="ident">MinecraftRange::Minimum</span>(<span class="number">4</span>),
+            range: MinecraftRange::Minimum(<span class="number">4</span>),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;if score val_1 main matches 4..&quot;</span>);
+        <span class="macro">assert_eq!</span>(part.to_string(), <span class="string">&quot;if score val_1 main matches 4..&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_stringify_execute_part_score_range_not</span>() {
-        <span class="kw">let</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">ExecuteComponent::IfScoreRange</span> {
-            <span class="ident">player</span>: <span class="ident">ScoreboardPlayer</span> {
-                <span class="ident">player</span>: <span class="string">&quot;val_1&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">scoreboard</span>: <span class="string">&quot;main&quot;</span>.<span class="ident">into</span>(),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_stringify_execute_part_score_range_not() {
+        <span class="kw">let </span>part = ExecuteComponent::IfScoreRange {
+            player: ScoreboardPlayer {
+                player: <span class="string">&quot;val_1&quot;</span>.into(),
+                scoreboard: <span class="string">&quot;main&quot;</span>.into(),
             },
-            <span class="ident">range</span>: <span class="ident">MinecraftRange::NotEqual</span>(<span class="op">-</span><span class="number">1</span>),
+            range: MinecraftRange::NotEqual(-<span class="number">1</span>),
         };
 
-        <span class="macro">assert_eq!</span>(<span class="ident">part</span>.<span class="ident">to_string</span>(), <span class="string">&quot;unless score val_1 main matches -1&quot;</span>);
+        <span class="macro">assert_eq!</span>(part.to_string(), <span class="string">&quot;unless score val_1 main matches -1&quot;</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

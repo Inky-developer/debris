@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/llir_shared_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_shared_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/llir_shared_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_shared_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -127,129 +121,128 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cell::Cell</span>, <span class="ident">mem</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, mem};
 
-<span class="kw">use</span> <span class="ident">debris_common::clone_cell::CloneCell</span>;
-<span class="kw">use</span> <span class="ident">debris_mir</span>::{<span class="ident">mir_context::MirContextId</span>, <span class="ident">mir_object::MirObjectId</span>};
-<span class="kw">use</span> <span class="ident">elsa::FrozenMap</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use </span>debris_common::clone_cell::CloneCell;
+<span class="kw">use </span>debris_mir::{mir_context::MirContextId, mir_object::MirObjectId};
+<span class="kw">use </span>elsa::FrozenMap;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">block_id::BlockId</span>, <span class="ident">llir_nodes::Function</span>, <span class="ident">ObjectRef</span>, <span class="ident">Runtime</span>};
+<span class="kw">use crate</span>::{block_id::BlockId, llir_nodes::Function, ObjectRef, Runtime};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SharedStateId</span>(<span class="ident">u32</span>);
+<span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+</span><span class="kw">pub struct </span>SharedStateId(u32);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SharedStates</span> {
-    <span class="ident">counter</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">inner</span>: <span class="ident">FrozenMap</span><span class="op">&lt;</span><span class="ident">SharedStateId</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">SharedState</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attr">#[derive(Default)]
+</span><span class="kw">pub struct </span>SharedStates {
+    counter: Cell&lt;u32&gt;,
+    inner: FrozenMap&lt;SharedStateId, Box&lt;SharedState&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">SharedStates</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SharedStateId</span> {
-        <span class="kw">let</span> <span class="ident">old_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">get</span>();
-        <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">set</span>(<span class="ident">old_value</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">unwrap</span>());
-        <span class="ident">SharedStateId</span>(<span class="ident">old_value</span>)
+<span class="kw">impl </span>SharedStates {
+    <span class="kw">pub fn </span>next_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SharedStateId {
+        <span class="kw">let </span>old_value = <span class="self">self</span>.counter.get();
+        <span class="self">self</span>.counter.set(old_value.checked_add(<span class="number">1</span>).unwrap());
+        SharedStateId(old_value)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">shared_state</span>: <span class="ident">SharedState</span>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">shared_state</span>.<span class="ident">id</span>;
-        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>).<span class="ident">is_none</span>());
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Box::new</span>(<span class="ident">shared_state</span>));
+    <span class="kw">pub fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, shared_state: SharedState) {
+        <span class="kw">let </span>id = shared_state.id;
+        <span class="macro">assert!</span>(<span class="self">self</span>.inner.get(<span class="kw-2">&amp;</span>id).is_none());
+        <span class="self">self</span>.inner.insert(id, Box::new(shared_state));
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">SharedStateId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">SharedState</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)
+    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, id: SharedStateId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SharedState&gt; {
+        <span class="self">self</span>.inner.get(<span class="kw-2">&amp;</span>id)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SharedState</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">id</span>: <span class="ident">SharedStateId</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SharedStateId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">compiled_contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">MirContextId</span>, <span class="ident">BlockId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">functions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">object_mapping</span>: <span class="ident">ObjectMapping</span>,
-    <span class="doccomment">/// The local runtime</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">local_runtime</span>: <span class="ident">Runtime</span>,
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>SharedState {
+    <span class="kw">pub</span>(<span class="kw">super</span>) id: SharedStateId,
+    <span class="kw">pub</span>(<span class="kw">super</span>) ancestor: <span class="prelude-ty">Option</span>&lt;SharedStateId&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) compiled_contexts: FxHashMap&lt;MirContextId, BlockId&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) functions: FxHashMap&lt;BlockId, Function&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) object_mapping: ObjectMapping,
+    <span class="doccomment">/// The local runtime
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) local_runtime: Runtime,
 }
 
-<span class="kw">impl</span> <span class="ident">SharedState</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="ident">SharedStateId</span>, <span class="ident">ancestor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SharedStateId</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">SharedState</span> {
-            <span class="ident">id</span>,
-            <span class="ident">ancestor</span>,
-            <span class="ident">compiled_contexts</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">functions</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">object_mapping</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">local_runtime</span>: <span class="ident">Default::default</span>(),
+<span class="kw">impl </span>SharedState {
+    <span class="kw">pub fn </span>new(id: SharedStateId, ancestor: <span class="prelude-ty">Option</span>&lt;SharedStateId&gt;) -&gt; <span class="self">Self </span>{
+        SharedState {
+            id,
+            ancestor,
+            compiled_contexts: Default::default(),
+            functions: Default::default(),
+            object_mapping: Default::default(),
+            local_runtime: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Adds the accumulated state of another function builder to the state</span>
-    <span class="doccomment">/// of this if `perform_writes` is false</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unify_with</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">SharedState</span>, <span class="ident">mode</span>: <span class="ident">EvaluationMode</span>) -&gt; <span class="ident">SharedState</span> {
-        <span class="kw">let</span> <span class="ident">is_monomorphization</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mode</span> {
-            <span class="ident">EvaluationMode::Full</span> =&gt; <span class="bool-val">true</span>,
-            <span class="ident">EvaluationMode::Monomorphization</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident">EvaluationMode::Check</span> =&gt; <span class="kw">return</span> <span class="ident">state</span>,
+    <span class="doccomment">/// Adds the accumulated state of another function builder to the state
+    /// of this if `perform_writes` is false
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>unify_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>state: SharedState, mode: EvaluationMode) -&gt; SharedState {
+        <span class="kw">let </span>is_monomorphization = <span class="kw">match </span>mode {
+            EvaluationMode::Full =&gt; <span class="bool-val">true</span>,
+            EvaluationMode::Monomorphization =&gt; <span class="bool-val">false</span>,
+            EvaluationMode::Check =&gt; <span class="kw">return </span>state,
         };
 
-        <span class="self">self</span>.<span class="ident">functions</span>.<span class="ident">extend</span>(<span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">functions</span>));
-        <span class="self">self</span>.<span class="ident">local_runtime</span>
-            .<span class="ident">extend</span>(<span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">local_runtime</span>));
+        <span class="self">self</span>.functions.extend(mem::take(<span class="kw-2">&amp;mut </span>state.functions));
+        <span class="self">self</span>.local_runtime
+            .extend(mem::take(<span class="kw-2">&amp;mut </span>state.local_runtime));
 
-        <span class="comment">// If this context is a function body, don&#39;t add its functions and objects</span>
-        <span class="comment">// to the previous scope. Otherwise, repeated monomorphization would lead to duplicate</span>
-        <span class="comment">// namespaces and object mappings, which would be wrong.</span>
-        <span class="kw">if</span> <span class="ident">is_monomorphization</span> {
-            <span class="self">self</span>.<span class="ident">compiled_contexts</span>
-                .<span class="ident">extend</span>(<span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">compiled_contexts</span>));
-            <span class="self">self</span>.<span class="ident">object_mapping</span>.<span class="ident">extend</span>(<span class="ident">state</span>.<span class="ident">object_mapping</span>.<span class="ident">iter</span>());
+        <span class="comment">// If this context is a function body, don&#39;t add its functions and objects
+        // to the previous scope. Otherwise, repeated monomorphization would lead to duplicate
+        // namespaces and object mappings, which would be wrong.
+        </span><span class="kw">if </span>is_monomorphization {
+            <span class="self">self</span>.compiled_contexts
+                .extend(mem::take(<span class="kw-2">&amp;mut </span>state.compiled_contexts));
+            <span class="self">self</span>.object_mapping.extend(state.object_mapping.iter());
         }
-        <span class="ident">state</span>
+        state
     }
 }
 
-<span class="doccomment">/// Specifies how code should be evaluated, e.g. if a context is part of normal control flow</span>
-<span class="doccomment">/// Or if a context should just be verified to be valid</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EvaluationMode</span> {
-    <span class="doccomment">/// Normal evaluation</span>
-    <span class="ident">Full</span>,
-    <span class="doccomment">/// Function monomorphization evaluation: Keeps the object mapping</span>
-    <span class="ident">Monomorphization</span>,
-    <span class="doccomment">/// Does not change any meaningful state. Used to just check if code is semantically valid</span>
-    <span class="ident">Check</span>,
+<span class="doccomment">/// Specifies how code should be evaluated, e.g. if a context is part of normal control flow
+/// Or if a context should just be verified to be valid
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>EvaluationMode {
+    <span class="doccomment">/// Normal evaluation
+    </span>Full,
+    <span class="doccomment">/// Function monomorphization evaluation: Keeps the object mapping
+    </span>Monomorphization,
+    <span class="doccomment">/// Does not change any meaningful state. Used to just check if code is semantically valid
+    </span>Check,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectMapping</span> {
-    <span class="ident">inner</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">MirObjectId</span>, <span class="ident">CloneCell</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>ObjectMapping {
+    inner: FxHashMap&lt;MirObjectId, CloneCell&lt;ObjectRef&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectMapping</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">MirObjectId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">CloneCell</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>)
+<span class="kw">impl </span>ObjectMapping {
+    <span class="kw">pub fn </span>get_raw(<span class="kw-2">&amp;</span><span class="self">self</span>, id: MirObjectId) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CloneCell&lt;ObjectRef&gt;&gt; {
+        <span class="self">self</span>.inner.get(<span class="kw-2">&amp;</span>id)
     }
 
-    <span class="doccomment">/// Inserts the entry into this map and returns the old value</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">MirObjectId</span>, <span class="ident">value</span>: <span class="ident">ObjectRef</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">value</span>.<span class="ident">into</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cell</span><span class="op">|</span> <span class="ident">cell</span>.<span class="ident">get</span>())
+    <span class="doccomment">/// Inserts the entry into this map and returns the old value
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: MirObjectId, value: ObjectRef) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectRef&gt; {
+        <span class="self">self</span>.inner.insert(id, value.into()).map(|cell| cell.get())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">MirObjectId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">cell</span>)<span class="op">|</span> (<span class="kw-2">*</span><span class="ident">id</span>, <span class="ident">cell</span>.<span class="ident">get</span>()))
+    <span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (MirObjectId, ObjectRef)&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.inner.iter().map(|(id, cell)| (<span class="kw-2">*</span>id, cell.get()))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Extend</span><span class="op">&lt;</span>(<span class="ident">MirObjectId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ObjectMapping</span> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">MirObjectId</span>, <span class="ident">ObjectRef</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">T</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>
-            .<span class="ident">extend</span>(<span class="ident">iter</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">obj</span>)<span class="op">|</span> (<span class="ident">id</span>, <span class="ident">obj</span>.<span class="ident">into</span>())));
+<span class="kw">impl </span>Extend&lt;(MirObjectId, ObjectRef)&gt; <span class="kw">for </span>ObjectMapping {
+    <span class="kw">fn </span>extend&lt;T: IntoIterator&lt;Item = (MirObjectId, ObjectRef)&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, iter: T) {
+        <span class="self">self</span>.inner
+            .extend(iter.into_iter().map(|(id, obj)| (id, obj.into())));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

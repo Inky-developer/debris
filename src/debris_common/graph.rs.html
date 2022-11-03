@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/common/src/graph.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/common/src/graph.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -207,209 +201,208 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Very basic graph implementation which is specialized for `llir` block analysis</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Very basic graph implementation which is specialized for `llir` block analysis
 
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">hash::BuildHasherDefault</span>,
-    <span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>},
+</span><span class="kw">use </span>std::{
+    hash::BuildHasherDefault,
+    ops::{Index, IndexMut},
 };
 
-<span class="kw">use</span> <span class="ident">indexmap::IndexSet</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashSet</span>, <span class="ident">FxHasher</span>};
+<span class="kw">use </span>indexmap::IndexSet;
+<span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
 
-<span class="doccomment">/// A directed graph backed by a matrix.</span>
-<span class="doccomment">/// `T` is the type of weights and defaults to `()`.</span>
-<span class="doccomment">/// Since this struct is only intended to be used for the specific use case</span>
-<span class="doccomment">/// of control flow analysis a lot of functionality, like resizing, is not implemented.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span> <span class="op">=</span> ()<span class="op">&gt;</span> {
-    <span class="ident">data</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
-    <span class="ident">size</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// A directed graph backed by a matrix.
+/// `T` is the type of weights and defaults to `()`.
+/// Since this struct is only intended to be used for the specific use case
+/// of control flow analysis a lot of functionality, like resizing, is not implemented.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>GraphMatrix&lt;T = ()&gt; {
+    data: Box&lt;[<span class="prelude-ty">Option</span>&lt;T&gt;]&gt;,
+    size: usize,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`GraphMatrix`] with a `size` rows and `size` columns.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">std::iter::repeat_with</span>(<span class="op">|</span><span class="op">|</span> <span class="prelude-val">None</span>).<span class="ident">take</span>(<span class="ident">size</span> <span class="op">*</span> <span class="ident">size</span>).<span class="ident">collect</span>();
-        <span class="ident">GraphMatrix</span> { <span class="ident">data</span>, <span class="ident">size</span> }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_row</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">row</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">data</span>
-            .<span class="ident">get</span>((<span class="self">self</span>.<span class="ident">size</span> <span class="op">*</span> <span class="ident">row</span>)..(<span class="self">self</span>.<span class="ident">size</span> <span class="op">*</span> <span class="ident">row</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">size</span>))
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_row_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">row</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> [<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">data</span>
-            .<span class="ident">get_mut</span>((<span class="self">self</span>.<span class="ident">size</span> <span class="op">*</span> <span class="ident">row</span>)..(<span class="self">self</span>.<span class="ident">size</span> <span class="op">*</span> <span class="ident">row</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">size</span>))
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rows</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">chunks_exact</span>(<span class="self">self</span>.<span class="ident">size</span>)
-    }
-
-    <span class="doccomment">/// Returns the indices of all [`Option::Some`] variants in the given row.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">edges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">row</span>: <span class="ident">usize</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>[<span class="ident">row</span>]
-            .<span class="ident">iter</span>()
-            .<span class="ident">enumerate</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">connected</span>)<span class="op">|</span> <span class="ident">connected</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">index</span>))
+<span class="kw">impl</span>&lt;T&gt; GraphMatrix&lt;T&gt; {
+    <span class="doccomment">/// Creates a new [`GraphMatrix`] with a `size` rows and `size` columns.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>new(size: usize) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>data = std::iter::repeat_with(|| <span class="prelude-val">None</span>).take(size * size).collect();
+        GraphMatrix { data, size }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> [<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>];
+<span class="kw">impl</span>&lt;T&gt; GraphMatrix&lt;T&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>get_row(<span class="kw-2">&amp;</span><span class="self">self</span>, row: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;T&gt;]&gt; {
+        <span class="self">self</span>.data
+            .get((<span class="self">self</span>.size * row)..(<span class="self">self</span>.size * row + <span class="self">self</span>.size))
+    }
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="self">self</span>.<span class="ident">get_row</span>(<span class="ident">index</span>).<span class="ident">unwrap</span>()
+    <span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>get_row_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, row: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>[<span class="prelude-ty">Option</span>&lt;T&gt;]&gt; {
+        <span class="self">self</span>.data
+            .get_mut((<span class="self">self</span>.size * row)..(<span class="self">self</span>.size * row + <span class="self">self</span>.size))
+    }
+
+    <span class="kw">pub fn </span>rows(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>[<span class="prelude-ty">Option</span>&lt;T&gt;]&gt; {
+        <span class="self">self</span>.data.chunks_exact(<span class="self">self</span>.size)
+    }
+
+    <span class="doccomment">/// Returns the indices of all [`Option::Some`] variants in the given row.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>edges(<span class="kw-2">&amp;</span><span class="self">self</span>, row: usize) -&gt; <span class="kw">impl </span>Iterator&lt;Item = usize&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>[row]
+            .iter()
+            .enumerate()
+            .filter_map(|(index, connected)| connected.as_ref().map(|<span class="kw">_</span>| index))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="self">self</span>.<span class="ident">get_row_mut</span>(<span class="ident">index</span>).<span class="ident">unwrap</span>()
+<span class="kw">impl</span>&lt;T&gt; Index&lt;usize&gt; <span class="kw">for </span>GraphMatrix&lt;T&gt; {
+    <span class="kw">type </span>Output = [<span class="prelude-ty">Option</span>&lt;T&gt;];
+
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="self">self</span>.get_row(index).unwrap()
     }
 }
 
-<span class="doccomment">/// Detects loops in a graph.</span>
-<span class="doccomment">/// This is a custom struct in order to save on allocations</span>
-<span class="doccomment">/// in hot code.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphLoopDetector</span> {
-    <span class="ident">to_visit</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">visited</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T&gt; IndexMut&lt;usize&gt; <span class="kw">for </span>GraphMatrix&lt;T&gt; {
+    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
+        <span class="self">self</span>.get_row_mut(index).unwrap()
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">GraphLoopDetector</span> {
-    <span class="doccomment">/// Returns `true` if the graph has a loop which is reachable from `node`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_loop</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">graph</span>: <span class="kw-2">&amp;</span><span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">node</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">visited</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">insert</span>(<span class="ident">node</span>);
+<span class="doccomment">/// Detects loops in a graph.
+/// This is a custom struct in order to save on allocations
+/// in hot code.
+</span><span class="attr">#[derive(Default)]
+</span><span class="kw">pub struct </span>GraphLoopDetector {
+    to_visit: FxHashSet&lt;u32&gt;,
+    visited: FxHashSet&lt;u32&gt;,
+}
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
-            <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">current</span>;
-            <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">current</span>);
-            <span class="self">self</span>.<span class="ident">visited</span>.<span class="ident">insert</span>(<span class="ident">current</span>);
+<span class="kw">impl </span>GraphLoopDetector {
+    <span class="doccomment">/// Returns `true` if the graph has a loop which is reachable from `node`.
+    </span><span class="kw">pub fn </span>has_loop&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, graph: <span class="kw-2">&amp;</span>GraphMatrix&lt;T&gt;, node: u32) -&gt; bool {
+        <span class="self">self</span>.visited.clear();
+        <span class="self">self</span>.to_visit.clear();
+        <span class="self">self</span>.to_visit.insert(node);
 
-            <span class="kw">let</span> <span class="ident">edges</span> <span class="op">=</span> <span class="ident">graph</span>
-                .<span class="ident">edges</span>(<span class="ident">current</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>());
-            <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">reserve</span>(<span class="ident">edges</span>.<span class="ident">size_hint</span>().<span class="number">0</span>);
-            <span class="kw">for</span> <span class="ident">edge</span> <span class="kw">in</span> <span class="ident">edges</span> {
-                <span class="kw">if</span> <span class="ident">edge</span> <span class="op">==</span> <span class="ident">node</span> {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(current) = <span class="self">self</span>.to_visit.iter().next() {
+            <span class="kw">let </span>current = <span class="kw-2">*</span>current;
+            <span class="self">self</span>.to_visit.remove(<span class="kw-2">&amp;</span>current);
+            <span class="self">self</span>.visited.insert(current);
+
+            <span class="kw">let </span>edges = graph
+                .edges(current <span class="kw">as </span>usize)
+                .map(|val| val.try_into().unwrap());
+            <span class="self">self</span>.to_visit.reserve(edges.size_hint().<span class="number">0</span>);
+            <span class="kw">for </span>edge <span class="kw">in </span>edges {
+                <span class="kw">if </span>edge == node {
+                    <span class="kw">return </span><span class="bool-val">true</span>;
                 }
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">visited</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">edge</span>) {
-                    <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">insert</span>(<span class="ident">edge</span>);
-                }
-            }
-        }
-
-        <span class="bool-val">false</span>
-    }
-}
-
-<span class="doccomment">/// A struct that implements a non-recursive Depth-first-search on a [`GraphMatrix`].</span>
-<span class="doccomment">/// This is a struct in order to save on allocations in hot code.</span>
-<span class="doccomment">/// The elements are yielded in post-order, i.e. every node gets only yielded if</span>
-<span class="doccomment">/// all of its children are yielded.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphDfs</span> {
-    <span class="ident">to_visit</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">iter_order</span>: <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FxHasher</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">GraphDfs</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="lifetime">&#39;graph</span>, <span class="lifetime">&#39;this</span>: <span class="lifetime">&#39;graph</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;this</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">graph</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;graph</span> <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">root</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;graph</span> {
-        <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">iter_order</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">extend</span>(<span class="ident">root</span>);
-
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
-            <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">current</span>;
-            <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">current</span>);
-            <span class="self">self</span>.<span class="ident">iter_order</span>.<span class="ident">insert</span>(<span class="ident">current</span>);
-
-            <span class="kw">for</span> <span class="ident">edge</span> <span class="kw">in</span> <span class="ident">graph</span>.<span class="ident">edges</span>(<span class="ident">current</span>) {
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">iter_order</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">edge</span>) {
-                    <span class="self">self</span>.<span class="ident">to_visit</span>.<span class="ident">insert</span>(<span class="ident">edge</span>);
+                <span class="kw">if </span>!<span class="self">self</span>.visited.contains(<span class="kw-2">&amp;</span>edge) {
+                    <span class="self">self</span>.to_visit.insert(edge);
                 }
             }
         }
 
-        <span class="self">self</span>.<span class="ident">iter_order</span>.<span class="ident">iter</span>().<span class="ident">rev</span>().<span class="ident">copied</span>()
+        <span class="bool-val">false
+    </span>}
+}
+
+<span class="doccomment">/// A struct that implements a non-recursive Depth-first-search on a [`GraphMatrix`].
+/// This is a struct in order to save on allocations in hot code.
+/// The elements are yielded in post-order, i.e. every node gets only yielded if
+/// all of its children are yielded.
+</span><span class="attr">#[derive(Default)]
+</span><span class="kw">pub struct </span>GraphDfs {
+    to_visit: FxHashSet&lt;usize&gt;,
+    iter_order: IndexSet&lt;usize, BuildHasherDefault&lt;FxHasher&gt;&gt;,
+}
+
+<span class="kw">impl </span>GraphDfs {
+    <span class="kw">pub fn </span>iter&lt;<span class="lifetime">&#39;graph</span>, <span class="lifetime">&#39;this</span>: <span class="lifetime">&#39;graph</span>, T&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;this </span><span class="kw-2">mut </span><span class="self">self</span>,
+        graph: <span class="kw-2">&amp;</span><span class="lifetime">&#39;graph </span>GraphMatrix&lt;T&gt;,
+        root: <span class="kw">impl </span>Iterator&lt;Item = usize&gt;,
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = usize&gt; + <span class="lifetime">&#39;graph </span>{
+        <span class="self">self</span>.to_visit.clear();
+        <span class="self">self</span>.iter_order.clear();
+        <span class="self">self</span>.to_visit.extend(root);
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(current) = <span class="self">self</span>.to_visit.iter().next() {
+            <span class="kw">let </span>current = <span class="kw-2">*</span>current;
+            <span class="self">self</span>.to_visit.remove(<span class="kw-2">&amp;</span>current);
+            <span class="self">self</span>.iter_order.insert(current);
+
+            <span class="kw">for </span>edge <span class="kw">in </span>graph.edges(current) {
+                <span class="kw">if </span>!<span class="self">self</span>.iter_order.contains(<span class="kw-2">&amp;</span>edge) {
+                    <span class="self">self</span>.to_visit.insert(edge);
+                }
+            }
+        }
+
+        <span class="self">self</span>.iter_order.iter().rev().copied()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">GraphDfs</span>, <span class="ident">GraphLoopDetector</span>, <span class="ident">GraphMatrix</span>};
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{GraphDfs, GraphLoopDetector, GraphMatrix};
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_graph_matrix</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matrix</span> <span class="op">=</span> <span class="ident">GraphMatrix::new</span>(<span class="number">4</span>);
-        <span class="ident">matrix</span>[<span class="number">0</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">3</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_graph_matrix() {
+        <span class="kw">let </span><span class="kw-2">mut </span>matrix = GraphMatrix::new(<span class="number">4</span>);
+        matrix[<span class="number">0</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">3</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
 
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>]);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>[<span class="number">1</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">Some</span>(())]);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>[<span class="number">2</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>]);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>[<span class="number">3</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">Some</span>(()), <span class="prelude-val">None</span>]);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>matrix[<span class="number">0</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>]);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>matrix[<span class="number">1</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">Some</span>(())]);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>matrix[<span class="number">2</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>]);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>matrix[<span class="number">3</span>], <span class="kw-2">&amp;</span>[<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(()), <span class="prelude-val">Some</span>(()), <span class="prelude-val">None</span>]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_loop_detector</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matrix</span> <span class="op">=</span> <span class="ident">GraphMatrix::new</span>(<span class="number">4</span>);
-        <span class="ident">matrix</span>[<span class="number">0</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">3</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_loop_detector() {
+        <span class="kw">let </span><span class="kw-2">mut </span>matrix = GraphMatrix::new(<span class="number">4</span>);
+        matrix[<span class="number">0</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">3</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">GraphLoopDetector::default</span>().<span class="ident">has_loop</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>, <span class="number">0</span>));
-        <span class="macro">assert!</span>(<span class="ident">GraphLoopDetector::default</span>().<span class="ident">has_loop</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>, <span class="number">1</span>));
+        <span class="macro">assert!</span>(!GraphLoopDetector::default().has_loop(<span class="kw-2">&amp;</span>matrix, <span class="number">0</span>));
+        <span class="macro">assert!</span>(GraphLoopDetector::default().has_loop(<span class="kw-2">&amp;</span>matrix, <span class="number">1</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matrix</span> <span class="op">=</span> <span class="ident">GraphMatrix::new</span>(<span class="number">4</span>);
-        <span class="ident">matrix</span>[<span class="number">0</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">3</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
+        <span class="kw">let </span><span class="kw-2">mut </span>matrix = GraphMatrix::new(<span class="number">4</span>);
+        matrix[<span class="number">0</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">3</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">GraphLoopDetector::default</span>().<span class="ident">has_loop</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>, <span class="number">1</span>));
+        <span class="macro">assert!</span>(!GraphLoopDetector::default().has_loop(<span class="kw-2">&amp;</span>matrix, <span class="number">1</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_graph_dfs</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matrix</span> <span class="op">=</span> <span class="ident">GraphMatrix::new</span>(<span class="number">4</span>);
-        <span class="ident">matrix</span>[<span class="number">0</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">1</span>][<span class="number">3</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">1</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
-        <span class="ident">matrix</span>[<span class="number">3</span>][<span class="number">2</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(());
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_graph_dfs() {
+        <span class="kw">let </span><span class="kw-2">mut </span>matrix = GraphMatrix::new(<span class="number">4</span>);
+        matrix[<span class="number">0</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">1</span>][<span class="number">3</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">1</span>] = <span class="prelude-val">Some</span>(());
+        matrix[<span class="number">3</span>][<span class="number">2</span>] = <span class="prelude-val">Some</span>(());
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">GraphDfs::default</span>()
-                .<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="ident">matrix</span>, <span class="ident">std::iter::once</span>(<span class="number">0</span>))
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            GraphDfs::default()
+                .iter(<span class="kw-2">&amp;</span>matrix, std::iter::once(<span class="number">0</span>))
+                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(),
             [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">0</span>]
         );
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/backends/src/datapack/backend.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_backends/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_backends/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_backends/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/backends/src/datapack/backend.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_backends/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -329,113 +323,113 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">datapack_common::vfs::Directory</span>;
-<span class="kw">use</span> <span class="ident">debris_common::CompileContext</span>;
-<span class="kw">use</span> <span class="ident">debris_llir::Llir</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>datapack_common::vfs::Directory;
+<span class="kw">use </span>debris_common::CompileContext;
+<span class="kw">use </span>debris_llir::Llir;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Backend</span>;
+<span class="kw">use </span><span class="kw">crate</span>::Backend;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::generator::DatapackGenerator</span>;
+<span class="kw">use </span><span class="kw">super</span>::generator::DatapackGenerator;
 
-<span class="doccomment">/// The Datapack Backend implementation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DatapackBackend</span>;
+<span class="doccomment">/// The Datapack Backend implementation
+</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>DatapackBackend;
 
-<span class="kw">impl</span> <span class="ident">DatapackBackend</span> {
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FILE_EXTENSION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;.mcfunction&quot;</span>;
-    <span class="comment">// Internal namespaces must be prefixed by double underscores, other namespaces may</span>
-    <span class="comment">// be occupied by the user</span>
-    <span class="doccomment">/// The directory which will contain all automatically generated minecraft files</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FUNCTION_INTERNAL_PATH</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;__generated/&quot;</span>;
+<span class="kw">impl </span>DatapackBackend {
+    <span class="kw">pub const </span>FILE_EXTENSION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;.mcfunction&quot;</span>;
+    <span class="comment">// Internal namespaces must be prefixed by double underscores, other namespaces may
+    // be occupied by the user
+    </span><span class="doccomment">/// The directory which will contain all automatically generated minecraft files
+    </span><span class="kw">pub const </span>FUNCTION_INTERNAL_PATH: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;__generated/&quot;</span>;
 }
 
-<span class="kw">impl</span> <span class="ident">Backend</span> <span class="kw">for</span> <span class="ident">DatapackBackend</span> {
-    <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">llir</span>: <span class="kw-2">&amp;</span><span class="ident">Llir</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">CompileContext</span>) -&gt; <span class="ident">Directory</span> {
-        <span class="ident">DatapackGenerator::new</span>(<span class="ident">ctx</span>, <span class="ident">llir</span>).<span class="ident">build</span>()
+<span class="kw">impl </span>Backend <span class="kw">for </span>DatapackBackend {
+    <span class="kw">fn </span>generate(<span class="kw-2">&amp;</span><span class="self">self</span>, llir: <span class="kw-2">&amp;</span>Llir, ctx: <span class="kw-2">&amp;</span>CompileContext) -&gt; Directory {
+        DatapackGenerator::new(ctx, llir).build()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">datapack_common::vfs::Directory</span>;
-    <span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompilationId</span>, <span class="ident">CompileContext</span>};
-    <span class="kw">use</span> <span class="ident">debris_llir</span>::{
-        <span class="ident">block_id::BlockId</span>,
-        <span class="ident">item_id::ItemId</span>,
-        <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
-        <span class="ident">llir_nodes</span>::{<span class="ident">Branch</span>, <span class="ident">Condition</span>, <span class="ident">FastStore</span>, <span class="ident">Function</span>, <span class="ident">Node</span>, <span class="ident">WriteMessage</span>, <span class="ident">WriteTarget</span>},
-        <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardValue</span>},
-        <span class="ident">CallGraph</span>, <span class="ident">CodeStats</span>, <span class="ident">Llir</span>, <span class="ident">Runtime</span>,
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>datapack_common::vfs::Directory;
+    <span class="kw">use </span>debris_common::{CompilationId, CompileContext};
+    <span class="kw">use </span>debris_llir::{
+        block_id::BlockId,
+        item_id::ItemId,
+        json_format::{FormattedText, JsonFormatComponent},
+        llir_nodes::{Branch, Condition, FastStore, Function, Node, WriteMessage, WriteTarget},
+        minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+        CallGraph, CodeStats, Llir, Runtime,
     };
-    <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+    <span class="kw">use </span>rustc_hash::FxHashMap;
 
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Backend</span>, <span class="ident">DatapackBackend</span>};
+    <span class="kw">use crate</span>::{Backend, DatapackBackend};
 
-    <span class="kw">fn</span> <span class="ident">text</span>(<span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">FormattedText</span> {
-        <span class="ident">FormattedText</span> {
-            <span class="ident">components</span>: <span class="macro">vec!</span>[<span class="ident">JsonFormatComponent::RawText</span>(<span class="ident">msg</span>.<span class="ident">into</span>())],
+    <span class="kw">fn </span>text(msg: <span class="kw-2">&amp;</span>str) -&gt; FormattedText {
+        FormattedText {
+            components: <span class="macro">vec!</span>[JsonFormatComponent::RawText(msg.into())],
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">compile</span>(<span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>) -&gt; <span class="ident">Directory</span> {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">BlockId::dummy</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Function::_dummy</span>(<span class="ident">id</span>, <span class="ident">nodes</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">function</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Runtime::default</span>();
-        <span class="ident">runtime</span>.<span class="ident">add_on_load</span>(<span class="ident">id</span>);
-        <span class="kw">let</span> <span class="ident">call_graph</span> <span class="op">=</span> <span class="ident">CallGraph::from</span>(<span class="kw-2">&amp;</span><span class="ident">map</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stats</span> <span class="op">=</span> <span class="ident">CodeStats::new</span>(<span class="ident">call_graph</span>);
-        <span class="ident">stats</span>.<span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="ident">runtime</span>, <span class="kw-2">&amp;</span><span class="ident">map</span>);
-        <span class="kw">let</span> <span class="ident">llir</span> <span class="op">=</span> <span class="ident">Llir</span> {
-            <span class="ident">entry_function</span>: <span class="ident">id</span>,
-            <span class="ident">functions</span>: <span class="ident">map</span>,
-            <span class="ident">runtime</span>,
-            <span class="ident">stats</span>,
+    <span class="kw">fn </span>compile(nodes: Vec&lt;Node&gt;) -&gt; Directory {
+        <span class="kw">let </span>id = BlockId::dummy(<span class="number">0</span>);
+        <span class="kw">let </span>function = Function::_dummy(id, nodes);
+        <span class="kw">let </span><span class="kw-2">mut </span>map = FxHashMap::default();
+        map.insert(id, function);
+        <span class="kw">let </span><span class="kw-2">mut </span>runtime = Runtime::default();
+        runtime.add_on_load(id);
+        <span class="kw">let </span>call_graph = CallGraph::from(<span class="kw-2">&amp;</span>map);
+        <span class="kw">let </span><span class="kw-2">mut </span>stats = CodeStats::new(call_graph);
+        stats.update(<span class="kw-2">&amp;</span>runtime, <span class="kw-2">&amp;</span>map);
+        <span class="kw">let </span>llir = Llir {
+            entry_function: id,
+            functions: map,
+            runtime,
+            stats,
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">DatapackBackend</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="ident">llir</span>, <span class="kw-2">&amp;</span><span class="ident">CompileContext::new</span>(<span class="ident">CompilationId</span>(<span class="number">0</span>)));
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">directories</span>.<span class="ident">remove</span>(<span class="string">&quot;data&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">directories</span>.<span class="ident">remove</span>(<span class="string">&quot;debris_project&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dir</span> <span class="op">=</span> <span class="ident">dir</span>.<span class="ident">directories</span>.<span class="ident">remove</span>(<span class="string">&quot;functions&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="ident">dir</span>.<span class="ident">directories</span>.<span class="ident">remove</span>(<span class="string">&quot;__generated&quot;</span>).<span class="ident">unwrap</span>()
+        <span class="kw">let </span><span class="kw-2">mut </span>dir = DatapackBackend.generate(<span class="kw-2">&amp;</span>llir, <span class="kw-2">&amp;</span>CompileContext::new(CompilationId(<span class="number">0</span>)));
+        <span class="kw">let </span><span class="kw-2">mut </span>dir = dir.directories.remove(<span class="string">&quot;data&quot;</span>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>dir = dir.directories.remove(<span class="string">&quot;debris_project&quot;</span>).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>dir = dir.directories.remove(<span class="string">&quot;functions&quot;</span>).unwrap();
+        dir.directories.remove(<span class="string">&quot;__generated&quot;</span>).unwrap()
     }
 
-    <span class="comment">// ## Branch tests ##</span>
-    <span class="comment">// Unfortunately, it is not possible to directly translate an if-else statement into minecraft functions.</span>
-    <span class="comment">// The problem arises when `pos_branch` or `neg_branch` modify a value the condition depends on, because then both branches might be taken</span>
-    <span class="comment">// The solution unfortunately contains many variants, depending on how exactly the if statement looks like, so for that reason</span>
-    <span class="comment">// this many tests are required.</span>
+    <span class="comment">// ## Branch tests ##
+    // Unfortunately, it is not possible to directly translate an if-else statement into minecraft functions.
+    // The problem arises when `pos_branch` or `neg_branch` modify a value the condition depends on, because then both branches might be taken
+    // The solution unfortunately contains many variants, depending on how exactly the if statement looks like, so for that reason
+    // this many tests are required.
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_branch_simple</span>() {
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">ItemId</span> { <span class="ident">id</span>: <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">value_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+    </span><span class="attr">#[test]
+    </span><span class="kw">fn </span>test_branch_simple() {
+        <span class="kw">let </span>value_id = ItemId { id: <span class="number">0 </span>};
+        <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
+            Node::FastStore(FastStore {
+                id: value_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>: <span class="ident">Condition::Compare</span> {
-                    <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                    <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">value_id</span>),
-                    <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+            Node::Branch(Branch {
+                condition: Condition::Compare {
+                    comparison: ScoreboardComparison::Equal,
+                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
-                <span class="ident">pos_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> {
-                    <span class="ident">target</span>: <span class="ident">WriteTarget::Chat</span>,
-                    <span class="ident">message</span>: <span class="ident">text</span>(<span class="string">&quot;Equal to 1&quot;</span>),
+                pos_branch: Box::new(Node::Write(WriteMessage {
+                    target: WriteTarget::Chat,
+                    message: text(<span class="string">&quot;Equal to 1&quot;</span>),
                 })),
-                <span class="ident">neg_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> {
-                    <span class="ident">target</span>: <span class="ident">WriteTarget::Chat</span>,
-                    <span class="ident">message</span>: <span class="ident">text</span>(<span class="string">&quot;Not equal to 1&quot;</span>),
+                neg_branch: Box::new(Node::Write(WriteMessage {
+                    target: WriteTarget::Chat,
+                    message: text(<span class="string">&quot;Not equal to 1&quot;</span>),
                 })),
             }),
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">compile</span>(<span class="ident">nodes</span>);
-        <span class="kw">let</span> <span class="ident">main</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;main.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>pack = compile(nodes);
+        <span class="kw">let </span>main = pack.file(<span class="string">&quot;main.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">main</span>.<span class="ident">contents</span>,
+            main.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard objectives remove debris\n&quot;</span>,
                 <span class="string">&quot;scoreboard objectives add debris dummy\n&quot;</span>,
@@ -446,37 +440,37 @@
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_branch_reordered_simple</span>() {
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">ItemId</span> { <span class="ident">id</span>: <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">value_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_branch_reordered_simple() {
+        <span class="kw">let </span>value_id = ItemId { id: <span class="number">0 </span>};
+        <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
+            Node::FastStore(FastStore {
+                id: value_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>: <span class="ident">Condition::Compare</span> {
-                    <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                    <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">value_id</span>),
-                    <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+            Node::Branch(Branch {
+                condition: Condition::Compare {
+                    comparison: ScoreboardComparison::Equal,
+                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
-                <span class="ident">pos_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">id</span>: <span class="ident">value_id</span>,
-                    <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
+                pos_branch: Box::new(Node::FastStore(FastStore {
+                    id: value_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
-                <span class="ident">neg_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> {
-                    <span class="ident">target</span>: <span class="ident">WriteTarget::Chat</span>,
-                    <span class="ident">message</span>: <span class="ident">text</span>(<span class="string">&quot;Not equal to 1&quot;</span>),
+                neg_branch: Box::new(Node::Write(WriteMessage {
+                    target: WriteTarget::Chat,
+                    message: text(<span class="string">&quot;Not equal to 1&quot;</span>),
                 })),
             }),
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">compile</span>(<span class="ident">nodes</span>);
-        <span class="kw">let</span> <span class="ident">main</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;main.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>pack = compile(nodes);
+        <span class="kw">let </span>main = pack.file(<span class="string">&quot;main.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">main</span>.<span class="ident">contents</span>,
+            main.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard objectives remove debris\n&quot;</span>,
                 <span class="string">&quot;scoreboard objectives add debris dummy\n&quot;</span>,
@@ -487,44 +481,44 @@
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_branch_reordered_complex</span>() {
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">ItemId</span> { <span class="ident">id</span>: <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">value_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_branch_reordered_complex() {
+        <span class="kw">let </span>value_id = ItemId { id: <span class="number">0 </span>};
+        <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
+            Node::FastStore(FastStore {
+                id: value_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>: <span class="ident">Condition::Or</span>(<span class="macro">vec!</span>[
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">value_id</span>),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+            Node::Branch(Branch {
+                condition: Condition::Or(<span class="macro">vec!</span>[
+                    Condition::Compare {
+                        comparison: ScoreboardComparison::Equal,
+                        lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
                     },
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+                    Condition::Compare {
+                        comparison: ScoreboardComparison::Equal,
+                        lhs: ScoreboardValue::Static(<span class="number">0</span>),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
                     },
                 ]),
-                <span class="ident">pos_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">id</span>: <span class="ident">value_id</span>,
-                    <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
+                pos_branch: Box::new(Node::FastStore(FastStore {
+                    id: value_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
-                <span class="ident">neg_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> {
-                    <span class="ident">target</span>: <span class="ident">WriteTarget::Chat</span>,
-                    <span class="ident">message</span>: <span class="ident">text</span>(<span class="string">&quot;Not equal to 1&quot;</span>),
+                neg_branch: Box::new(Node::Write(WriteMessage {
+                    target: WriteTarget::Chat,
+                    message: text(<span class="string">&quot;Not equal to 1&quot;</span>),
                 })),
             }),
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">compile</span>(<span class="ident">nodes</span>);
-        <span class="kw">let</span> <span class="ident">main</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;main.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>pack = compile(nodes);
+        <span class="kw">let </span>main = pack.file(<span class="string">&quot;main.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">main</span>.<span class="ident">contents</span>,
+            main.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard objectives remove debris\n&quot;</span>,
                 <span class="string">&quot;scoreboard objectives add debris dummy\n&quot;</span>,
@@ -539,38 +533,38 @@
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_branch_both_modify_simple</span>() {
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">ItemId</span> { <span class="ident">id</span>: <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">value_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_branch_both_modify_simple() {
+        <span class="kw">let </span>value_id = ItemId { id: <span class="number">0 </span>};
+        <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
+            Node::FastStore(FastStore {
+                id: value_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>: <span class="ident">Condition::Compare</span> {
-                    <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                    <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">value_id</span>),
-                    <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+            Node::Branch(Branch {
+                condition: Condition::Compare {
+                    comparison: ScoreboardComparison::Equal,
+                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
-                <span class="ident">pos_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">id</span>: <span class="ident">value_id</span>,
-                    <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
+                pos_branch: Box::new(Node::FastStore(FastStore {
+                    id: value_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
-                <span class="ident">neg_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">id</span>: <span class="ident">value_id</span>,
-                    <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="op">-</span><span class="number">1</span>),
+                neg_branch: Box::new(Node::FastStore(FastStore {
+                    id: value_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(-<span class="number">1</span>),
                 })),
             }),
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">compile</span>(<span class="ident">nodes</span>);
-        <span class="kw">let</span> <span class="ident">main</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;main.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>pack = compile(nodes);
+        <span class="kw">let </span>main = pack.file(<span class="string">&quot;main.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">main</span>.<span class="ident">contents</span>,
+            main.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard objectives remove debris\n&quot;</span>,
                 <span class="string">&quot;scoreboard objectives add debris dummy\n&quot;</span>,
@@ -581,9 +575,9 @@
             )
         );
 
-        <span class="kw">let</span> <span class="ident">block_0</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;block_0.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span>block_0 = pack.file(<span class="string">&quot;block_0.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">block_0</span>.<span class="ident">contents</span>,
+            block_0.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard players set var_0 debris 0\n&quot;</span>,
                 <span class="string">&quot;scoreboard players set var_1 debris 1\n&quot;</span>,
@@ -591,45 +585,45 @@
         );
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_branch_both_modify_complex</span>() {
-        <span class="kw">let</span> <span class="ident">value_id</span> <span class="op">=</span> <span class="ident">ItemId</span> { <span class="ident">id</span>: <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">nodes</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">id</span>: <span class="ident">value_id</span>,
-                <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_branch_both_modify_complex() {
+        <span class="kw">let </span>value_id = ItemId { id: <span class="number">0 </span>};
+        <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
+            Node::FastStore(FastStore {
+                id: value_id,
+                scoreboard: Scoreboard::Main,
+                value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>: <span class="ident">Condition::Or</span>(<span class="macro">vec!</span>[
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="ident">Scoreboard::Main</span>, <span class="ident">value_id</span>),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+            Node::Branch(Branch {
+                condition: Condition::Or(<span class="macro">vec!</span>[
+                    Condition::Compare {
+                        comparison: ScoreboardComparison::Equal,
+                        lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
                     },
-                    <span class="ident">Condition::Compare</span> {
-                        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison::Equal</span>,
-                        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
-                        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">1</span>),
+                    Condition::Compare {
+                        comparison: ScoreboardComparison::Equal,
+                        lhs: ScoreboardValue::Static(<span class="number">0</span>),
+                        rhs: ScoreboardValue::Static(<span class="number">1</span>),
                     },
                 ]),
-                <span class="ident">pos_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">id</span>: <span class="ident">value_id</span>,
-                    <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="number">0</span>),
+                pos_branch: Box::new(Node::FastStore(FastStore {
+                    id: value_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
-                <span class="ident">neg_branch</span>: <span class="ident">Box::new</span>(<span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                    <span class="ident">id</span>: <span class="ident">value_id</span>,
-                    <span class="ident">scoreboard</span>: <span class="ident">Scoreboard::Main</span>,
-                    <span class="ident">value</span>: <span class="ident">ScoreboardValue::Static</span>(<span class="op">-</span><span class="number">1</span>),
+                neg_branch: Box::new(Node::FastStore(FastStore {
+                    id: value_id,
+                    scoreboard: Scoreboard::Main,
+                    value: ScoreboardValue::Static(-<span class="number">1</span>),
                 })),
             }),
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pack</span> <span class="op">=</span> <span class="ident">compile</span>(<span class="ident">nodes</span>);
-        <span class="kw">let</span> <span class="ident">main</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;main.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>pack = compile(nodes);
+        <span class="kw">let </span>main = pack.file(<span class="string">&quot;main.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">main</span>.<span class="ident">contents</span>,
+            main.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard objectives remove debris\n&quot;</span>,
                 <span class="string">&quot;scoreboard objectives add debris dummy\n&quot;</span>,
@@ -644,9 +638,9 @@
             )
         );
 
-        <span class="kw">let</span> <span class="ident">block_0</span> <span class="op">=</span> <span class="ident">pack</span>.<span class="ident">file</span>(<span class="string">&quot;block_0.mcfunction&quot;</span>.<span class="ident">to_string</span>());
+        <span class="kw">let </span>block_0 = pack.file(<span class="string">&quot;block_0.mcfunction&quot;</span>.to_string());
         <span class="macro">assert_eq!</span>(
-            <span class="ident">block_0</span>.<span class="ident">contents</span>,
+            block_0.contents,
             <span class="macro">concat!</span>(
                 <span class="string">&quot;scoreboard players set var_0 debris 0\n&quot;</span>,
                 <span class="string">&quot;scoreboard players set var_1 debris 1\n&quot;</span>,
@@ -655,5 +649,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_backends" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimizers/common_path_optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>common_path_optimizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../debris_llir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/optimizers/common_path_optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>common_path_optimizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../debris_llir/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -116,57 +110,57 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">block_id::BlockId</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">Call</span>, <span class="ident">Node</span>},
-    <span class="ident">opt</span>::{
-        <span class="ident">global_opt::Commands</span>,
-        <span class="ident">optimize_commands</span>::{<span class="ident">OptimizeCommand</span>, <span class="ident">OptimizeCommandKind</span>},
-        <span class="ident">NodeId</span>,
+<span class="kw">use crate</span>::{
+    block_id::BlockId,
+    llir_nodes::{Call, Node},
+    opt::{
+        global_opt::Commands,
+        optimize_commands::{OptimizeCommand, OptimizeCommandKind},
+        NodeId,
     },
 };
 
-<span class="doccomment">/// This expensive optimization searches for common paths at conditionals.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A condition like `Condition {pos: Call(1), neg: Call(2)}`, where Block 2: `[..commands, Call(1)]`</span>
-<span class="doccomment">/// Gets optimized such that the common calls to block 1 are removed in both calls and instead</span>
-<span class="doccomment">/// inserted after the branch: `Condition {pos: Nop, neg: Call(2)}; Call(1)`, Block 2: `[..commands]`</span>
-<span class="doccomment">/// Since both blocks which contain the common call are modified, it must be verified, that no other</span>
-<span class="doccomment">/// context calls these.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This optimization is important, because without it, a lot of useless else statements would</span>
-<span class="doccomment">/// be in the interpreter for a long time. This also reduces the code size. Additionally, it is easier</span>
-<span class="doccomment">/// for humans to reason about linear code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Todo: Reuse allocations</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">optimize_common_path</span>(<span class="ident">commands</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Commands</span>) {
-    <span class="kw">for</span> (<span class="ident">node_id</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">iter_nodes</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) <span class="op">=</span> <span class="ident">node</span> {
-            <span class="kw">let</span> <span class="ident">pos_branch</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">branch</span>.<span class="ident">pos_branch</span>;
-            <span class="kw">let</span> <span class="ident">neg_branch</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">branch</span>.<span class="ident">neg_branch</span>;
-            <span class="kw">if</span> <span class="kw">let</span> (<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">pos_id</span> }), <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">neg_id</span> })) <span class="op">=</span>
-                (<span class="ident">pos_branch</span>, <span class="ident">neg_branch</span>)
+<span class="doccomment">/// This expensive optimization searches for common paths at conditionals.
+///
+/// A condition like `Condition {pos: Call(1), neg: Call(2)}`, where Block 2: `[..commands, Call(1)]`
+/// Gets optimized such that the common calls to block 1 are removed in both calls and instead
+/// inserted after the branch: `Condition {pos: Nop, neg: Call(2)}; Call(1)`, Block 2: `[..commands]`
+/// Since both blocks which contain the common call are modified, it must be verified, that no other
+/// context calls these.
+///
+/// This optimization is important, because without it, a lot of useless else statements would
+/// be in the interpreter for a long time. This also reduces the code size. Additionally, it is easier
+/// for humans to reason about linear code.
+///
+/// Todo: Reuse allocations
+</span><span class="kw">pub fn </span>optimize_common_path(commands: <span class="kw-2">&amp;mut </span>Commands) {
+    <span class="kw">for </span>(node_id, node) <span class="kw">in </span>commands.optimizer.iter_nodes() {
+        <span class="kw">if let </span>Node::Branch(branch) = node {
+            <span class="kw">let </span>pos_branch = <span class="kw-2">&amp;*</span>branch.pos_branch;
+            <span class="kw">let </span>neg_branch = <span class="kw-2">&amp;*</span>branch.neg_branch;
+            <span class="kw">if let </span>(Node::Call(Call { id: pos_id }), Node::Call(Call { id: neg_id })) =
+                (pos_branch, neg_branch)
             {
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">get_common_call</span>(<span class="ident">commands</span>, <span class="kw-2">*</span><span class="ident">pos_id</span>, <span class="kw-2">*</span><span class="ident">neg_id</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">common_block</span>, <span class="ident">call_a</span>, <span class="ident">call_b</span>)) <span class="op">=</span> <span class="ident">result</span> {
-                    <span class="kw">if</span> <span class="ident">call_a</span> <span class="op">!</span><span class="op">=</span> <span class="ident">call_b</span> {
-                        <span class="ident">commands</span>
-                            .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">call_a</span>, <span class="ident">OptimizeCommandKind::Delete</span>));
+                <span class="kw">let </span>result = get_common_call(commands, <span class="kw-2">*</span>pos_id, <span class="kw-2">*</span>neg_id);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((common_block, call_a, call_b)) = result {
+                    <span class="kw">if </span>call_a != call_b {
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(call_a, OptimizeCommandKind::Delete));
 
-                        <span class="ident">commands</span>
-                            .<span class="ident">commands</span>
-                            .<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(<span class="ident">call_b</span>, <span class="ident">OptimizeCommandKind::Delete</span>));
+                        commands
+                            .commands
+                            .push(OptimizeCommand::new(call_b, OptimizeCommandKind::Delete));
 
-                        <span class="ident">commands</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">OptimizeCommand::new</span>(
-                            <span class="ident">node_id</span>,
-                            <span class="ident">OptimizeCommandKind::InsertAfter</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="ident">common_block</span> })),
+                        commands.commands.push(OptimizeCommand::new(
+                            node_id,
+                            OptimizeCommandKind::InsertAfter(Node::Call(Call { id: common_block })),
                         ));
 
-                        <span class="comment">// This change must be committed before continuing with this optimization</span>
-                        <span class="kw">return</span>;
+                        <span class="comment">// This change must be committed before continuing with this optimization
+                        </span><span class="kw">return</span>;
                     }
                 }
             }
@@ -174,60 +168,59 @@
     }
 }
 
-<span class="doccomment">/// Extracts the first common function call in the</span>
-<span class="doccomment">/// calls chains of `block_a` and `block_b`</span>
-<span class="kw">fn</span> <span class="ident">get_common_call</span>(
-    <span class="ident">commands</span>: <span class="kw-2">&amp;</span><span class="ident">Commands</span>,
-    <span class="ident">block_a</span>: <span class="ident">BlockId</span>,
-    <span class="ident">block_b</span>: <span class="ident">BlockId</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">BlockId</span>, <span class="ident">NodeId</span>, <span class="ident">NodeId</span>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">a_calls</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">calls</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">block_a</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) <span class="op">=</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
-                <span class="comment">// Stop at recursion</span>
-                <span class="kw">if</span> <span class="ident">calls</span>.<span class="ident">contains_key</span>(<span class="ident">id</span>) {
+<span class="doccomment">/// Extracts the first common function call in the
+/// calls chains of `block_a` and `block_b`
+</span><span class="kw">fn </span>get_common_call(
+    commands: <span class="kw-2">&amp;</span>Commands,
+    block_a: BlockId,
+    block_b: BlockId,
+) -&gt; <span class="prelude-ty">Option</span>&lt;(BlockId, NodeId, NodeId)&gt; {
+    <span class="kw">let </span>a_calls = {
+        <span class="kw">let </span><span class="kw-2">mut </span>calls = FxHashMap::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>current_block = block_a;
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>function = commands.optimizer.get_function(current_block);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(Node::Call(Call { id })) = function.nodes().last() {
+                <span class="comment">// Stop at recursion
+                </span><span class="kw">if </span>calls.contains_key(id) {
                     <span class="kw">break</span>;
                 }
 
-                <span class="comment">// Only insert if the node may be modified</span>
-                <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">current_block</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> {
-                    <span class="ident">calls</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">id</span>, (<span class="ident">current_block</span>, <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>));
+                <span class="comment">// Only insert if the node may be modified
+                </span><span class="kw">if </span>commands.get_call_count(current_block) &lt;= <span class="number">1 </span>{
+                    calls.insert(<span class="kw-2">*</span>id, (current_block, function.nodes().len() - <span class="number">1</span>));
                 }
-                <span class="ident">current_block</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span>;
-            } <span class="kw">else</span> {
+                current_block = <span class="kw-2">*</span>id;
+            } <span class="kw">else </span>{
                 <span class="kw">break</span>;
             }
         }
-        <span class="ident">calls</span>
+        calls
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">visited_functions</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>visited_functions = FxHashSet::default();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="ident">block_b</span>;
-    <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">commands</span>.<span class="ident">optimizer</span>.<span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
-        <span class="kw">match</span> <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">last</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> })) =&gt; <span class="kw">match</span> <span class="ident">a_calls</span>.<span class="ident">get</span>(<span class="ident">id</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">a_call</span>) <span class="kw">if</span> <span class="ident">commands</span>.<span class="ident">get_call_count</span>(<span class="ident">current_block</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="kw-2">*</span><span class="ident">id</span>, <span class="kw-2">*</span><span class="ident">a_call</span>, (<span class="ident">current_block</span>, <span class="ident">function</span>.<span class="ident">nodes</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)));
+    <span class="kw">let </span><span class="kw-2">mut </span>current_block = block_b;
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>function = commands.optimizer.get_function(current_block);
+        <span class="kw">match </span>function.nodes().last() {
+            <span class="prelude-val">Some</span>(Node::Call(Call { id })) =&gt; <span class="kw">match </span>a_calls.get(id) {
+                <span class="prelude-val">Some</span>(a_call) <span class="kw">if </span>commands.get_call_count(current_block) &lt;= <span class="number">1 </span>=&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>((<span class="kw-2">*</span>id, <span class="kw-2">*</span>a_call, (current_block, function.nodes().len() - <span class="number">1</span>)));
                 }
-                <span class="kw">_</span> =&gt; {
-                    <span class="kw">if</span> <span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>) {
+                <span class="kw">_ </span>=&gt; {
+                    <span class="kw">if </span>visited_functions.contains(<span class="kw-2">&amp;</span>current_block) {
                         <span class="kw">break</span>;
                     }
-                    <span class="ident">visited_functions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">id</span>);
-                    <span class="ident">current_block</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span>;
+                    visited_functions.insert(<span class="kw-2">*</span>id);
+                    current_block = <span class="kw-2">*</span>id;
                 }
             },
-            <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+            <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
         }
     }
 
-    <span class="prelude-val">None</span>
-}
+    <span class="prelude-val">None
+</span>}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/llir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/llir_nodes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>llir_nodes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -624,626 +618,625 @@
 <span id="618">618</span>
 <span id="619">619</span>
 <span id="620">620</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Contains every node that can be produced in the llir step.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Note that changing any node kind can lead to miscompilations if it isn&#39;t also updated</span>
-<span class="doccomment">//! at the optimizers!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Contains every node that can be produced in the llir step.
+//!
+//! Note that changing any node kind can lead to miscompilations if it isn&#39;t also updated
+//! at the optimizers!
 
-<span class="kw">use</span> <span class="ident">std::ops::Index</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">rc::Rc</span>};
+</span><span class="kw">use </span>std::ops::Index;
+<span class="kw">use </span>std::{fmt, rc::Rc};
 
-<span class="kw">use</span> <span class="ident">itertools::Itertools</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
+<span class="kw">use </span>itertools::Itertools;
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">block_id::BlockId</span>, <span class="ident">item_id::ItemId</span>, <span class="ident">type_context::TypeContext</span>};
+<span class="kw">use crate</span>::{block_id::BlockId, item_id::ItemId, type_context::TypeContext};
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">json_format</span>::{<span class="ident">FormattedText</span>, <span class="ident">JsonFormatComponent</span>},
-    <span class="ident">minecraft_utils</span>::{<span class="ident">Scoreboard</span>, <span class="ident">ScoreboardComparison</span>, <span class="ident">ScoreboardOperation</span>, <span class="ident">ScoreboardValue</span>},
-    <span class="ident">ObjectRef</span>,
+<span class="kw">use super</span>::{
+    json_format::{FormattedText, JsonFormatComponent},
+    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    ObjectRef,
 };
 
-<span class="doccomment">/// A function node, contains other nodes</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span> {
-    <span class="doccomment">/// The id of this function</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">BlockId</span>,
-    <span class="doccomment">/// The nodes which this function contains</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">return_value</span>: <span class="ident">ObjectRef</span>,
+<span class="doccomment">/// A function node, contains other nodes
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Function {
+    <span class="doccomment">/// The id of this function
+    </span><span class="kw">pub </span>id: BlockId,
+    <span class="doccomment">/// The nodes which this function contains
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) nodes: Vec&lt;Node&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) return_value: ObjectRef,
 }
 
-<span class="doccomment">/// Stores a &#39;fast&#39; variable</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Fast variables are scoreboard values.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStore</span> {
-    <span class="doccomment">/// The scoreboard of the target var</span>
-    <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
-    <span class="doccomment">/// The id of the target var</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
-    <span class="doccomment">/// The value to store into the target var</span>
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">ScoreboardValue</span>,
+<span class="doccomment">/// Stores a &#39;fast&#39; variable
+///
+/// Fast variables are scoreboard values.
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>FastStore {
+    <span class="doccomment">/// The scoreboard of the target var
+    </span><span class="kw">pub </span>scoreboard: Scoreboard,
+    <span class="doccomment">/// The id of the target var
+    </span><span class="kw">pub </span>id: ItemId,
+    <span class="doccomment">/// The value to store into the target var
+    </span><span class="kw">pub </span>value: ScoreboardValue,
 }
 
-<span class="doccomment">/// Stores a &#39;fast&#39; variable from the result of another node</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FastStoreFromResult</span> {
-    <span class="doccomment">/// The scoreboard of the target var</span>
-    <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
-    <span class="doccomment">/// The id of the target var</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
-    <span class="doccomment">/// The command to use</span>
-    <span class="kw">pub</span> <span class="ident">command</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Stores a &#39;fast&#39; variable from the result of another node
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>FastStoreFromResult {
+    <span class="doccomment">/// The scoreboard of the target var
+    </span><span class="kw">pub </span>scoreboard: Scoreboard,
+    <span class="doccomment">/// The id of the target var
+    </span><span class="kw">pub </span>id: ItemId,
+    <span class="doccomment">/// The command to use
+    </span><span class="kw">pub </span>command: Box&lt;Node&gt;,
 }
 
-<span class="doccomment">/// Operates on two scoreboard values and stores the result into the target var</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BinaryOperation</span> {
-    <span class="doccomment">/// The scoreboard of the resulting value</span>
-    <span class="kw">pub</span> <span class="ident">scoreboard</span>: <span class="ident">Scoreboard</span>,
-    <span class="doccomment">/// The id of the resulting value</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ItemId</span>,
-    <span class="doccomment">/// The left value</span>
-    <span class="kw">pub</span> <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>,
-    <span class="doccomment">/// The right value</span>
-    <span class="kw">pub</span> <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>,
-    <span class="doccomment">/// The kind of operation</span>
-    <span class="kw">pub</span> <span class="ident">operation</span>: <span class="ident">ScoreboardOperation</span>,
+<span class="doccomment">/// Operates on two scoreboard values and stores the result into the target var
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>BinaryOperation {
+    <span class="doccomment">/// The scoreboard of the resulting value
+    </span><span class="kw">pub </span>scoreboard: Scoreboard,
+    <span class="doccomment">/// The id of the resulting value
+    </span><span class="kw">pub </span>id: ItemId,
+    <span class="doccomment">/// The left value
+    </span><span class="kw">pub </span>lhs: ScoreboardValue,
+    <span class="doccomment">/// The right value
+    </span><span class="kw">pub </span>rhs: ScoreboardValue,
+    <span class="doccomment">/// The kind of operation
+    </span><span class="kw">pub </span>operation: ScoreboardOperation,
 }
 
-<span class="doccomment">/// Calls a function</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Call</span> {
-    <span class="doccomment">/// The id of that function</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">BlockId</span>,
+<span class="doccomment">/// Calls a function
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Call {
+    <span class="doccomment">/// The id of that function
+    </span><span class="kw">pub </span>id: BlockId,
 }
 
-<span class="doccomment">/// Evaluates a condition and returns either true or false</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Condition</span> {
-    <span class="doccomment">/// Comparison between two values, eg. val1 &lt;= val2</span>
-    <span class="ident">Compare</span> {
-        <span class="ident">lhs</span>: <span class="ident">ScoreboardValue</span>,
-        <span class="ident">rhs</span>: <span class="ident">ScoreboardValue</span>,
-        <span class="ident">comparison</span>: <span class="ident">ScoreboardComparison</span>,
+<span class="doccomment">/// Evaluates a condition and returns either true or false
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Condition {
+    <span class="doccomment">/// Comparison between two values, eg. val1 &lt;= val2
+    </span>Compare {
+        lhs: ScoreboardValue,
+        rhs: ScoreboardValue,
+        comparison: ScoreboardComparison,
     },
-    <span class="ident">And</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
-    <span class="ident">Or</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Condition</span><span class="op">&gt;</span>),
+    And(Vec&lt;Condition&gt;),
+    Or(Vec&lt;Condition&gt;),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BranchKind</span> {
-    <span class="ident">PosBranch</span>,
-    <span class="ident">NegBranch</span>,
-    <span class="ident">Both</span>,
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>BranchKind {
+    PosBranch,
+    NegBranch,
+    Both,
 }
 
-<span class="doccomment">/// Branches based on a condition</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Branch</span> {
-    <span class="doccomment">/// The condition to test</span>
-    <span class="kw">pub</span> <span class="ident">condition</span>: <span class="ident">Condition</span>,
-    <span class="doccomment">/// The node to execute if that condition is true</span>
-    <span class="kw">pub</span> <span class="ident">pos_branch</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// The node to execute if that condition is false</span>
-    <span class="kw">pub</span> <span class="ident">neg_branch</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Branches based on a condition
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Branch {
+    <span class="doccomment">/// The condition to test
+    </span><span class="kw">pub </span>condition: Condition,
+    <span class="doccomment">/// The node to execute if that condition is true
+    </span><span class="kw">pub </span>pos_branch: Box&lt;Node&gt;,
+    <span class="doccomment">/// The node to execute if that condition is false
+    </span><span class="kw">pub </span>neg_branch: Box&lt;Node&gt;,
 }
 
-<span class="doccomment">/// A component for a raw execute command</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExecuteRawComponent</span> {
-    <span class="doccomment">/// Writes a string literal</span>
-    <span class="ident">String</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// References the value locations</span>
-    <span class="ident">ScoreboardValue</span>(<span class="ident">ScoreboardValue</span>),
-    <span class="doccomment">/// Embeds another node in the output</span>
-    <span class="ident">Node</span>(<span class="ident">Node</span>),
+<span class="doccomment">/// A component for a raw execute command
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>ExecuteRawComponent {
+    <span class="doccomment">/// Writes a string literal
+    </span>String(Rc&lt;str&gt;),
+    <span class="doccomment">/// References the value locations
+    </span>ScoreboardValue(ScoreboardValue),
+    <span class="doccomment">/// Embeds another node in the output
+    </span>Node(Node),
 }
 
-<span class="doccomment">/// Executes a literal string</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Any String that modifies a variable that belongs to debris</span>
-<span class="doccomment">/// or modifies the program state in any other way</span>
-<span class="doccomment">/// causes undefined behavior!</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExecuteRaw</span>(<span class="kw">pub</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExecuteRawComponent</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Executes a literal string
+///
+/// Any String that modifies a variable that belongs to debris
+/// or modifies the program state in any other way
+/// causes undefined behavior!
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>ExecuteRaw(<span class="kw">pub </span>Vec&lt;ExecuteRawComponent&gt;);
 
-<span class="doccomment">/// Writes a formatted message</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WriteMessage</span> {
-    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">WriteTarget</span>,
-    <span class="kw">pub</span> <span class="ident">message</span>: <span class="ident">FormattedText</span>,
+<span class="doccomment">/// Writes a formatted message
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>WriteMessage {
+    <span class="kw">pub </span>target: WriteTarget,
+    <span class="kw">pub </span>message: FormattedText,
 }
 
-<span class="doccomment">/// The buffer to write to</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">WriteTarget</span> {
-    <span class="ident">Chat</span>,
-    <span class="ident">Actionbar</span>,
-    <span class="ident">Title</span>,
-    <span class="ident">Subtitle</span>,
+<span class="doccomment">/// The buffer to write to
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>WriteTarget {
+    Chat,
+    Actionbar,
+    Title,
+    Subtitle,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">WriteTarget</span> {
-    <span class="comment">// Debug is good enough for now</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::use_debug</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{self:?}&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>WriteTarget {
+    <span class="comment">// Debug is good enough for now
+    </span><span class="attr">#[allow(clippy::use_debug)]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{self:?}&quot;</span>)
     }
 }
 
-<span class="doccomment">/// Any node</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
-    <span class="ident">FastStore</span>(<span class="ident">FastStore</span>),
-    <span class="ident">FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span>),
-    <span class="ident">BinaryOperation</span>(<span class="ident">BinaryOperation</span>),
-    <span class="ident">Call</span>(<span class="ident">Call</span>),
-    <span class="ident">Condition</span>(<span class="ident">Condition</span>),
-    <span class="ident">Branch</span>(<span class="ident">Branch</span>),
-    <span class="ident">Execute</span>(<span class="ident">ExecuteRaw</span>),
-    <span class="ident">Write</span>(<span class="ident">WriteMessage</span>),
-    <span class="doccomment">/// Does nothing</span>
-    <span class="ident">Nop</span>,
+<span class="doccomment">/// Any node
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Node {
+    FastStore(FastStore),
+    FastStoreFromResult(FastStoreFromResult),
+    BinaryOperation(BinaryOperation),
+    Call(Call),
+    Condition(Condition),
+    Branch(Branch),
+    Execute(ExecuteRaw),
+    Write(WriteMessage),
+    <span class="doccomment">/// Does nothing
+    </span>Nop,
 }
 
-<span class="doccomment">/// Denotes how a specific node accesses variables.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Marks that a value is read by this node</span>
-    <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
-    <span class="doccomment">/// Marks that a value is written to by this node.</span>
-    <span class="doccomment">/// The second argument is the constant value that is written, if applicable.</span>
-    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ItemId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>),
-    <span class="doccomment">/// Marks that a value can be both read from and written to by this node.</span>
-    <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ScoreboardValue</span>),
+<span class="doccomment">/// Denotes how a specific node accesses variables.
+</span><span class="kw">pub enum </span>VariableAccess&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Marks that a value is read by this node
+    </span>Read(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ScoreboardValue),
+    <span class="doccomment">/// Marks that a value is written to by this node.
+    /// The second argument is the constant value that is written, if applicable.
+    </span>Write(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ItemId, <span class="prelude-ty">Option</span>&lt;i32&gt;),
+    <span class="doccomment">/// Marks that a value can be both read from and written to by this node.
+    </span>ReadWrite(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ScoreboardValue),
 }
 
-<span class="doccomment">/// See [`VariableAccess`].</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">VariableAccessMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Read</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
-    <span class="ident">Write</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ItemId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>),
-    <span class="ident">ReadWrite</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ScoreboardValue</span>),
+<span class="doccomment">/// See [`VariableAccess`].
+</span><span class="kw">pub enum </span>VariableAccessMut&lt;<span class="lifetime">&#39;a</span>&gt; {
+    Read(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ScoreboardValue),
+    Write(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ItemId, <span class="prelude-ty">Option</span>&lt;i32&gt;),
+    ReadWrite(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ScoreboardValue),
 }
 
-<span class="doccomment">/// This awful macro contains code that otherwise would have to be copy-pasted</span>
-<span class="doccomment">/// For the immutable and the mutable variable access visitor of [Node] and [Condition].</span>
-<span class="macro">macro_rules!</span> <span class="ident">make_access_visitor</span> {
-    (<span class="ident">node</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span> {
-            <span class="ident">Node::BinaryOperation</span>(<span class="ident">BinaryOperation</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>,
-                <span class="ident">lhs</span>,
-                <span class="ident">rhs</span>,
-                <span class="ident">operation</span>: <span class="kw">_</span>,
+<span class="doccomment">/// This awful macro contains code that otherwise would have to be copy-pasted
+/// For the immutable and the mutable variable access visitor of [Node] and [Condition].
+</span><span class="macro">macro_rules! </span>make_access_visitor {
+    (node, <span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$visitor</span>:ident, <span class="macro-nonterminal">$fn_name</span>:ident, <span class="macro-nonterminal">$VariableAccess</span>:ident) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$self </span>{
+            Node::BinaryOperation(BinaryOperation {
+                scoreboard: <span class="kw">_</span>,
+                id,
+                lhs,
+                rhs,
+                operation: <span class="kw">_</span>,
             }) =&gt; {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="prelude-val">None</span>));
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Write</span>(id, <span class="prelude-val">None</span>));
 
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">lhs</span>));
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">rhs</span>));
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(lhs));
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(rhs));
             }
-            <span class="ident">Node::Branch</span>(<span class="ident">Branch</span> {
-                <span class="ident">condition</span>,
-                <span class="ident">pos_branch</span>,
-                <span class="ident">neg_branch</span>,
+            Node::Branch(Branch {
+                condition,
+                pos_branch,
+                neg_branch,
             }) =&gt; {
-                <span class="ident">pos_branch</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
-                <span class="ident">neg_branch</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
-                <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+                pos_branch.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
+                neg_branch.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
+                condition.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
             }
-            <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span>: <span class="kw">_</span> }) =&gt; {}
-            <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) =&gt; {
-                <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+            Node::Call(Call { id: <span class="kw">_ </span>}) =&gt; {}
+            Node::Condition(condition) =&gt; {
+                condition.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
             }
-            <span class="ident">Node::Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) =&gt; {
-                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-                    <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="ident">value</span>) =&gt; {
-                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::ReadWrite</span>(<span class="ident">value</span>));
+            Node::Execute(ExecuteRaw(components)) =&gt; {
+                <span class="kw">for </span>component <span class="kw">in </span>components {
+                    <span class="kw">match </span>component {
+                        ExecuteRawComponent::ScoreboardValue(value) =&gt; {
+                            <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::ReadWrite</span>(value));
                         }
-                        <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">node</span>) =&gt; <span class="ident">node</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>),
-                        <span class="ident">ExecuteRawComponent::String</span>(<span class="kw">_</span>) =&gt; {}
+                        ExecuteRawComponent::Node(node) =&gt; node.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>),
+                        ExecuteRawComponent::String(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>,
-                <span class="ident">value</span>,
+            Node::FastStore(FastStore {
+                scoreboard: <span class="kw">_</span>,
+                id,
+                value,
             }) =&gt; {
-                <span class="kw">let</span> <span class="ident">static_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">value</span> {
-                    <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">value</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                };
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="ident">static_val</span>));
+                <span class="kw">let </span>static_val = <span class="kw">if let </span>ScoreboardValue::Static(value) = value {
+                    <span class="prelude-val">Some</span>(<span class="kw-2">*</span>value)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Write</span>(id, static_val));
 
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">value</span>));
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(value));
             }
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>,
-                <span class="ident">command</span>,
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: <span class="kw">_</span>,
+                id,
+                command,
             }) =&gt; {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="prelude-val">None</span>));
-                <span class="ident">command</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Write</span>(id, <span class="prelude-val">None</span>));
+                command.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
             }
-            <span class="ident">Node::Nop</span> =&gt; {}
-            <span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> {
-                <span class="ident">target</span>: <span class="kw">_</span>,
-                <span class="ident">message</span>: <span class="ident">FormattedText</span> { <span class="ident">components</span> },
+            Node::Nop =&gt; {}
+            Node::Write(WriteMessage {
+                target: <span class="kw">_</span>,
+                message: FormattedText { components },
             }) =&gt; {
-                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-                    <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">JsonFormatComponent::Score</span>(<span class="ident">value</span>) =&gt; {
-                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">value</span>));
+                <span class="kw">for </span>component <span class="kw">in </span>components {
+                    <span class="kw">match </span>component {
+                        JsonFormatComponent::Score(value) =&gt; {
+                            <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(value));
                         }
-                        <span class="ident">JsonFormatComponent::RawText</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">JsonFormatComponent::Function</span>(<span class="kw">_</span>) =&gt; {}
+                        JsonFormatComponent::RawText(<span class="kw">_</span>) | JsonFormatComponent::Function(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
         }
     };
-    (<span class="ident">condition</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span> {
-            <span class="ident">Condition::Compare</span> {
-                <span class="ident">lhs</span>,
-                <span class="ident">rhs</span>,
-                <span class="ident">comparison</span>: <span class="kw">_</span>,
+    (condition, <span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$visitor</span>:ident, <span class="macro-nonterminal">$fn_name</span>:ident, <span class="macro-nonterminal">$VariableAccess</span>:ident) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$self </span>{
+            Condition::Compare {
+                lhs,
+                rhs,
+                comparison: <span class="kw">_</span>,
             } =&gt; {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">lhs</span>));
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">VariableAccess::Read</span>(<span class="ident">rhs</span>));
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(lhs));
+                <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(rhs));
             }
-            <span class="ident">Condition::And</span>(<span class="ident">conditions</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
-                    <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+            Condition::And(conditions) =&gt; {
+                <span class="kw">for </span>condition <span class="kw">in </span>conditions {
+                    condition.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
                 }
             }
-            <span class="ident">Condition::Or</span>(<span class="ident">conditions</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">condition</span> <span class="kw">in</span> <span class="ident">conditions</span> {
-                    <span class="ident">condition</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fn_name</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visitor</span>);
+            Condition::Or(conditions) =&gt; {
+                <span class="kw">for </span>condition <span class="kw">in </span>conditions {
+                    condition.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
                 }
             }
         }
     };
 }
 
-<span class="kw">impl</span> <span class="ident">Function</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nodes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Node</span>] {
-        <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">as_slice</span>()
+<span class="kw">impl </span>Function {
+    <span class="kw">pub fn </span>nodes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Node] {
+        <span class="self">self</span>.nodes.as_slice()
     }
 
-    <span class="doccomment">/// Checks if this function contains a node that calls the argument.</span>
-    <span class="doccomment">/// Note that this is only a shallow check, no other functions will be</span>
-    <span class="doccomment">/// visited.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calls_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function_id</span>: <span class="kw-2">&amp;</span><span class="ident">BlockId</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">nodes</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_call</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="ident">node</span>.<span class="ident">scan</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">inner_node</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">inner_node</span> {
-                <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">function_id</span> =&gt; {
-                    <span class="ident">contains_call</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// Checks if this function contains a node that calls the argument.
+    /// Note that this is only a shallow check, no other functions will be
+    /// visited.
+    </span><span class="kw">pub fn </span>calls_function(<span class="kw-2">&amp;</span><span class="self">self</span>, function_id: <span class="kw-2">&amp;</span>BlockId) -&gt; bool {
+        <span class="kw">for </span>node <span class="kw">in </span><span class="self">self</span>.nodes() {
+            <span class="kw">let </span><span class="kw-2">mut </span>contains_call = <span class="bool-val">false</span>;
+            node.scan(<span class="kw-2">&amp;mut </span>|inner_node| <span class="kw">match </span>inner_node {
+                Node::Call(Call { id }) <span class="kw">if </span>id == function_id =&gt; {
+                    contains_call = <span class="bool-val">true</span>;
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             });
-            <span class="kw">if</span> <span class="ident">contains_call</span> {
-                <span class="kw">return</span> <span class="bool-val">true</span>;
+            <span class="kw">if </span>contains_call {
+                <span class="kw">return </span><span class="bool-val">true</span>;
             }
         }
-        <span class="bool-val">false</span>
+        <span class="bool-val">false
+    </span>}
+
+    <span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.nodes.is_empty()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">is_empty</span>()
-    }
-
-    <span class="doccomment">/// This function should only be used for testing purposes</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_dummy</span>(<span class="ident">id</span>: <span class="ident">BlockId</span>, <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Function</span> {
-            <span class="ident">id</span>,
-            <span class="ident">nodes</span>,
-            <span class="ident">return_value</span>: <span class="ident">TypeContext::default</span>().<span class="ident">null</span>(),
+    <span class="doccomment">/// This function should only be used for testing purposes
+    </span><span class="attr">#[doc(hidden)]
+    </span><span class="kw">pub fn </span>_dummy(id: BlockId, nodes: Vec&lt;Node&gt;) -&gt; <span class="self">Self </span>{
+        Function {
+            id,
+            nodes,
+            return_value: TypeContext::default().null(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Condition</span> {
-    <span class="doccomment">/// Returns a condition that is true, when</span>
-    <span class="doccomment">/// this condition is false and the other</span>
-    <span class="doccomment">/// way around</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">not</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Condition</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Condition::Compare</span> {
-                <span class="ident">comparison</span>,
-                <span class="ident">lhs</span>,
-                <span class="ident">rhs</span>,
-            } =&gt; <span class="ident">Condition::Compare</span> {
-                <span class="ident">comparison</span>: <span class="ident">comparison</span>.<span class="ident">invert</span>(),
-                <span class="ident">lhs</span>: <span class="kw-2">*</span><span class="ident">lhs</span>,
-                <span class="ident">rhs</span>: <span class="kw-2">*</span><span class="ident">rhs</span>,
+<span class="kw">impl </span>Condition {
+    <span class="doccomment">/// Returns a condition that is true, when
+    /// this condition is false and the other
+    /// way around
+    </span><span class="kw">pub fn </span>not(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Condition {
+        <span class="kw">match </span><span class="self">self </span>{
+            Condition::Compare {
+                comparison,
+                lhs,
+                rhs,
+            } =&gt; Condition::Compare {
+                comparison: comparison.invert(),
+                lhs: <span class="kw-2">*</span>lhs,
+                rhs: <span class="kw-2">*</span>rhs,
             },
-            <span class="ident">Condition::And</span>(<span class="ident">conditions</span>) =&gt; {
-                <span class="comment">// -(a AND b) = -a OR -b</span>
-                <span class="ident">Condition::Or</span>(<span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Condition::not</span>).<span class="ident">collect</span>())
+            Condition::And(conditions) =&gt; {
+                <span class="comment">// -(a AND b) = -a OR -b
+                </span>Condition::Or(conditions.iter().map(Condition::not).collect())
             }
-            <span class="ident">Condition::Or</span>(<span class="ident">conditions</span>) =&gt; {
-                <span class="comment">// -(a OR b) = -a AND -b</span>
-                <span class="ident">Condition::And</span>(<span class="ident">conditions</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Condition::not</span>).<span class="ident">collect</span>())
+            Condition::Or(conditions) =&gt; {
+                <span class="comment">// -(a OR b) = -a AND -b
+                </span>Condition::And(conditions.iter().map(Condition::not).collect())
             }
         }
     }
 
-    <span class="doccomment">/// Returns whether evaluating this condition has any side effects</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_effect_free</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Condition::And</span>(<span class="ident">nested</span>) <span class="op">|</span> <span class="ident">Condition::Or</span>(<span class="ident">nested</span>) =&gt; {
-                <span class="ident">nested</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="ident">Condition::is_effect_free</span>)
+    <span class="doccomment">/// Returns whether evaluating this condition has any side effects
+    </span><span class="kw">pub fn </span>is_effect_free(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            Condition::And(nested) | Condition::Or(nested) =&gt; {
+                nested.iter().all(Condition::is_effect_free)
             }
-            <span class="ident">Condition::Compare</span> { .. } =&gt; <span class="bool-val">true</span>,
+            Condition::Compare { .. } =&gt; <span class="bool-val">true</span>,
         }
     }
 
-    <span class="doccomment">/// Checks whether this condition is &quot;simple&quot;,</span>
-    <span class="doccomment">/// which means that it is not expensive to use this condition multiple times</span>
-    <span class="doccomment">/// instead of a boolean.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Right now, only `Condition::Compare` is considered simple.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_simple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">Condition::Compare</span> { .. })
+    <span class="doccomment">/// Checks whether this condition is &quot;simple&quot;,
+    /// which means that it is not expensive to use this condition multiple times
+    /// instead of a boolean.
+    ///
+    /// Right now, only `Condition::Compare` is considered simple.
+    </span><span class="kw">pub fn </span>is_simple(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, Condition::Compare { .. })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_reads</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">ItemId</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reads</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-        <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">VariableAccess::Read</span>(<span class="ident">var</span>) <span class="op">|</span> <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">access</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">item_id</span>) <span class="op">=</span> <span class="ident">var</span> {
-                    <span class="ident">reads</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">item_id</span>);
+    <span class="kw">pub fn </span>variable_reads(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;ItemId&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>reads = FxHashSet::default();
+        <span class="self">self</span>.variable_accesses(<span class="kw-2">&amp;mut </span>|access| {
+            <span class="kw">if let </span>VariableAccess::Read(var) | VariableAccess::ReadWrite(var) = access {
+                <span class="kw">if let </span>ScoreboardValue::Scoreboard(<span class="kw">_</span>, item_id) = var {
+                    reads.insert(<span class="kw-2">*</span>item_id);
                 }
             }
         });
-        <span class="ident">reads</span>
+        reads
     }
 
-    <span class="doccomment">/// Recursively yields all variables that this condition reads from</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccess</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) {
-        <span class="macro">make_access_visitor!</span>(<span class="ident">condition</span>, <span class="self">self</span>, <span class="ident">visitor</span>, <span class="ident">variable_accesses</span>, <span class="ident">VariableAccess</span>);
+    <span class="doccomment">/// Recursively yields all variables that this condition reads from
+    </span><span class="kw">pub fn </span>variable_accesses&lt;F: FnMut(VariableAccess)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>F) {
+        <span class="macro">make_access_visitor!</span>(condition, <span class="self">self</span>, visitor, variable_accesses, VariableAccess);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses_mut</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccessMut</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) {
+    <span class="kw">pub fn </span>variable_accesses_mut&lt;F: FnMut(VariableAccessMut)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>F) {
         <span class="macro">make_access_visitor!</span>(
-            <span class="ident">condition</span>,
+            condition,
             <span class="self">self</span>,
-            <span class="ident">visitor</span>,
-            <span class="ident">variable_accesses_mut</span>,
-            <span class="ident">VariableAccessMut</span>
+            visitor,
+            variable_accesses_mut,
+            VariableAccessMut
         );
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Condition</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Condition::Compare</span> {
-                <span class="ident">lhs</span>,
-                <span class="ident">rhs</span>,
-                <span class="ident">comparison</span>,
-            } =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{lhs} {} {rhs}&quot;</span>, <span class="ident">comparison</span>.<span class="ident">str_value</span>()),
-            <span class="ident">Condition::And</span>(<span class="ident">parts</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">nested</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Condition::to_string</span>).<span class="ident">join</span>(<span class="string">&quot; and &quot;</span>);
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({nested})&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Condition {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Condition::Compare {
+                lhs,
+                rhs,
+                comparison,
+            } =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{lhs} {} {rhs}&quot;</span>, comparison.str_value()),
+            Condition::And(parts) =&gt; {
+                <span class="kw">let </span>nested = parts.iter().map(Condition::to_string).join(<span class="string">&quot; and &quot;</span>);
+                <span class="macro">write!</span>(f, <span class="string">&quot;({nested})&quot;</span>)
             }
-            <span class="ident">Condition::Or</span>(<span class="ident">parts</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">nested</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Condition::to_string</span>).<span class="ident">join</span>(<span class="string">&quot; or &quot;</span>);
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;({nested})&quot;</span>)
+            Condition::Or(parts) =&gt; {
+                <span class="kw">let </span>nested = parts.iter().map(Condition::to_string).join(<span class="string">&quot; or &quot;</span>);
+                <span class="macro">write!</span>(f, <span class="string">&quot;({nested})&quot;</span>)
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Node</span> {
-    <span class="doccomment">/// Iterates over this node and all other nodes that</span>
-    <span class="doccomment">/// this node contains.</span>
-    <span class="doccomment">/// Changing this function also requires changing [`Node::scan_mut`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scan</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Node</span>),
+<span class="kw">impl </span>Node {
+    <span class="doccomment">/// Iterates over this node and all other nodes that
+    /// this node contains.
+    /// Changing this function also requires changing [`Node::scan_mut`]
+    </span><span class="kw">pub fn </span>scan&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, func: <span class="kw-2">&amp;mut </span>F)
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;</span>Node),
     {
-        <span class="ident">func</span>(<span class="self">self</span>);
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">scan</span>(<span class="ident">func</span>);
-                <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">scan</span>(<span class="ident">func</span>);
+        func(<span class="self">self</span>);
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Branch(branch) =&gt; {
+                branch.pos_branch.scan(func);
+                branch.neg_branch.scan(func);
             }
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> { <span class="ident">command</span>, .. }) =&gt; <span class="ident">command</span>.<span class="ident">scan</span>(<span class="ident">func</span>),
-            <span class="ident">Node::Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) =&gt; {
-                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-                    <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">node</span>) =&gt; {
-                            <span class="ident">node</span>.<span class="ident">scan</span>(<span class="ident">func</span>);
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) =&gt; command.scan(func),
+            Node::Execute(ExecuteRaw(components)) =&gt; {
+                <span class="kw">for </span>component <span class="kw">in </span>components {
+                    <span class="kw">match </span>component {
+                        ExecuteRawComponent::Node(node) =&gt; {
+                            node.scan(func);
                         }
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">ExecuteRawComponent::String</span>(<span class="kw">_</span>) =&gt; {}
+                        ExecuteRawComponent::ScoreboardValue(<span class="kw">_</span>)
+                        | ExecuteRawComponent::String(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="doccomment">/// A copy of the above function, but with mutability enabled ...</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scan_mut</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Node</span>),
+    <span class="doccomment">/// A copy of the above function, but with mutability enabled ...
+    </span><span class="kw">pub fn </span>scan_mut&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: <span class="kw-2">&amp;mut </span>F)
+    <span class="kw">where
+        </span>F: FnMut(<span class="kw-2">&amp;mut </span>Node),
     {
-        <span class="ident">func</span>(<span class="self">self</span>);
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">scan_mut</span>(<span class="ident">func</span>);
-                <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">scan_mut</span>(<span class="ident">func</span>);
+        func(<span class="self">self</span>);
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Branch(branch) =&gt; {
+                branch.pos_branch.scan_mut(func);
+                branch.neg_branch.scan_mut(func);
             }
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> { <span class="ident">command</span>, .. }) =&gt; {
-                <span class="ident">command</span>.<span class="ident">scan_mut</span>(<span class="ident">func</span>);
+            Node::FastStoreFromResult(FastStoreFromResult { command, .. }) =&gt; {
+                command.scan_mut(func);
             }
-            <span class="ident">Node::Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) =&gt; {
-                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-                    <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">node</span>) =&gt; {
-                            <span class="ident">node</span>.<span class="ident">scan_mut</span>(<span class="ident">func</span>);
+            Node::Execute(ExecuteRaw(components)) =&gt; {
+                <span class="kw">for </span>component <span class="kw">in </span>components {
+                    <span class="kw">match </span>component {
+                        ExecuteRawComponent::Node(node) =&gt; {
+                            node.scan_mut(func);
                         }
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">ExecuteRawComponent::String</span>(<span class="kw">_</span>) =&gt; {}
+                        ExecuteRawComponent::ScoreboardValue(<span class="kw">_</span>)
+                        | ExecuteRawComponent::String(<span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="doccomment">/// Returns whether this command has no side effect.</span>
-    <span class="doccomment">/// sometimes its easier to just to restrict the parameter to a specific type...</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_effect_free</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">function_map</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">T</span>) -&gt; <span class="ident">bool</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">BlockId</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Function</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Returns whether this command has no side effect.
+    /// sometimes its easier to just to restrict the parameter to a specific type...
+    </span><span class="kw">pub fn </span>is_effect_free&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, function_map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>T) -&gt; bool
+    <span class="kw">where
+        </span>T: Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BlockId, Output = Function&gt;,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; {
-                <span class="ident">branch</span>.<span class="ident">condition</span>.<span class="ident">is_effect_free</span>()
-                    <span class="op">&amp;&amp;</span> <span class="ident">branch</span>.<span class="ident">pos_branch</span>.<span class="ident">is_effect_free</span>(<span class="ident">function_map</span>)
-                    <span class="op">&amp;&amp;</span> <span class="ident">branch</span>.<span class="ident">neg_branch</span>.<span class="ident">is_effect_free</span>(<span class="ident">function_map</span>)
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Branch(branch) =&gt; {
+                branch.condition.is_effect_free()
+                    &amp;&amp; branch.pos_branch.is_effect_free(function_map)
+                    &amp;&amp; branch.neg_branch.is_effect_free(function_map)
             }
-            <span class="comment">// ToDo: track already checked functions, so no infinite loop occurs</span>
-            <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) =&gt; <span class="ident">function_map</span>[<span class="ident">id</span>]
-                .<span class="ident">nodes</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">all</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">is_effect_free</span>(<span class="ident">function_map</span>)),
-            <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) =&gt; <span class="ident">condition</span>.<span class="ident">is_effect_free</span>(),
-            <span class="ident">Node::BinaryOperation</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Execute</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::FastStore</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::FastStoreFromResult</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Write</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident">Node::Nop</span> =&gt; <span class="bool-val">true</span>,
+            <span class="comment">// ToDo: track already checked functions, so no infinite loop occurs
+            </span>Node::Call(Call { id }) =&gt; function_map[id]
+                .nodes
+                .iter()
+                .all(|node| node.is_effect_free(function_map)),
+            Node::Condition(condition) =&gt; condition.is_effect_free(),
+            Node::BinaryOperation(<span class="kw">_</span>)
+            | Node::Execute(<span class="kw">_</span>)
+            | Node::FastStore(<span class="kw">_</span>)
+            | Node::FastStoreFromResult(<span class="kw">_</span>)
+            | Node::Write(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            Node::Nop =&gt; <span class="bool-val">true</span>,
         }
     }
 
-    <span class="doccomment">/// Checks whether this node contains a call</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_call</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="self">self</span>.<span class="ident">scan</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">node</span>, <span class="ident">Node::Call</span>(<span class="kw">_</span>)) {
-                <span class="ident">has_call</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// Checks whether this node contains a call
+    </span><span class="kw">pub fn </span>has_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>has_call = <span class="bool-val">false</span>;
+        <span class="self">self</span>.scan(<span class="kw-2">&amp;mut </span>|node| {
+            <span class="kw">if </span><span class="macro">matches!</span>(node, Node::Call(<span class="kw">_</span>)) {
+                has_call = <span class="bool-val">true</span>;
             }
         });
-        <span class="ident">has_call</span>
+        has_call
     }
 
-    <span class="doccomment">/// Accepts a callback function as argument and calls it with every variable</span>
-    <span class="doccomment">/// accessed by this node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccess</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) {
-        <span class="macro">make_access_visitor!</span>(<span class="ident">node</span>, <span class="self">self</span>, <span class="ident">visitor</span>, <span class="ident">variable_accesses</span>, <span class="ident">VariableAccess</span>);
+    <span class="doccomment">/// Accepts a callback function as argument and calls it with every variable
+    /// accessed by this node.
+    </span><span class="kw">pub fn </span>variable_accesses&lt;F: FnMut(VariableAccess)&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>F) {
+        <span class="macro">make_access_visitor!</span>(node, <span class="self">self</span>, visitor, variable_accesses, VariableAccess);
     }
 
-    <span class="doccomment">/// See `variable_accesses`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable_accesses_mut</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">VariableAccessMut</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) {
+    <span class="doccomment">/// See `variable_accesses`.
+    </span><span class="kw">pub fn </span>variable_accesses_mut&lt;F: FnMut(VariableAccessMut)&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>F) {
         <span class="macro">make_access_visitor!</span>(
-            <span class="ident">node</span>,
+            node,
             <span class="self">self</span>,
-            <span class="ident">visitor</span>,
-            <span class="ident">variable_accesses_mut</span>,
-            <span class="ident">VariableAccessMut</span>
+            visitor,
+            variable_accesses_mut,
+            VariableAccessMut
         );
     }
 
-    <span class="doccomment">/// Whether this node could modify `item_id`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">writes_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item_id</span>: <span class="ident">ItemId</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found_write</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-            <span class="ident">VariableAccess::Write</span>(<span class="ident">id</span>, <span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">id</span> <span class="op">==</span> <span class="ident">item_id</span> =&gt;
+    <span class="doccomment">/// Whether this node could modify `item_id`.
+    </span><span class="kw">pub fn </span>writes_to(<span class="kw-2">&amp;</span><span class="self">self</span>, item_id: ItemId) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>found_write = <span class="bool-val">false</span>;
+        <span class="self">self</span>.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
+            VariableAccess::Write(id, <span class="kw">_</span>)
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
+                <span class="kw">if </span><span class="kw-2">*</span>id == item_id =&gt;
             {
-                <span class="ident">found_write</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                found_write = <span class="bool-val">true</span>;
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         });
-        <span class="ident">found_write</span>
+        found_write
     }
 
-    <span class="doccomment">/// Whether this node has a read-dependency on `item_id`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reads_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">item_id</span>: <span class="ident">ItemId</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_read</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="self">self</span>.<span class="ident">variable_accesses</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">access</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">access</span> {
-            <span class="ident">VariableAccess::Read</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
-            <span class="op">|</span> <span class="ident">VariableAccess::ReadWrite</span>(<span class="ident">ScoreboardValue::Scoreboard</span>(<span class="kw">_</span>, <span class="ident">id</span>))
-                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">id</span> <span class="op">==</span> <span class="ident">item_id</span> =&gt;
+    <span class="doccomment">/// Whether this node has a read-dependency on `item_id`
+    </span><span class="kw">pub fn </span>reads_from(<span class="kw-2">&amp;</span><span class="self">self</span>, item_id: ItemId) -&gt; bool {
+        <span class="kw">let </span><span class="kw-2">mut </span>has_read = <span class="bool-val">false</span>;
+        <span class="self">self</span>.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
+            VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
+                <span class="kw">if </span><span class="kw-2">*</span>id == item_id =&gt;
             {
-                <span class="ident">has_read</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                has_read = <span class="bool-val">true</span>;
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         });
-        <span class="ident">has_read</span>
+        has_read
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Function</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">id</span>.<span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nodes</span>.<span class="ident">iter</span>().<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Function {id}:\n{content}\n&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Function {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>id = <span class="self">self</span>.id.<span class="number">0</span>;
+        <span class="kw">let </span>content = <span class="self">self</span>.nodes.iter().join(<span class="string">&quot;\n&quot;</span>);
+        <span class="macro">write!</span>(f, <span class="string">&quot;Function {id}:\n{content}\n&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::BinaryOperation</span>(<span class="ident">binop</span>) =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Node {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::BinaryOperation(binop) =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;{} = {} {} {}&quot;</span>,
-                <span class="ident">binop</span>.<span class="ident">id</span>,
-                <span class="ident">binop</span>.<span class="ident">lhs</span>,
-                <span class="ident">binop</span>.<span class="ident">operation</span>.<span class="ident">str_value</span>(),
-                <span class="ident">binop</span>.<span class="ident">rhs</span>
+                binop.id,
+                binop.lhs,
+                binop.operation.str_value(),
+                binop.rhs
             ),
-            <span class="ident">Node::Branch</span>(<span class="ident">branch</span>) =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+            Node::Branch(branch) =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;if ({}):\n\t{}\n\t{}&quot;</span>,
-                <span class="ident">branch</span>.<span class="ident">condition</span>, <span class="ident">branch</span>.<span class="ident">pos_branch</span>, <span class="ident">branch</span>.<span class="ident">neg_branch</span>
+                branch.condition, branch.pos_branch, branch.neg_branch
             ),
-            <span class="ident">Node::Call</span>(<span class="ident">call</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;call {}&quot;</span>, <span class="ident">call</span>.<span class="ident">id</span>.<span class="number">0</span>),
-            <span class="ident">Node::Condition</span>(<span class="ident">condition</span>) =&gt; <span class="ident">condition</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">Node::Execute</span>(<span class="ident">ExecuteRaw</span>(<span class="ident">components</span>)) =&gt; {
-                <span class="kw">for</span> <span class="ident">component</span> <span class="kw">in</span> <span class="ident">components</span> {
-                    <span class="kw">match</span> <span class="ident">component</span> {
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(
-                            <span class="ident">value</span> @ <span class="ident">ScoreboardValue::Scoreboard</span> { .. },
-                        ) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;${value}&quot;</span>)<span class="question-mark">?</span>,
-                        <span class="ident">ExecuteRawComponent::ScoreboardValue</span>(<span class="ident">ScoreboardValue::Static</span>(<span class="ident">value</span>)) =&gt; {
-                            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{value}&quot;</span>)<span class="question-mark">?</span>;
+            Node::Call(call) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;call {}&quot;</span>, call.id.<span class="number">0</span>),
+            Node::Condition(condition) =&gt; condition.fmt(f),
+            Node::Execute(ExecuteRaw(components)) =&gt; {
+                <span class="kw">for </span>component <span class="kw">in </span>components {
+                    <span class="kw">match </span>component {
+                        ExecuteRawComponent::ScoreboardValue(
+                            value @ ScoreboardValue::Scoreboard { .. },
+                        ) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;${value}&quot;</span>)<span class="question-mark">?</span>,
+                        ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Static(value)) =&gt; {
+                            <span class="macro">write!</span>(f, <span class="string">&quot;{value}&quot;</span>)<span class="question-mark">?</span>;
                         }
-                        <span class="ident">ExecuteRawComponent::Node</span>(<span class="ident">node</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;${{{node}}}&quot;</span>)<span class="question-mark">?</span>,
-                        <span class="ident">ExecuteRawComponent::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">string</span>)<span class="question-mark">?</span>,
+                        ExecuteRawComponent::Node(node) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;${{{node}}}&quot;</span>)<span class="question-mark">?</span>,
+                        ExecuteRawComponent::String(string) =&gt; f.write_str(string)<span class="question-mark">?</span>,
                     }
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            <span class="ident">Node::FastStore</span>(<span class="ident">FastStore</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>,
-                <span class="ident">value</span>,
-            }) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{id} = {value}&quot;</span>),
-            <span class="ident">Node::FastStoreFromResult</span>(<span class="ident">FastStoreFromResult</span> {
-                <span class="ident">scoreboard</span>: <span class="kw">_</span>,
-                <span class="ident">id</span>,
-                <span class="ident">command</span>,
-            }) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{id} = {command}&quot;</span>),
-            <span class="ident">Node::Write</span>(<span class="ident">WriteMessage</span> { <span class="ident">target</span>, <span class="ident">message</span> }) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;write {target}: {message}&quot;</span>)
+            Node::FastStore(FastStore {
+                scoreboard: <span class="kw">_</span>,
+                id,
+                value,
+            }) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id} = {value}&quot;</span>),
+            Node::FastStoreFromResult(FastStoreFromResult {
+                scoreboard: <span class="kw">_</span>,
+                id,
+                command,
+            }) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id} = {command}&quot;</span>),
+            Node::Write(WriteMessage { target, message }) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;write {target}: {message}&quot;</span>)
             }
-            <span class="ident">Node::Nop</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Nop&quot;</span>),
+            Node::Nop =&gt; f.write_str(<span class="string">&quot;Nop&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

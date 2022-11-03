@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/debris_object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debris_object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/debris_object.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debris_object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -205,207 +199,206 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">any::Any</span>,
-    <span class="ident">cmp</span>::{<span class="ident">Eq</span>, <span class="ident">PartialEq</span>},
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>},
-    <span class="ident">ops::Deref</span>,
-    <span class="ident">rc::Rc</span>,
+</pre><pre class="rust"><code><span class="kw">use </span>debris_common::Ident;
+<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>std::{
+    any::Any,
+    cmp::{Eq, PartialEq},
+    fmt::{<span class="self">self</span>, Debug, Display},
+    ops::Deref,
+    rc::Rc,
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">class::ClassRef</span>, <span class="ident">json_format::JsonFormatComponent</span>, <span class="ident">memory::MemoryLayout</span>,
-    <span class="ident">objects::obj_class::ObjClass</span>,
+<span class="kw">use crate</span>::{
+    class::ClassRef, json_format::JsonFormatComponent, memory::MemoryLayout,
+    objects::obj_class::ObjClass,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">objects::obj_class::HasClass</span>, <span class="ident">type_context::TypeContext</span>};
+<span class="kw">use super</span>::{objects::obj_class::HasClass, type_context::TypeContext};
 
-<span class="doccomment">/// The type of the properties map</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ObjectProperties</span> <span class="op">=</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Ident</span>, <span class="ident">ObjectRef</span><span class="op">&gt;</span>;
+<span class="doccomment">/// The type of the properties map
+</span><span class="kw">pub type </span>ObjectProperties = FxHashMap&lt;Ident, ObjectRef&gt;;
 
-<span class="doccomment">/// This struct is used to pass objects around</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Objects references are read-only, so values that can be modified must be declared in a cell.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectRef</span>(<span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ObjectPayload</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// This struct is used to pass objects around
+///
+/// Objects references are read-only, so values that can be modified must be declared in a cell.
+</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>ObjectRef(Rc&lt;DebrisObject&lt;<span class="kw">dyn </span>ObjectPayload&gt;&gt;);
 
-<span class="doccomment">/// Objects are a central type for the compiler.</span>
-<span class="doccomment">/// Basically anything that can be assigned to a variable is an object.</span>
-<span class="doccomment">/// This includes numbers, function, modules, and more.</span>
-<span class="doccomment">/// It is possible to cast the `ObjectPayload` to its original value.</span>
-<span class="doccomment">/// Because [`DebrisObject`] is unsized, it generally only accessed as [`ObjectRef`]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The class of the object</span>
-    <span class="kw">pub</span> <span class="ident">class</span>: <span class="ident">ClassRef</span>,
-    <span class="doccomment">/// The actual value</span>
-    <span class="kw">pub</span> <span class="ident">payload</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Objects are a central type for the compiler.
+/// Basically anything that can be assigned to a variable is an object.
+/// This includes numbers, function, modules, and more.
+/// It is possible to cast the `ObjectPayload` to its original value.
+/// Because [`DebrisObject`] is unsized, it generally only accessed as [`ObjectRef`]
+</span><span class="kw">pub struct </span>DebrisObject&lt;T: ObjectPayload + <span class="question-mark">?</span>Sized&gt; {
+    <span class="doccomment">/// The class of the object
+    </span><span class="kw">pub </span>class: ClassRef,
+    <span class="doccomment">/// The actual value
+    </span><span class="kw">pub </span>payload: T,
 }
 
-<span class="doccomment">/// A trait for values that can be used as debris object payload</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The private [`ValidPayload`] trait is auto-implemented</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ObjectPayload</span>: <span class="ident">ValidPayload</span> {
-    <span class="doccomment">/// Returns the memory layout of this specific object</span>
-    <span class="doccomment">/// This method is usually only called once</span>
-    <span class="kw">fn</span> <span class="ident">memory_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">MemoryLayout</span>;
+<span class="doccomment">/// A trait for values that can be used as debris object payload
+///
+/// The private [`ValidPayload`] trait is auto-implemented
+</span><span class="kw">pub trait </span>ObjectPayload: ValidPayload {
+    <span class="doccomment">/// Returns the memory layout of this specific object
+    /// This method is usually only called once
+    </span><span class="kw">fn </span>memory_layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MemoryLayout;
 
-    <span class="doccomment">/// The class specific to this object.</span>
-    <span class="doccomment">/// Contains additionally to the class generics and the memory layout</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Per default the default class of the object type</span>
-    <span class="kw">fn</span> <span class="ident">create_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ClassRef</span> {
-        <span class="self">self</span>.<span class="ident">get_static_class</span>(<span class="ident">ctx</span>)
+    <span class="doccomment">/// The class specific to this object.
+    /// Contains additionally to the class generics and the memory layout
+    ///
+    /// Per default the default class of the object type
+    </span><span class="kw">fn </span>create_class(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; ClassRef {
+        <span class="self">self</span>.get_static_class(ctx)
     }
 
-    <span class="doccomment">/// Returns the class which the runtime encodable variant of this object would have.</span>
-    <span class="doccomment">/// Used to determine the class passed into the `promote` method of objects.</span>
-    <span class="kw">fn</span> <span class="ident">runtime_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="doccomment">/// Returns the class which the runtime encodable variant of this object would have.
+    /// Used to determine the class passed into the `promote` method of objects.
+    </span><span class="kw">fn </span>runtime_class(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; <span class="prelude-ty">Option</span>&lt;ClassRef&gt; {
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// May be overwritten by distinct payloads which carry properties</span>
-    <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>, <span class="ident">_ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+    <span class="doccomment">/// May be overwritten by distinct payloads which carry properties
+    </span><span class="kw">fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, _ctx: <span class="kw-2">&amp;</span>TypeContext, _ident: <span class="kw-2">&amp;</span>Ident) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectRef&gt; {
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="doccomment">/// Converts this object into json components so it can be rendered in minecraft chat</span>
-    <span class="kw">fn</span> <span class="ident">json_fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsonFormatComponent</span><span class="op">&gt;</span>) {
-        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">JsonFormatComponent::RawText</span>(<span class="self">self</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()));
-    }
-}
-
-<span class="comment">// Automatically implemented for every supported type</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ValidPayload</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Display</span> <span class="op">+</span> <span class="ident">HasClass</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-    <span class="kw">fn</span> <span class="ident">as_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Any</span>;
-
-    <span class="doccomment">/// Tests whether this object is equal to another object</span>
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span>) -&gt; <span class="ident">bool</span>;
-
-    <span class="kw">fn</span> <span class="ident">into_object</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ObjectRef</span>;
-
-    <span class="kw">fn</span> <span class="ident">get_static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ClassRef</span>;
-}
-
-<span class="comment">// Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)</span>
-<span class="comment">// Cool that it works</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Display</span> <span class="op">+</span> <span class="ident">PartialEq</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">ObjectPayload</span> <span class="op">+</span> <span class="ident">HasClass</span><span class="op">&gt;</span> <span class="ident">ValidPayload</span> <span class="kw">for</span> <span class="ident">T</span> {
-    <span class="kw">fn</span> <span class="ident">as_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Any</span> {
-        <span class="self">self</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Any</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">other</span>
-            .<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
-            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">other</span><span class="op">|</span> <span class="ident">other</span> <span class="op">==</span> <span class="self">self</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">into_object</span>(<span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ObjectRef</span> {
-        <span class="ident">ObjectRef::from_payload</span>(<span class="ident">ctx</span>, <span class="self">self</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_static_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>) -&gt; <span class="ident">ClassRef</span> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">HasClass</span><span class="op">&gt;</span><span class="ident">::static_class</span>(<span class="ident">ctx</span>)
+    <span class="doccomment">/// Converts this object into json components so it can be rendered in minecraft chat
+    </span><span class="kw">fn </span>json_fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>Vec&lt;JsonFormatComponent&gt;) {
+        buf.push(JsonFormatComponent::RawText(<span class="self">self</span>.to_string().into()));
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ObjectRef</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_payload</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ObjectRef</span>(<span class="ident">Rc::new</span>(<span class="ident">DebrisObject</span> {
-            <span class="ident">class</span>: <span class="ident">value</span>.<span class="ident">create_class</span>(<span class="ident">ctx</span>),
-            <span class="ident">payload</span>: <span class="ident">value</span>,
+<span class="comment">// Automatically implemented for every supported type
+</span><span class="kw">pub trait </span>ValidPayload: Debug + Display + HasClass + <span class="lifetime">&#39;static </span>{
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any;
+
+    <span class="doccomment">/// Tests whether this object is equal to another object
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ObjectRef) -&gt; bool;
+
+    <span class="kw">fn </span>into_object(<span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; ObjectRef;
+
+    <span class="kw">fn </span>get_static_class(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; ClassRef;
+}
+
+<span class="comment">// Wow, thats a recursive dependency (ObjectPayload requires ValidPayload which requires ObjectPayload)
+// Cool that it works
+</span><span class="kw">impl</span>&lt;T: Any + Debug + Display + PartialEq + Eq + ObjectPayload + HasClass&gt; ValidPayload <span class="kw">for </span>T {
+    <span class="kw">fn </span>as_any(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Any {
+        <span class="self">self </span><span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Any
+    }
+
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ObjectRef) -&gt; bool {
+        other
+            .downcast_payload::&lt;<span class="self">Self</span>&gt;()
+            .map_or(<span class="bool-val">false</span>, |other| other == <span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>into_object(<span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; ObjectRef {
+        ObjectRef::from_payload(ctx, <span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>get_static_class(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext) -&gt; ClassRef {
+        &lt;<span class="self">Self </span><span class="kw">as </span>HasClass&gt;::static_class(ctx)
+    }
+}
+
+<span class="kw">impl </span>ObjectRef {
+    <span class="kw">pub fn </span>from_payload&lt;T: ObjectPayload&gt;(ctx: <span class="kw-2">&amp;</span>TypeContext, value: T) -&gt; <span class="self">Self </span>{
+        ObjectRef(Rc::new(DebrisObject {
+            class: value.create_class(ctx),
+            payload: value,
         }))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ObjectPayload</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Tries to get a property that belongs to this object</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// First tries to retrieve the property from its payload.</span>
-    <span class="doccomment">/// If that fails, tries to retrieve the property from its class.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">payload</span>
-            .<span class="ident">get_property</span>(<span class="ident">ctx</span>, <span class="ident">ident</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">class</span>.<span class="ident">get_property</span>(<span class="ident">ident</span>))
+<span class="kw">impl </span>DebrisObject&lt;<span class="kw">dyn </span>ObjectPayload&gt; {
+    <span class="doccomment">/// Tries to get a property that belongs to this object
+    ///
+    /// First tries to retrieve the property from its payload.
+    /// If that fails, tries to retrieve the property from its class.
+    </span><span class="kw">pub fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>TypeContext, ident: <span class="kw-2">&amp;</span>Ident) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectRef&gt; {
+        <span class="self">self</span>.payload
+            .get_property(ctx, ident)
+            .or_else(|| <span class="self">self</span>.class.get_property(ident))
     }
 
-    <span class="doccomment">/// Converts the payload into its original type</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns None if the downcast is not possible</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_payload</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">as_any</span>().<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+    <span class="doccomment">/// Converts the payload into its original type
+    ///
+    /// Returns None if the downcast is not possible
+    </span><span class="kw">pub fn </span>downcast_payload&lt;T: ObjectPayload&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="self">self</span>.payload.as_any().downcast_ref::&lt;T&gt;()
     }
 
-    <span class="doccomment">/// Helper function for downcasting the payload into a class</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassRef</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="ident">ObjClass</span><span class="op">&gt;</span>();
-        <span class="ident">class</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">class</span><span class="op">|</span> <span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">class</span>.<span class="ident">class</span>))
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ObjectPayload</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;DebrisObject&quot;</span>)
-            <span class="comment">// Why does it work with a double ref???</span>
-            .<span class="ident">field</span>(<span class="string">&quot;payload&quot;</span>, <span class="op">&amp;&amp;</span><span class="self">self</span>.<span class="ident">payload</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;class&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">class</span>))
-            .<span class="ident">finish</span>()
+    <span class="doccomment">/// Helper function for downcasting the payload into a class
+    </span><span class="kw">pub fn </span>downcast_class(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ClassRef&gt; {
+        <span class="kw">let </span>class = <span class="self">self</span>.downcast_payload::&lt;ObjClass&gt;();
+        class.map(|class| Rc::clone(<span class="kw-2">&amp;</span>class.class))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjectRef</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">payload</span>;
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{payload}&quot;</span>)
+<span class="kw">impl </span>Debug <span class="kw">for </span>DebrisObject&lt;<span class="kw">dyn </span>ObjectPayload&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;DebrisObject&quot;</span>)
+            <span class="comment">// Why does it work with a double ref???
+            </span>.field(<span class="string">&quot;payload&quot;</span>, &amp;&amp;<span class="self">self</span>.payload)
+            .field(<span class="string">&quot;class&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.class))
+            .finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ObjectRef</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectRef</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">eq</span>(<span class="ident">other</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ObjectRef {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>payload = <span class="kw-2">&amp;</span><span class="self">self</span>.payload;
+        <span class="macro">write!</span>(f, <span class="string">&quot;{payload}&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">ObjectRef</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ObjectPayload</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ObjectRef</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">object</span>: <span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ObjectRef</span>(<span class="ident">Rc::new</span>(<span class="ident">object</span>))
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>ObjectRef {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ObjectRef) -&gt; bool {
+        <span class="self">self</span>.payload.eq(other)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">ObjectRef</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">DebrisObject</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ObjectPayload</span><span class="op">&gt;</span>;
+<span class="kw">impl </span>Eq <span class="kw">for </span>ObjectRef {}
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
+<span class="kw">impl</span>&lt;T: ObjectPayload&gt; From&lt;DebrisObject&lt;T&gt;&gt; <span class="kw">for </span>ObjectRef {
+    <span class="kw">fn </span>from(object: DebrisObject&lt;T&gt;) -&gt; <span class="self">Self </span>{
+        ObjectRef(Rc::new(object))
     }
 }
 
-<span class="doccomment">/// Helper macro that makes match-style semantics available for duck typed objects</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```ignore</span>
-<span class="doccomment">/// match_object!{obj,</span>
-<span class="doccomment">///     string: ObjString =&gt; do_something_with_string(string),</span>
-<span class="doccomment">///     int: ObjInt =&gt; do_something_with_int(int),</span>
-<span class="doccomment">///     else =&gt; some_fallback_behavior(obj),</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">match_object</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">ident</span>, ) =&gt; {{}};
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">ident</span>, <span class="kw">else</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>,) =&gt; {
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>
-    };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>.<span class="ident">downcast_payload</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>() {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expr</span>
-        } <span class="kw">else</span> {
-            <span class="macro">match_object!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>)
+<span class="kw">impl </span>Deref <span class="kw">for </span>ObjectRef {
+    <span class="kw">type </span>Target = DebrisObject&lt;<span class="kw">dyn </span>ObjectPayload&gt;;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="doccomment">/// Helper macro that makes match-style semantics available for duck typed objects
+/// # Example
+/// ```ignore
+/// match_object!{obj,
+///     string: ObjString =&gt; do_something_with_string(string),
+///     int: ObjInt =&gt; do_something_with_int(int),
+///     else =&gt; some_fallback_behavior(obj),
+/// }
+/// ```
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules! </span>match_object {
+    (<span class="macro-nonterminal">$obj</span>:ident, ) =&gt; {{}};
+    (<span class="macro-nonterminal">$obj</span>:ident, <span class="kw">else </span>=&gt; <span class="macro-nonterminal">$expr</span>:expr,) =&gt; {
+        <span class="macro-nonterminal">$expr
+    </span>};
+    (<span class="macro-nonterminal">$obj</span>:ident, <span class="macro-nonterminal">$name</span>:ident: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty </span>=&gt; <span class="macro-nonterminal">$expr</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="macro-nonterminal">$name</span>) = <span class="macro-nonterminal">$obj</span>.downcast_payload::&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&gt;() {
+            <span class="macro-nonterminal">$expr
+        </span>} <span class="kw">else </span>{
+            <span class="macro">match_object!</span>(<span class="macro-nonterminal">$obj</span>, $(<span class="macro-nonterminal">$rest</span>)<span class="kw-2">*</span>)
         }
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

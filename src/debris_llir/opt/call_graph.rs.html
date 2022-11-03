@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/call_graph.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/opt/call_graph.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../debris_llir/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -176,178 +170,177 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">fmt</span>, <span class="ident">num::NonZeroU32</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::{cmp::Ordering, fmt, num::NonZeroU32};
 
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 
-<span class="kw">use</span> <span class="ident">debris_common::graph</span>::{<span class="ident">GraphDfs</span>, <span class="ident">GraphLoopDetector</span>, <span class="ident">GraphMatrix</span>};
+<span class="kw">use </span>debris_common::graph::{GraphDfs, GraphLoopDetector, GraphMatrix};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">block_id::BlockId</span>,
-    <span class="ident">llir_nodes</span>::{<span class="ident">Call</span>, <span class="ident">Function</span>, <span class="ident">Node</span>},
+<span class="kw">use crate</span>::{
+    block_id::BlockId,
+    llir_nodes::{Call, Function, Node},
 };
 
-<span class="kw">fn</span> <span class="ident">graph_for</span>(<span class="ident">functions</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>) -&gt; <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">graph</span> <span class="op">=</span> <span class="ident">GraphMatrix</span>::<span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span><span class="ident">::new</span>(
-        (<span class="ident">functions</span>.<span class="ident">keys</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">block</span><span class="op">|</span> <span class="ident">block</span>.<span class="number">0</span>).<span class="ident">max</span>().<span class="ident">unwrap</span>() <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">usize</span>,
+<span class="kw">fn </span>graph_for(functions: <span class="kw-2">&amp;</span>FxHashMap&lt;BlockId, Function&gt;) -&gt; GraphMatrix&lt;NonZeroU32&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>graph = GraphMatrix::&lt;NonZeroU32&gt;::new(
+        (functions.keys().map(|block| block.<span class="number">0</span>).max().unwrap() + <span class="number">1</span>) <span class="kw">as </span>usize,
     );
-    <span class="kw">for</span> (<span class="ident">block_id</span>, <span class="ident">function</span>) <span class="kw">in</span> <span class="ident">functions</span> {
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
-            <span class="ident">node</span>.<span class="ident">scan</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">node</span> {
-                    <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="ident">graph</span>[<span class="ident">block_id</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>][<span class="ident">id</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                        <span class="prelude-val">Some</span>(<span class="ident">cnt</span>) =&gt; <span class="kw-2">*</span><span class="ident">cnt</span> <span class="op">=</span> <span class="ident">NonZeroU32::new</span>(<span class="ident">cnt</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>).<span class="ident">unwrap</span>(),
-                        <span class="ident">value</span> @ <span class="prelude-val">None</span> =&gt; <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">NonZeroU32::new</span>(<span class="number">1</span>).<span class="ident">unwrap</span>()),
+    <span class="kw">for </span>(block_id, function) <span class="kw">in </span>functions {
+        <span class="kw">for </span>node <span class="kw">in </span>function.nodes() {
+            node.scan(<span class="kw-2">&amp;mut </span>|node| {
+                <span class="kw">if let </span>Node::Call(Call { id }) = node {
+                    <span class="kw">match </span><span class="kw-2">&amp;mut </span>graph[block_id.<span class="number">0 </span><span class="kw">as </span>usize][id.<span class="number">0 </span><span class="kw">as </span>usize] {
+                        <span class="prelude-val">Some</span>(cnt) =&gt; <span class="kw-2">*</span>cnt = NonZeroU32::new(cnt.get() + <span class="number">1</span>).unwrap(),
+                        value @ <span class="prelude-val">None </span>=&gt; <span class="kw-2">*</span>value = <span class="prelude-val">Some</span>(NonZeroU32::new(<span class="number">1</span>).unwrap()),
                     }
                 }
             });
         }
     }
 
-    <span class="ident">graph</span>
+    graph
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallGraph</span> {
-    <span class="ident">graph</span>: <span class="ident">GraphMatrix</span><span class="op">&lt;</span><span class="ident">NonZeroU32</span><span class="op">&gt;</span>,
-    <span class="ident">loop_detector</span>: <span class="ident">GraphLoopDetector</span>,
-    <span class="ident">visitor</span>: <span class="ident">GraphDfs</span>,
+<span class="kw">pub struct </span>CallGraph {
+    graph: GraphMatrix&lt;NonZeroU32&gt;,
+    loop_detector: GraphLoopDetector,
+    visitor: GraphDfs,
 }
 
-<span class="kw">impl</span> <span class="ident">CallGraph</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">functions</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">graph</span> <span class="op">=</span> <span class="ident">graph_for</span>(<span class="ident">functions</span>);
+<span class="kw">impl </span>CallGraph {
+    <span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, functions: <span class="kw-2">&amp;</span>FxHashMap&lt;BlockId, Function&gt;) {
+        <span class="self">self</span>.graph = graph_for(functions);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_called_functions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">function</span>: <span class="ident">BlockId</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BlockId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <span class="self">self</span>.<span class="ident">graph</span>
-            .<span class="ident">edges</span>(<span class="ident">function</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">BlockId</span>(<span class="ident">id</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()))
+    <span class="kw">pub fn </span>get_called_functions(<span class="kw-2">&amp;</span><span class="self">self</span>, function: BlockId) -&gt; <span class="kw">impl </span>Iterator&lt;Item = BlockId&gt; + <span class="lifetime">&#39;_ </span>{
+        <span class="self">self</span>.graph
+            .edges(function.<span class="number">0 </span><span class="kw">as </span>usize)
+            .map(|id| BlockId(id.try_into().unwrap()))
     }
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::cast_sign_loss</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modify_call</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">caller</span>: <span class="ident">BlockId</span>, <span class="ident">called_block</span>: <span class="ident">BlockId</span>, <span class="ident">delta</span>: <span class="ident">i32</span>) {
-        <span class="kw">match</span> <span class="ident">delta</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="number">0</span>) {
-            <span class="ident">Ordering::Equal</span> =&gt; {}
-            <span class="ident">Ordering::Greater</span> =&gt; {
-                <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">graph</span>[<span class="ident">caller</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>][<span class="ident">called_block</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                    <span class="prelude-val">Some</span>(<span class="ident">cnt</span>) =&gt; <span class="kw-2">*</span><span class="ident">cnt</span> <span class="op">=</span> <span class="ident">NonZeroU32::new</span>(<span class="ident">cnt</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="ident">delta</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>(),
-                    <span class="ident">value</span> @ <span class="prelude-val">None</span> =&gt; <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">NonZeroU32::new</span>(<span class="ident">delta</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>()),
+    <span class="attr">#[allow(clippy::cast_sign_loss)]
+    </span><span class="kw">pub fn </span>modify_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caller: BlockId, called_block: BlockId, delta: i32) {
+        <span class="kw">match </span>delta.cmp(<span class="kw-2">&amp;</span><span class="number">0</span>) {
+            Ordering::Equal =&gt; {}
+            Ordering::Greater =&gt; {
+                <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.graph[caller.<span class="number">0 </span><span class="kw">as </span>usize][called_block.<span class="number">0 </span><span class="kw">as </span>usize] {
+                    <span class="prelude-val">Some</span>(cnt) =&gt; <span class="kw-2">*</span>cnt = NonZeroU32::new(cnt.get() + delta <span class="kw">as </span>u32).unwrap(),
+                    value @ <span class="prelude-val">None </span>=&gt; <span class="kw-2">*</span>value = <span class="prelude-val">Some</span>(NonZeroU32::new(delta <span class="kw">as </span>u32).unwrap()),
                 }
             }
-            <span class="ident">Ordering::Less</span> =&gt; <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">graph</span>[<span class="ident">caller</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>][<span class="ident">called_block</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                <span class="prelude-val">Some</span>(<span class="ident">cnt</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">new_value</span> <span class="op">=</span> <span class="ident">cnt</span>.<span class="ident">get</span>().<span class="ident">checked_sub</span>(<span class="ident">delta</span>.<span class="ident">unsigned_abs</span>()).<span class="ident">unwrap</span>();
-                    <span class="kw">if</span> <span class="ident">new_value</span> <span class="op">==</span> <span class="number">0</span> {
-                        <span class="self">self</span>.<span class="ident">graph</span>[<span class="ident">caller</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>][<span class="ident">called_block</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> <span class="prelude-val">None</span>;
-                    } <span class="kw">else</span> {
-                        <span class="kw-2">*</span><span class="ident">cnt</span> <span class="op">=</span> <span class="ident">NonZeroU32::new</span>(<span class="ident">new_value</span>).<span class="ident">unwrap</span>();
+            Ordering::Less =&gt; <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.graph[caller.<span class="number">0 </span><span class="kw">as </span>usize][called_block.<span class="number">0 </span><span class="kw">as </span>usize] {
+                <span class="prelude-val">Some</span>(cnt) =&gt; {
+                    <span class="kw">let </span>new_value = cnt.get().checked_sub(delta.unsigned_abs()).unwrap();
+                    <span class="kw">if </span>new_value == <span class="number">0 </span>{
+                        <span class="self">self</span>.graph[caller.<span class="number">0 </span><span class="kw">as </span>usize][called_block.<span class="number">0 </span><span class="kw">as </span>usize] = <span class="prelude-val">None</span>;
+                    } <span class="kw">else </span>{
+                        <span class="kw-2">*</span>cnt = NonZeroU32::new(new_value).unwrap();
                     }
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Cannot remove call from a function which gets never called&quot;</span>),
+                <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Cannot remove call from a function which gets never called&quot;</span>),
             },
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">BlockId</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">loop_detector</span>.<span class="ident">has_loop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">graph</span>, <span class="ident">start</span>.<span class="number">0</span>)
+    <span class="kw">pub fn </span>has_loop(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: BlockId) -&gt; bool {
+        <span class="self">self</span>.loop_detector.has_loop(<span class="kw-2">&amp;</span><span class="self">self</span>.graph, start.<span class="number">0</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_dfs</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">root</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BlockId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-    ) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BlockId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span> {
-        <span class="self">self</span>.<span class="ident">visitor</span>
-            .<span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">graph</span>, <span class="ident">root</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">id</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> <span class="ident">BlockId</span>(<span class="ident">val</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>()))
+    <span class="kw">pub fn </span>iter_dfs&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+        root: <span class="kw">impl </span>Iterator&lt;Item = BlockId&gt; + <span class="lifetime">&#39;a</span>,
+    ) -&gt; <span class="kw">impl </span>Iterator&lt;Item = BlockId&gt; + <span class="lifetime">&#39;a </span>{
+        <span class="self">self</span>.visitor
+            .iter(<span class="kw-2">&amp;</span><span class="self">self</span>.graph, root.map(|id| id.<span class="number">0 </span><span class="kw">as </span>usize))
+            .map(|val| BlockId(val.try_into().unwrap()))
     }
 
-    <span class="doccomment">/// Returns a set of all functions that can be reached from `root`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_reachable_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">root</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">BlockId</span><span class="op">&gt;</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reachable</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pending</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">root</span>.<span class="ident">collect</span>();
+    <span class="doccomment">/// Returns a set of all functions that can be reached from `root`
+    </span><span class="kw">pub fn </span>get_reachable_from(<span class="kw-2">&amp;</span><span class="self">self</span>, root: <span class="kw">impl </span>Iterator&lt;Item = BlockId&gt;) -&gt; FxHashSet&lt;BlockId&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>reachable = FxHashSet::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>pending: FxHashSet&lt;BlockId&gt; = root.collect();
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">pending</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">next</span>;
-            <span class="ident">pending</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>);
-            <span class="ident">reachable</span>.<span class="ident">insert</span>(<span class="ident">next</span>);
-            <span class="kw">for</span> <span class="ident">other</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">get_called_functions</span>(<span class="ident">next</span>) {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">reachable</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>) {
-                    <span class="ident">pending</span>.<span class="ident">insert</span>(<span class="ident">other</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(next) = pending.iter().next() {
+            <span class="kw">let </span>next = <span class="kw-2">*</span>next;
+            pending.remove(<span class="kw-2">&amp;</span>next);
+            reachable.insert(next);
+            <span class="kw">for </span>other <span class="kw">in </span><span class="self">self</span>.get_called_functions(next) {
+                <span class="kw">if </span>!reachable.contains(<span class="kw-2">&amp;</span>other) {
+                    pending.insert(other);
                 }
             }
         }
 
-        <span class="ident">reachable</span>
+        reachable
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CallGraph</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">functions</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">graph</span>: <span class="ident">graph_for</span>(<span class="ident">functions</span>),
-            <span class="ident">loop_detector</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">visitor</span>: <span class="ident">Default::default</span>(),
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>FxHashMap&lt;BlockId, Function&gt;&gt; <span class="kw">for </span>CallGraph {
+    <span class="kw">fn </span>from(functions: <span class="kw-2">&amp;</span>FxHashMap&lt;BlockId, Function&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            graph: graph_for(functions),
+            loop_detector: Default::default(),
+            visitor: Default::default(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">CallGraph</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">row</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">graph</span>.<span class="ident">rows</span>().<span class="ident">enumerate</span>() {
-            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{index}: &quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> (<span class="ident">column</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">row</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">value</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{column}({val}) &quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>CallGraph {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">for </span>(index, row) <span class="kw">in </span><span class="self">self</span>.graph.rows().enumerate() {
+            <span class="macro">write!</span>(f, <span class="string">&quot;{index}: &quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">for </span>(column, value) <span class="kw">in </span>row.iter().enumerate() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = value {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;{column}({val}) &quot;</span>)<span class="question-mark">?</span>;
                 }
             }
-            <span class="macro">writeln!</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(f)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InfiniteLoopDetector</span> {
-    <span class="ident">visited_functions</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
-    <span class="ident">pending_functions</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">BlockId</span><span class="op">&gt;</span>,
+<span class="attr">#[derive(Default)]
+</span><span class="kw">pub struct </span>InfiniteLoopDetector {
+    visited_functions: FxHashSet&lt;BlockId&gt;,
+    pending_functions: FxHashSet&lt;BlockId&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">InfiniteLoopDetector</span> {
-    <span class="doccomment">/// This function returns true if start definitely contains an infinite loop.</span>
-    <span class="doccomment">/// It might return false negatives, as it can&#39;t solve the halting problem.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">detect_infinite_loop</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">functions</span>: <span class="kw-2">&amp;</span><span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">BlockId</span>, <span class="ident">Function</span><span class="op">&gt;</span>,
-        <span class="ident">start</span>: <span class="ident">BlockId</span>,
-    ) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">clear</span>();
-        <span class="self">self</span>.<span class="ident">pending_functions</span>.<span class="ident">clear</span>();
+<span class="kw">impl </span>InfiniteLoopDetector {
+    <span class="doccomment">/// This function returns true if start definitely contains an infinite loop.
+    /// It might return false negatives, as it can&#39;t solve the halting problem.
+    </span><span class="kw">pub fn </span>detect_infinite_loop(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        functions: <span class="kw-2">&amp;</span>FxHashMap&lt;BlockId, Function&gt;,
+        start: BlockId,
+    ) -&gt; bool {
+        <span class="self">self</span>.visited_functions.clear();
+        <span class="self">self</span>.pending_functions.clear();
 
-        <span class="self">self</span>.<span class="ident">pending_functions</span>.<span class="ident">insert</span>(<span class="ident">start</span>);
+        <span class="self">self</span>.pending_functions.insert(start);
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_block</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pending_functions</span>.<span class="ident">iter</span>().<span class="ident">next</span>() {
-            <span class="kw">let</span> <span class="ident">current_block</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">current_block</span>;
-            <span class="self">self</span>.<span class="ident">pending_functions</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">current_block</span>);
-            <span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">insert</span>(<span class="ident">current_block</span>);
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(current_block) = <span class="self">self</span>.pending_functions.iter().next() {
+            <span class="kw">let </span>current_block = <span class="kw-2">*</span>current_block;
+            <span class="self">self</span>.pending_functions.remove(<span class="kw-2">&amp;</span>current_block);
+            <span class="self">self</span>.visited_functions.insert(current_block);
 
-            <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">functions</span>[<span class="kw-2">&amp;</span><span class="ident">current_block</span>];
-            <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">function</span>.<span class="ident">nodes</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Call</span>(<span class="ident">Call</span> { <span class="ident">id</span> }) <span class="op">=</span> <span class="ident">node</span> {
-                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">visited_functions</span>.<span class="ident">contains</span>(<span class="ident">id</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">pending_functions</span>.<span class="ident">contains</span>(<span class="ident">id</span>)
+            <span class="kw">let </span>function = <span class="kw-2">&amp;</span>functions[<span class="kw-2">&amp;</span>current_block];
+            <span class="kw">for </span>node <span class="kw">in </span>function.nodes() {
+                <span class="kw">if let </span>Node::Call(Call { id }) = node {
+                    <span class="kw">if </span>!<span class="self">self</span>.visited_functions.contains(id) &amp;&amp; !<span class="self">self</span>.pending_functions.contains(id)
                     {
-                        <span class="self">self</span>.<span class="ident">pending_functions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">id</span>);
+                        <span class="self">self</span>.pending_functions.insert(<span class="kw-2">*</span>id);
                     }
-                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">id</span> <span class="op">==</span> <span class="ident">start</span> {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
+                    <span class="kw">if </span><span class="kw-2">*</span>id == start {
+                        <span class="kw">return </span><span class="bool-val">true</span>;
                     }
                 }
             }
         }
 
-        <span class="bool-val">false</span>
-    }
+        <span class="bool-val">false
+    </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/class.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>class.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_llir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/llir/src/class.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>class.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_llir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -269,271 +263,270 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module defines classes.</span>
-<span class="doccomment">//! The concept of a class should be similar to the equivalent concept</span>
-<span class="doccomment">//! in other languages.</span>
-<span class="doccomment">//! Every value (`object`) has a class.</span>
-<span class="doccomment">//! Builtin values have a class with an associated type, while</span>
-<span class="doccomment">//! user defined classes, like structs, carry a reference to the concrete struct.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module defines classes.
+//! The concept of a class should be similar to the equivalent concept
+//! in other languages.
+//! Every value (`object`) has a class.
+//! Builtin values have a class with an associated type, while
+//! user defined classes, like structs, carry a reference to the concrete struct.
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">rc::Rc</span>};
+</span><span class="kw">use </span>std::{fmt, rc::Rc};
 
-<span class="kw">use</span> <span class="ident">debris_common::Ident</span>;
-<span class="kw">use</span> <span class="ident">once_cell::unsync::OnceCell</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use </span>debris_common::Ident;
+<span class="kw">use </span>once_cell::unsync::OnceCell;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">item_id::ItemIdAllocator</span>,
-    <span class="ident">objects</span>::{
-        <span class="ident">obj_bool::ObjBool</span>,
-        <span class="ident">obj_function::FunctionClassRef</span>,
-        <span class="ident">obj_int::ObjInt</span>,
-        <span class="ident">obj_never::ObjNever</span>,
-        <span class="ident">obj_null::ObjNull</span>,
-        <span class="ident">obj_struct::StructRef</span>,
-        <span class="ident">obj_struct_object::ObjStructObject</span>,
-        <span class="ident">obj_tuple_object</span>::{<span class="ident">ObjTupleObject</span>, <span class="ident">TupleRef</span>},
+<span class="kw">use crate</span>::{
+    item_id::ItemIdAllocator,
+    objects::{
+        obj_bool::ObjBool,
+        obj_function::FunctionClassRef,
+        obj_int::ObjInt,
+        obj_never::ObjNever,
+        obj_null::ObjNull,
+        obj_struct::StructRef,
+        obj_struct_object::ObjStructObject,
+        obj_tuple_object::{ObjTupleObject, TupleRef},
     },
-    <span class="ident">ObjectProperties</span>, <span class="ident">ObjectRef</span>, <span class="ident">Type</span>, <span class="ident">ValidPayload</span>,
+    ObjectProperties, ObjectRef, Type, ValidPayload,
 };
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::type_context::TypeContext</span>;
+<span class="kw">use </span><span class="kw">super</span>::type_context::TypeContext;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ClassRef</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Class</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>ClassRef = Rc&lt;Class&gt;;
 
-<span class="doccomment">/// An enum over every type that exists in debris.</span>
-<span class="doccomment">/// Either a simple [`Type`] or a complex type with additional data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Most complex types come in two variants: As a pattern and as a value.</span>
-<span class="doccomment">/// A pattern could be e.g. a struct which may be required in a function definition as parameter.</span>
-<span class="doccomment">/// The value would then be the struct object that can actually be passed to that function.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ClassKind</span> {
-    <span class="ident">Type</span>(<span class="ident">Type</span>),
-    <span class="ident">Struct</span>(<span class="ident">StructRef</span>),
-    <span class="ident">StructValue</span>(<span class="ident">StructRef</span>),
-    <span class="ident">Tuple</span>(<span class="ident">TupleRef</span>),
-    <span class="ident">TupleValue</span>(<span class="ident">TupleRef</span>),
-    <span class="ident">Function</span>(<span class="ident">FunctionClassRef</span>),
+<span class="doccomment">/// An enum over every type that exists in debris.
+/// Either a simple [`Type`] or a complex type with additional data.
+///
+/// Most complex types come in two variants: As a pattern and as a value.
+/// A pattern could be e.g. a struct which may be required in a function definition as parameter.
+/// The value would then be the struct object that can actually be passed to that function.
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>ClassKind {
+    Type(Type),
+    Struct(StructRef),
+    StructValue(StructRef),
+    Tuple(TupleRef),
+    TupleValue(TupleRef),
+    Function(FunctionClassRef),
 }
 
-<span class="kw">impl</span> <span class="ident">ClassKind</span> {
-    <span class="doccomment">/// Changes all types to their respective objects, e.g. `Struct` =&gt; `StructObject`.</span>
-    <span class="doccomment">/// This can be used to figure out the [`ClassKind`] that matches on this kind</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns [`None`] if this is already an object variant</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassKind</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ClassKind::StructValue</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="ident">ClassKind::Type</span>(<span class="kw-2">*</span><span class="ident">typ</span>),
-            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) =&gt; <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>.<span class="ident">clone</span>()),
-            <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>.<span class="ident">clone</span>()),
-            <span class="ident">ClassKind::Function</span>(<span class="ident">function</span>) =&gt; <span class="ident">ClassKind::Function</span>(<span class="ident">function</span>.<span class="ident">clone</span>()),
+<span class="kw">impl </span>ClassKind {
+    <span class="doccomment">/// Changes all types to their respective objects, e.g. `Struct` =&gt; `StructObject`.
+    /// This can be used to figure out the [`ClassKind`] that matches on this kind
+    ///
+    /// Returns [`None`] if this is already an object variant
+    </span><span class="kw">pub fn </span>as_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ClassKind&gt; {
+        <span class="kw">let </span>value = <span class="kw">match </span><span class="self">self </span>{
+            ClassKind::StructValue(<span class="kw">_</span>) | ClassKind::TupleValue(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+            ClassKind::Type(typ) =&gt; ClassKind::Type(<span class="kw-2">*</span>typ),
+            ClassKind::Struct(strukt) =&gt; ClassKind::StructValue(strukt.clone()),
+            ClassKind::Tuple(tuple) =&gt; ClassKind::TupleValue(tuple.clone()),
+            ClassKind::Function(function) =&gt; ClassKind::Function(function.clone()),
         };
-        <span class="prelude-val">Some</span>(<span class="ident">value</span>)
+        <span class="prelude-val">Some</span>(value)
     }
 
-    <span class="doccomment">/// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.</span>
-    <span class="doccomment">/// For example, a struct object can match on a struct, if the underlying struct is equal.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ClassKind</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>), <span class="ident">other</span>) =&gt; <span class="ident">typ</span>.<span class="ident">matches</span>(<span class="ident">other</span>.<span class="ident">typ</span>()),
-            <span class="comment">// Cases when a specific struct is expected and other is an instance of that struct</span>
-            (<span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>), <span class="ident">ClassKind::StructValue</span>(<span class="ident">other_strukt</span>)) =&gt; {
-                <span class="ident">strukt</span> <span class="op">==</span> <span class="ident">other_strukt</span>
+    <span class="doccomment">/// Returns whether the other class kind matches this class kind if this is interpreted as a pattern.
+    /// For example, a struct object can match on a struct, if the underlying struct is equal.
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ClassKind) -&gt; bool {
+        <span class="kw">match </span>(<span class="self">self</span>, other) {
+            (ClassKind::Type(typ), other) =&gt; typ.matches(other.typ()),
+            <span class="comment">// Cases when a specific struct is expected and other is an instance of that struct
+            </span>(ClassKind::Struct(strukt), ClassKind::StructValue(other_strukt)) =&gt; {
+                strukt == other_strukt
             }
-            (<span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>), <span class="ident">ClassKind::TupleValue</span>(<span class="ident">other_tuple</span>)) =&gt; {
-                <span class="ident">tuple</span>.<span class="ident">matches</span>(<span class="ident">other_tuple</span>)
+            (ClassKind::Tuple(tuple), ClassKind::TupleValue(other_tuple)) =&gt; {
+                tuple.matches(other_tuple)
             }
-            (<span class="ident">ClassKind::Function</span>(<span class="ident">function</span>), <span class="ident">ClassKind::Function</span>(<span class="ident">other_function</span>)) =&gt; {
-                <span class="ident">function</span>.<span class="ident">matches</span>(<span class="ident">other_function</span>)
+            (ClassKind::Function(function), ClassKind::Function(other_function)) =&gt; {
+                function.matches(other_function)
             }
-            (<span class="ident">ClassKind::Function</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ClassKind::Struct</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ClassKind::Tuple</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            (<span class="ident">ClassKind::StructValue</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; {
+            (ClassKind::Function(<span class="kw">_</span>) | ClassKind::Struct(<span class="kw">_</span>) | ClassKind::Tuple(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            (ClassKind::StructValue(<span class="kw">_</span>) | ClassKind::TupleValue(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;Cannot match against concrete objects&quot;</span>)
             }
         }
     }
 
-    <span class="doccomment">/// Returns whether this value diverges, aka is impossible to construct.</span>
-    <span class="doccomment">/// A diverging class can match on any pattern.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is also used for some optimizations</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diverges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ClassKind::Function</span>(<span class="ident">function</span>) =&gt; <span class="ident">function</span>.<span class="ident">diverges</span>(),
-            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) <span class="op">|</span> <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; <span class="ident">strukt</span>.<span class="ident">diverges</span>(),
-            <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">tuple</span>.<span class="ident">diverges</span>(),
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="ident">typ</span>.<span class="ident">diverges</span>(),
+    <span class="doccomment">/// Returns whether this value diverges, aka is impossible to construct.
+    /// A diverging class can match on any pattern.
+    ///
+    /// This is also used for some optimizations
+    </span><span class="kw">pub fn </span>diverges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            ClassKind::Function(function) =&gt; function.diverges(),
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) =&gt; strukt.diverges(),
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) =&gt; tuple.diverges(),
+            ClassKind::Type(typ) =&gt; typ.diverges(),
         }
     }
 
-    <span class="doccomment">/// Returns the simple [`Type`] of this [`ClassKind`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">typ</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Type</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="kw-2">*</span><span class="ident">typ</span>,
-            <span class="ident">ClassKind::Struct</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Struct</span>,
-            <span class="ident">ClassKind::StructValue</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::StructObject</span>,
-            <span class="ident">ClassKind::Tuple</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Tuple</span>,
-            <span class="ident">ClassKind::TupleValue</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::TupleObject</span>,
-            <span class="ident">ClassKind::Function</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Function</span>,
+    <span class="doccomment">/// Returns the simple [`Type`] of this [`ClassKind`]
+    </span><span class="kw">pub fn </span>typ(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Type {
+        <span class="kw">match </span><span class="self">self </span>{
+            ClassKind::Type(typ) =&gt; <span class="kw-2">*</span>typ,
+            ClassKind::Struct(<span class="kw">_</span>) =&gt; Type::Struct,
+            ClassKind::StructValue(<span class="kw">_</span>) =&gt; Type::StructObject,
+            ClassKind::Tuple(<span class="kw">_</span>) =&gt; Type::Tuple,
+            ClassKind::TupleValue(<span class="kw">_</span>) =&gt; Type::TupleObject,
+            ClassKind::Function(<span class="kw">_</span>) =&gt; Type::Function,
         }
     }
 
-    <span class="doccomment">/// Returns whether this type can be fully encoded at runtime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="ident">typ</span>.<span class="ident">runtime_encodable</span>(),
-            <span class="ident">ClassKind::Struct</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Struct</span>.<span class="ident">runtime_encodable</span>(),
-            <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; <span class="ident">strukt</span>.<span class="ident">runtime_encodable</span>(),
-            <span class="ident">ClassKind::Tuple</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Tuple</span>.<span class="ident">runtime_encodable</span>(),
-            <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">tuple</span>.<span class="ident">runtime_encodable</span>(),
-            <span class="ident">ClassKind::Function</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Function</span>.<span class="ident">runtime_encodable</span>(),
+    <span class="doccomment">/// Returns whether this type can be fully encoded at runtime.
+    </span><span class="kw">pub fn </span>runtime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            ClassKind::Type(typ) =&gt; typ.runtime_encodable(),
+            ClassKind::Struct(<span class="kw">_</span>) =&gt; Type::Struct.runtime_encodable(),
+            ClassKind::StructValue(strukt) =&gt; strukt.runtime_encodable(),
+            ClassKind::Tuple(<span class="kw">_</span>) =&gt; Type::Tuple.runtime_encodable(),
+            ClassKind::TupleValue(tuple) =&gt; tuple.runtime_encodable(),
+            ClassKind::Function(<span class="kw">_</span>) =&gt; Type::Function.runtime_encodable(),
         }
     }
 
-    <span class="doccomment">/// Returns whether this type can be fully encoded at compile time.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">comptime_encodable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="ident">typ</span>.<span class="ident">comptime_encodable</span>(),
-            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) <span class="op">|</span> <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; {
-                <span class="ident">strukt</span>.<span class="ident">comptime_encodable</span>()
+    <span class="doccomment">/// Returns whether this type can be fully encoded at compile time.
+    </span><span class="kw">pub fn </span>comptime_encodable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            ClassKind::Type(typ) =&gt; typ.comptime_encodable(),
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) =&gt; {
+                strukt.comptime_encodable()
             }
-            <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">tuple</span>.<span class="ident">comptime_encodable</span>(),
-            <span class="ident">ClassKind::Function</span>(<span class="kw">_</span>) =&gt; <span class="ident">Type::Function</span>.<span class="ident">comptime_encodable</span>(),
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) =&gt; tuple.comptime_encodable(),
+            ClassKind::Function(<span class="kw">_</span>) =&gt; Type::Function.comptime_encodable(),
         }
     }
 }
 
-<span class="doccomment">/// A class combines [`ClassKind`] and corresponding properties (Mostly associated methods).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Class</span> {
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">ClassKind</span>,
-    <span class="kw">pub</span> <span class="ident">properties</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">ObjectProperties</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A class combines [`ClassKind`] and corresponding properties (Mostly associated methods).
+</span><span class="attr">#[derive(PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Class {
+    <span class="kw">pub </span>kind: ClassKind,
+    <span class="kw">pub </span>properties: OnceCell&lt;ObjectProperties&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Class</span> {
-    <span class="doccomment">/// Constructs a new class with an empty properties map</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_empty</span>(<span class="ident">kind</span>: <span class="ident">ClassKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">OnceCell::new</span>();
-        <span class="ident">cell</span>.<span class="ident">set</span>(<span class="ident">ObjectProperties::default</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">Class</span> {
-            <span class="ident">kind</span>,
-            <span class="ident">properties</span>: <span class="ident">cell</span>,
+<span class="kw">impl </span>Class {
+    <span class="doccomment">/// Constructs a new class with an empty properties map
+    </span><span class="kw">pub fn </span>new_empty(kind: ClassKind) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>cell = OnceCell::new();
+        cell.set(ObjectProperties::default()).unwrap();
+        Class {
+            kind,
+            properties: cell,
         }
     }
 
-    <span class="doccomment">/// Returns if the value class `other` matches this pattern</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Class</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">kind</span>)
+    <span class="doccomment">/// Returns if the value class `other` matches this pattern
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Class) -&gt; bool {
+        <span class="self">self</span>.kind.matches(<span class="kw-2">&amp;</span>other.kind)
     }
 
-    <span class="doccomment">/// Returns whether the other class has the same type as this class or diverges.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Class</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">typ</span>().<span class="ident">matches</span>(<span class="ident">other</span>.<span class="ident">kind</span>.<span class="ident">typ</span>())
+    <span class="doccomment">/// Returns whether the other class has the same type as this class or diverges.
+    </span><span class="kw">pub fn </span>matches_type(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Class) -&gt; bool {
+        <span class="self">self</span>.kind.typ().matches(other.kind.typ())
     }
 
-    <span class="doccomment">/// Whether it is impossible to construct a value of this class</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diverges</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">kind</span>.<span class="ident">diverges</span>()
+    <span class="doccomment">/// Whether it is impossible to construct a value of this class
+    </span><span class="kw">pub fn </span>diverges(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.kind.diverges()
     }
 
-    <span class="doccomment">/// Returns a property of this class</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">/// panics if this class is not initialized yet</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">properties</span>
-            .<span class="ident">get</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Cannot get property on uninitialized class&quot;</span>)
-            .<span class="ident">get</span>(<span class="ident">ident</span>)
-            .<span class="ident">cloned</span>()
+    <span class="doccomment">/// Returns a property of this class
+    ///
+    /// # Panics
+    /// panics if this class is not initialized yet
+    </span><span class="kw">pub fn </span>get_property(<span class="kw-2">&amp;</span><span class="self">self</span>, ident: <span class="kw-2">&amp;</span>Ident) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectRef&gt; {
+        <span class="self">self</span>.properties
+            .get()
+            .expect(<span class="string">&quot;Cannot get property on uninitialized class&quot;</span>)
+            .get(ident)
+            .cloned()
     }
 
-    <span class="doccomment">/// Constructs a new runtime object that corresponds to this class, if possible</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_obj_from_allocator</span>(
+    <span class="doccomment">/// Constructs a new runtime object that corresponds to this class, if possible
+    </span><span class="kw">pub fn </span>new_obj_from_allocator(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="ident">TypeContext</span>,
-        <span class="ident">allocator</span>: <span class="kw-2">&amp;</span><span class="ident">ItemIdAllocator</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectRef</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span> {
-            <span class="ident">ClassKind::Function</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="kw">match</span> <span class="ident">typ</span> {
-                <span class="ident">Type::Type</span>
-                <span class="op">|</span> <span class="ident">Type::Any</span>
-                <span class="op">|</span> <span class="ident">Type::ComptimeBool</span>
-                <span class="op">|</span> <span class="ident">Type::ComptimeInt</span>
-                <span class="op">|</span> <span class="ident">Type::FormatString</span>
-                <span class="op">|</span> <span class="ident">Type::Function</span>
-                <span class="op">|</span> <span class="ident">Type::FunctionRef</span>
-                <span class="op">|</span> <span class="ident">Type::Module</span>
-                <span class="op">|</span> <span class="ident">Type::String</span>
-                <span class="op">|</span> <span class="ident">Type::Struct</span>
-                <span class="op">|</span> <span class="ident">Type::StructObject</span>
-                <span class="op">|</span> <span class="ident">Type::Tuple</span>
-                <span class="op">|</span> <span class="ident">Type::TupleObject</span> =&gt; <span class="prelude-val">None</span>,
-                <span class="ident">Type::DynamicBool</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ObjBool::new</span>(<span class="ident">allocator</span>.<span class="ident">next_id</span>()).<span class="ident">into_object</span>(<span class="ident">ctx</span>)),
-                <span class="ident">Type::DynamicInt</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ObjInt::new</span>(<span class="ident">allocator</span>.<span class="ident">next_id</span>()).<span class="ident">into_object</span>(<span class="ident">ctx</span>)),
-                <span class="ident">Type::Never</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ObjNever</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>)),
-                <span class="ident">Type::Null</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">ObjNull</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>)),
+        ctx: <span class="kw-2">&amp;</span>TypeContext,
+        allocator: <span class="kw-2">&amp;</span>ItemIdAllocator,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;ObjectRef&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
+            ClassKind::Function(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            ClassKind::Type(typ) =&gt; <span class="kw">match </span>typ {
+                Type::Type
+                | Type::Any
+                | Type::ComptimeBool
+                | Type::ComptimeInt
+                | Type::FormatString
+                | Type::Function
+                | Type::FunctionRef
+                | Type::Module
+                | Type::String
+                | Type::Struct
+                | Type::StructObject
+                | Type::Tuple
+                | Type::TupleObject =&gt; <span class="prelude-val">None</span>,
+                Type::DynamicBool =&gt; <span class="prelude-val">Some</span>(ObjBool::new(allocator.next_id()).into_object(ctx)),
+                Type::DynamicInt =&gt; <span class="prelude-val">Some</span>(ObjInt::new(allocator.next_id()).into_object(ctx)),
+                Type::Never =&gt; <span class="prelude-val">Some</span>(ObjNever.into_object(ctx)),
+                Type::Null =&gt; <span class="prelude-val">Some</span>(ObjNull.into_object(ctx)),
             },
-            <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">tuple</span>
-                    .<span class="ident">layout</span>
-                    .<span class="ident">iter</span>()
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">class</span><span class="op">|</span> <span class="ident">class</span>.<span class="ident">new_obj_from_allocator</span>(<span class="ident">ctx</span>, <span class="ident">allocator</span>))
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">tuple</span> <span class="op">=</span> <span class="ident">ObjTupleObject::new</span>(<span class="ident">values</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">tuple</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>))
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) =&gt; {
+                <span class="kw">let </span>values = tuple
+                    .layout
+                    .iter()
+                    .map(|class| class.new_obj_from_allocator(ctx, allocator))
+                    .collect::&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;&gt;()<span class="question-mark">?</span>;
+                <span class="kw">let </span>tuple = ObjTupleObject::new(values);
+                <span class="prelude-val">Some</span>(tuple.into_object(ctx))
             }
-            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) <span class="op">|</span> <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
-                <span class="ident">values</span>.<span class="ident">reserve</span>(<span class="ident">strukt</span>.<span class="ident">fields</span>.<span class="ident">len</span>());
-                <span class="kw">for</span> (<span class="ident">ident</span>, <span class="ident">class</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">strukt</span>.<span class="ident">fields</span> {
-                    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">class</span>.<span class="ident">new_obj_from_allocator</span>(<span class="ident">ctx</span>, <span class="ident">allocator</span>)<span class="question-mark">?</span>;
-                    <span class="ident">values</span>.<span class="ident">insert</span>(<span class="ident">ident</span>.<span class="ident">clone</span>(), <span class="ident">obj</span>);
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>values = FxHashMap::default();
+                values.reserve(strukt.fields.len());
+                <span class="kw">for </span>(ident, class) <span class="kw">in </span><span class="kw-2">&amp;</span>strukt.fields {
+                    <span class="kw">let </span>obj = class.new_obj_from_allocator(ctx, allocator)<span class="question-mark">?</span>;
+                    values.insert(ident.clone(), obj);
                 }
-                <span class="kw">let</span> <span class="ident">strukt_obj</span> <span class="op">=</span> <span class="ident">ObjStructObject::new</span>(<span class="ident">strukt</span>.<span class="ident">clone</span>(), <span class="ident">values</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Autogenerated values must be valid&quot;</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">strukt_obj</span>.<span class="ident">into_object</span>(<span class="ident">ctx</span>))
+                <span class="kw">let </span>strukt_obj = ObjStructObject::new(strukt.clone(), values)
+                    .expect(<span class="string">&quot;Autogenerated values must be valid&quot;</span>);
+                <span class="prelude-val">Some</span>(strukt_obj.into_object(ctx))
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ClassKind</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Type</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ClassKind::Type</span>(<span class="ident">value</span>)
+<span class="kw">impl </span>From&lt;Type&gt; <span class="kw">for </span>ClassKind {
+    <span class="kw">fn </span>from(value: Type) -&gt; <span class="self">Self </span>{
+        ClassKind::Type(value)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ClassKind</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ClassKind::Type</span>(<span class="ident">typ</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">typ</span>, <span class="ident">f</span>),
-            <span class="ident">ClassKind::Struct</span>(<span class="ident">strukt</span>) <span class="op">|</span> <span class="ident">ClassKind::StructValue</span>(<span class="ident">strukt</span>) =&gt; {
-                <span class="ident">fmt::Display::fmt</span>(<span class="ident">strukt</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ClassKind {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            ClassKind::Type(typ) =&gt; fmt::Display::fmt(typ, f),
+            ClassKind::Struct(strukt) | ClassKind::StructValue(strukt) =&gt; {
+                fmt::Display::fmt(strukt, f)
             }
-            <span class="ident">ClassKind::Tuple</span>(<span class="ident">tuple</span>) <span class="op">|</span> <span class="ident">ClassKind::TupleValue</span>(<span class="ident">tuple</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">tuple</span>, <span class="ident">f</span>),
-            <span class="ident">ClassKind::Function</span>(<span class="ident">func</span>) =&gt; <span class="ident">fmt::Display::fmt</span>(<span class="ident">func</span>, <span class="ident">f</span>),
+            ClassKind::Tuple(tuple) | ClassKind::TupleValue(tuple) =&gt; fmt::Display::fmt(tuple, f),
+            ClassKind::Function(func) =&gt; fmt::Display::fmt(func, f),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Class</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>;
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">kind</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Class {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>kind = <span class="kw-2">&amp;</span><span class="self">self</span>.kind;
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, kind)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Class</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Class&quot;</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">kind</span>)
-            .<span class="ident">finish_non_exhaustive</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Class {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Class&quot;</span>)
+            .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.kind)
+            .finish_non_exhaustive()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_llir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

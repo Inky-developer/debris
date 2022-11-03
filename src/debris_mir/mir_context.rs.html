@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/mir/src/mir_context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_mir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_mir/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_mir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/mir/src/mir_context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mir_context.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_mir/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -227,229 +221,228 @@
 <span id="221">221</span>
 <span id="222">222</span>
 <span id="223">223</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::fmt</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
-<span class="kw">use</span> <span class="ident">debris_common</span>::{<span class="ident">CompilationId</span>, <span class="ident">Span</span>};
+<span class="kw">use </span>debris_common::{CompilationId, Span};
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">mir_builder::MirSingletons</span>,
-    <span class="ident">mir_nodes::MirNode</span>,
-    <span class="ident">mir_object::MirObjectId</span>,
-    <span class="ident">namespace</span>::{<span class="ident">MirLocalNamespace</span>, <span class="ident">MirLocalNamespaceId</span>, <span class="ident">MirNamespace</span>},
+<span class="kw">use crate</span>::{
+    mir_builder::MirSingletons,
+    mir_nodes::MirNode,
+    mir_object::MirObjectId,
+    namespace::{MirLocalNamespace, MirLocalNamespaceId, MirNamespace},
 };
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContext</span> {
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">MirContextId</span>,
-    <span class="doccomment">/// The parent context of this context</span>
-    <span class="kw">pub</span> <span class="ident">super_context_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirContextId</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MirNode</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">MirContextKind</span>,
-    <span class="kw">pub</span> <span class="ident">return_values_id</span>: <span class="ident">ReturnValuesDataId</span>,
-    <span class="kw">pub</span> <span class="ident">return_context</span>: <span class="ident">ReturnContext</span>,
-    <span class="kw">pub</span> <span class="ident">local_namespace_id</span>: <span class="ident">MirLocalNamespaceId</span>,
-    <span class="kw">pub</span> <span class="ident">has_early_returned</span>: <span class="ident">bool</span>,
+<span class="kw">pub struct </span>MirContext {
+    <span class="kw">pub </span>id: MirContextId,
+    <span class="doccomment">/// The parent context of this context
+    </span><span class="kw">pub </span>super_context_id: <span class="prelude-ty">Option</span>&lt;MirContextId&gt;,
+    <span class="kw">pub </span>nodes: Vec&lt;MirNode&gt;,
+    <span class="kw">pub </span>kind: MirContextKind,
+    <span class="kw">pub </span>return_values_id: ReturnValuesDataId,
+    <span class="kw">pub </span>return_context: ReturnContext,
+    <span class="kw">pub </span>local_namespace_id: MirLocalNamespaceId,
+    <span class="kw">pub </span>has_early_returned: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">MirContext</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">id</span>: <span class="ident">MirContextId</span>,
-        <span class="ident">super_context_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MirContextId</span><span class="op">&gt;</span>,
-        <span class="ident">local_namespace_id</span>: <span class="ident">MirLocalNamespaceId</span>,
-        <span class="ident">kind</span>: <span class="ident">MirContextKind</span>,
-        <span class="ident">return_values_id</span>: <span class="ident">ReturnValuesDataId</span>,
-        <span class="ident">return_context</span>: <span class="ident">ReturnContext</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">MirContext</span> {
-            <span class="ident">id</span>,
-            <span class="ident">super_context_id</span>,
-            <span class="ident">nodes</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">kind</span>,
-            <span class="ident">return_values_id</span>,
-            <span class="ident">return_context</span>,
-            <span class="ident">local_namespace_id</span>,
-            <span class="ident">has_early_returned</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>MirContext {
+    <span class="kw">pub fn </span>new(
+        id: MirContextId,
+        super_context_id: <span class="prelude-ty">Option</span>&lt;MirContextId&gt;,
+        local_namespace_id: MirLocalNamespaceId,
+        kind: MirContextKind,
+        return_values_id: ReturnValuesDataId,
+        return_context: ReturnContext,
+    ) -&gt; <span class="self">Self </span>{
+        MirContext {
+            id,
+            super_context_id,
+            nodes: Default::default(),
+            kind,
+            return_values_id,
+            return_context,
+            local_namespace_id,
+            has_early_returned: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_namespace</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="kw">pub fn </span>local_namespace&lt;<span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">global_namespace</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">MirNamespace</span>,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">MirLocalNamespace</span> {
-        <span class="ident">global_namespace</span>.<span class="ident">get_local_namespace_mut</span>(<span class="self">self</span>.<span class="ident">local_namespace_id</span>)
+        global_namespace: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>MirNamespace,
+    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>MirLocalNamespace {
+        global_namespace.get_local_namespace_mut(<span class="self">self</span>.local_namespace_id)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">MirContext</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_values</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ReturnValuesArena</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ReturnValuesData</span> {
-        <span class="ident">arena</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">return_values_id</span>)
+<span class="kw">impl </span>MirContext {
+    <span class="kw">pub fn </span>return_values&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, arena: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ReturnValuesArena) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ReturnValuesData {
+        arena.get(<span class="self">self</span>.return_values_id)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_values_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
+    <span class="kw">pub fn </span>return_values_mut&lt;<span class="lifetime">&#39;a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">arena</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ReturnValuesArena</span>,
-    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ReturnValuesData</span> {
-        <span class="ident">arena</span>.<span class="ident">get_mut</span>(<span class="self">self</span>.<span class="ident">return_values_id</span>)
+        arena: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ReturnValuesArena,
+    ) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ReturnValuesData {
+        arena.get_mut(<span class="self">self</span>.return_values_id)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">debug</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">return_values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ReturnValuesArena</span>) -&gt; <span class="ident">MirContextDebug</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">MirContextDebug</span> {
-            <span class="ident">context</span>: <span class="self">self</span>,
-            <span class="ident">return_values</span>,
+    <span class="kw">pub fn </span>debug&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, return_values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ReturnValuesArena) -&gt; MirContextDebug&lt;<span class="lifetime">&#39;a</span>&gt; {
+        MirContextDebug {
+            context: <span class="self">self</span>,
+            return_values,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContextDebug</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">MirContext</span>,
-    <span class="ident">return_values</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ReturnValuesArena</span>,
+<span class="kw">pub struct </span>MirContextDebug&lt;<span class="lifetime">&#39;a</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>MirContext,
+    return_values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ReturnValuesArena,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirContextDebug</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">return_value</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">return_values</span>
-            .<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">return_values_id</span>)
-            .<span class="ident">return_value</span>();
-        <span class="kw">let</span> <span class="ident">context_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">id</span>;
-        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Context {context_id:?} -&gt; {return_value:?}:&quot;</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirContextDebug&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>return_value = <span class="self">self
+            </span>.return_values
+            .get(<span class="self">self</span>.context.return_values_id)
+            .return_value();
+        <span class="kw">let </span>context_id = <span class="self">self</span>.context.id;
+        <span class="macro">writeln!</span>(f, <span class="string">&quot;Context {context_id:?} -&gt; {return_value:?}:&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">context</span>.<span class="ident">nodes</span> {
-            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{node:?}&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.context.nodes {
+            <span class="macro">writeln!</span>(f, <span class="string">&quot;{node:?}&quot;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">return_context</span> {
-            <span class="ident">ReturnContext::Specific</span>(<span class="ident">context_id</span>) =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Next Context: {context_id:?}&quot;</span>),
-            <span class="ident">ReturnContext::ManuallyHandled</span>(<span class="ident">info_context_id</span>) =&gt; {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Return (Default is {info_context_id:?})&quot;</span>,)
+        <span class="kw">match </span><span class="self">self</span>.context.return_context {
+            ReturnContext::Specific(context_id) =&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;Next Context: {context_id:?}&quot;</span>),
+            ReturnContext::ManuallyHandled(info_context_id) =&gt; {
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;Return (Default is {info_context_id:?})&quot;</span>,)
             }
-            <span class="ident">ReturnContext::Pass</span> =&gt; <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;Return&quot;</span>),
+            ReturnContext::Pass =&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;Return&quot;</span>),
         }<span class="question-mark">?</span>;
 
-        <span class="macro">writeln!</span>(<span class="ident">f</span>)
+        <span class="macro">writeln!</span>(f)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MirContextKind</span> {
-    <span class="ident">Struct</span>,
-    <span class="ident">Block</span>,
-    <span class="ident">BlockConditionalRuntime</span>,
-    <span class="ident">BlockConditionalComptime</span>,
-    <span class="ident">Module</span>,
-    <span class="ident">FunctionRuntime</span>,
-    <span class="ident">FunctionComptime</span>,
-    <span class="ident">Loop</span>,
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>MirContextKind {
+    Struct,
+    Block,
+    BlockConditionalRuntime,
+    BlockConditionalComptime,
+    Module,
+    FunctionRuntime,
+    FunctionComptime,
+    Loop,
 }
 
-<span class="kw">impl</span> <span class="ident">MirContextKind</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_return_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">singletons</span>: <span class="kw-2">&amp;</span><span class="ident">MirSingletons</span>) -&gt; <span class="ident">MirObjectId</span> {
-        <span class="kw">use</span> <span class="ident">MirContextKind</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Struct</span>
-            <span class="op">|</span> <span class="ident">Block</span>
-            <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span>
-            <span class="op">|</span> <span class="ident">BlockConditionalComptime</span>
-            <span class="op">|</span> <span class="ident">FunctionRuntime</span>
-            <span class="op">|</span> <span class="ident">FunctionComptime</span>
-            <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="ident">singletons</span>.<span class="ident">null</span>,
-            <span class="ident">Loop</span> =&gt; <span class="ident">singletons</span>.<span class="ident">never</span>,
+<span class="kw">impl </span>MirContextKind {
+    <span class="kw">pub fn </span>default_return_value(<span class="kw-2">&amp;</span><span class="self">self</span>, singletons: <span class="kw-2">&amp;</span>MirSingletons) -&gt; MirObjectId {
+        <span class="kw">use </span>MirContextKind::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Struct
+            | Block
+            | BlockConditionalRuntime
+            | BlockConditionalComptime
+            | FunctionRuntime
+            | FunctionComptime
+            | Module =&gt; singletons.null,
+            Loop =&gt; singletons.never,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_runtime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">use</span> <span class="ident">MirContextKind</span>::<span class="kw-2">*</span>;
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">FunctionComptime</span> <span class="op">|</span> <span class="ident">Struct</span> <span class="op">|</span> <span class="ident">Block</span> <span class="op">|</span> <span class="ident">BlockConditionalComptime</span> <span class="op">|</span> <span class="ident">Module</span> =&gt; <span class="bool-val">false</span>,
-            <span class="ident">FunctionRuntime</span> <span class="op">|</span> <span class="ident">BlockConditionalRuntime</span> <span class="op">|</span> <span class="ident">Loop</span> =&gt; <span class="bool-val">true</span>,
+    <span class="kw">pub fn </span>is_runtime(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">use </span>MirContextKind::<span class="kw-2">*</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            FunctionComptime | Struct | Block | BlockConditionalComptime | Module =&gt; <span class="bool-val">false</span>,
+            FunctionRuntime | BlockConditionalRuntime | Loop =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReturnValuesDataId</span>(<span class="ident">usize</span>);
+<span class="attr">#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>ReturnValuesDataId(usize);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReturnValuesArena</span> {
-    <span class="ident">return_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ReturnValuesData</span><span class="op">&gt;</span>,
+<span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>ReturnValuesArena {
+    return_values: Vec&lt;ReturnValuesData&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">ReturnValuesArena</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">return_values_data</span>: <span class="ident">ReturnValuesData</span>) -&gt; <span class="ident">ReturnValuesDataId</span> {
-        <span class="self">self</span>.<span class="ident">return_values</span>.<span class="ident">push</span>(<span class="ident">return_values_data</span>);
-        <span class="ident">ReturnValuesDataId</span>(<span class="self">self</span>.<span class="ident">return_values</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>)
+<span class="kw">impl </span>ReturnValuesArena {
+    <span class="kw">pub fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, return_values_data: ReturnValuesData) -&gt; ReturnValuesDataId {
+        <span class="self">self</span>.return_values.push(return_values_data);
+        ReturnValuesDataId(<span class="self">self</span>.return_values.len() - <span class="number">1</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ReturnValuesDataId</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ReturnValuesData</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">return_values</span>[<span class="ident">id</span>.<span class="number">0</span>]
+    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, id: ReturnValuesDataId) -&gt; <span class="kw-2">&amp;</span>ReturnValuesData {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.return_values[id.<span class="number">0</span>]
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ReturnValuesDataId</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">ReturnValuesData</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">return_values</span>[<span class="ident">id</span>.<span class="number">0</span>]
+    <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: ReturnValuesDataId) -&gt; <span class="kw-2">&amp;mut </span>ReturnValuesData {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.return_values[id.<span class="number">0</span>]
     }
 }
 
-<span class="doccomment">/// Stores returns values a given context can return</span>
-<span class="doccomment">/// Multiple contexts can share the same return values data</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReturnValuesData</span> {
-    <span class="kw">pub</span> <span class="ident">default_return</span>: <span class="ident">MirObjectId</span>,
-    <span class="doccomment">/// The id of the explicitly returned value and the span where it was declared</span>
-    <span class="kw">pub</span> <span class="ident">explicit_return</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">MirObjectId</span>, <span class="ident">Span</span>)<span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">unconditionally_returned</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Stores returns values a given context can return
+/// Multiple contexts can share the same return values data
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>ReturnValuesData {
+    <span class="kw">pub </span>default_return: MirObjectId,
+    <span class="doccomment">/// The id of the explicitly returned value and the span where it was declared
+    </span><span class="kw">pub </span>explicit_return: <span class="prelude-ty">Option</span>&lt;(MirObjectId, Span)&gt;,
+    <span class="kw">pub </span>unconditionally_returned: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">ReturnValuesData</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">default_return</span>: <span class="ident">MirObjectId</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">ReturnValuesData</span> {
-            <span class="ident">default_return</span>,
-            <span class="ident">explicit_return</span>: <span class="prelude-val">None</span>,
-            <span class="ident">unconditionally_returned</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>ReturnValuesData {
+    <span class="kw">pub fn </span>new(default_return: MirObjectId) -&gt; <span class="self">Self </span>{
+        ReturnValuesData {
+            default_return,
+            explicit_return: <span class="prelude-val">None</span>,
+            unconditionally_returned: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Returns the id of the return value</span>
-    <span class="doccomment">/// This should be the first return value in a function</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MirObjectId</span> {
-        <span class="self">self</span>.<span class="ident">explicit_return</span>
-            .<span class="ident">map_or</span>(<span class="self">self</span>.<span class="ident">default_return</span>, <span class="op">|</span>(<span class="ident">obj_id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">obj_id</span>)
+    <span class="doccomment">/// Returns the id of the return value
+    /// This should be the first return value in a function
+    </span><span class="kw">pub fn </span>return_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MirObjectId {
+        <span class="self">self</span>.explicit_return
+            .map_or(<span class="self">self</span>.default_return, |(obj_id, <span class="kw">_</span>)| obj_id)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">return_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">explicit_return</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">span</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">span</span>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MirContextId</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">compilation_id</span>: <span class="ident">CompilationId</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">id</span>: <span class="ident">u32</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">MirContextId</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}.{}&quot;</span>, <span class="self">self</span>.<span class="ident">compilation_id</span>.<span class="number">0</span>, <span class="self">self</span>.<span class="ident">id</span>)
+    <span class="kw">pub fn </span>return_span(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Span&gt; {
+        <span class="self">self</span>.explicit_return.as_ref().map(|(<span class="kw">_</span>, span)| <span class="kw-2">*</span>span)
     }
 }
 
-<span class="doccomment">/// Specifies where to jump to when all commands of a context are run</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ReturnContext</span> {
-    <span class="doccomment">/// Don&#39;t jump anywhere, just return to the caller</span>
-    <span class="ident">Pass</span>,
-    <span class="doccomment">/// Don&#39;t jump anywhere, because the jump was handled manually.</span>
-    <span class="doccomment">/// This is used to store some information about the target return context.</span>
-    <span class="ident">ManuallyHandled</span>(<span class="ident">MirContextId</span>),
-    <span class="doccomment">/// Jump to a specific context</span>
-    <span class="ident">Specific</span>(<span class="ident">MirContextId</span>),
+<span class="attr">#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
+</span><span class="kw">pub struct </span>MirContextId {
+    <span class="kw">pub</span>(<span class="kw">super</span>) compilation_id: CompilationId,
+    <span class="kw">pub</span>(<span class="kw">super</span>) id: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">ReturnContext</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_handled_manually</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ReturnContext::Specific</span>(<span class="ident">id</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">ReturnContext::ManuallyHandled</span>(<span class="kw-2">*</span><span class="ident">id</span>);
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>MirContextId {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}.{}&quot;</span>, <span class="self">self</span>.compilation_id.<span class="number">0</span>, <span class="self">self</span>.id)
+    }
+}
+
+<span class="doccomment">/// Specifies where to jump to when all commands of a context are run
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>ReturnContext {
+    <span class="doccomment">/// Don&#39;t jump anywhere, just return to the caller
+    </span>Pass,
+    <span class="doccomment">/// Don&#39;t jump anywhere, because the jump was handled manually.
+    /// This is used to store some information about the target return context.
+    </span>ManuallyHandled(MirContextId),
+    <span class="doccomment">/// Jump to a specific context
+    </span>Specific(MirContextId),
+}
+
+<span class="kw">impl </span>ReturnContext {
+    <span class="kw">pub fn </span>set_handled_manually(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span>ReturnContext::Specific(id) = <span class="self">self </span>{
+            <span class="kw-2">*</span><span class="self">self </span>= ReturnContext::ManuallyHandled(<span class="kw-2">*</span>id);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_mir" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

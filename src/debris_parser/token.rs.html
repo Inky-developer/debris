@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/parser/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../debris_parser/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../debris_parser/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../debris_parser/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `debris/parser/src/token.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../debris_parser/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -364,366 +358,365 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::fmt</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>core::fmt;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::LocalSpan</span>;
+<span class="kw">use </span><span class="kw">crate</span>::LocalSpan;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span> {
-    <span class="kw">pub</span> <span class="ident">span</span>: <span class="ident">LocalSpan</span>,
-    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">TokenKind</span>,
+<span class="attr">#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+</span><span class="kw">pub struct </span>Token {
+    <span class="kw">pub </span>span: LocalSpan,
+    <span class="kw">pub </span>kind: TokenKind,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Token</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>.<span class="ident">start</span>();
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">span</span>.<span class="ident">end</span>();
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}@{start}..{end}&quot;</span>, <span class="self">self</span>.<span class="ident">kind</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Token {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>start = <span class="self">self</span>.span.start();
+        <span class="kw">let </span>end = <span class="self">self</span>.span.end();
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}@{start}..{end}&quot;</span>, <span class="self">self</span>.kind)
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">logos::Logos</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenKind</span> {
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;=&quot;</span>)]</span>
-    <span class="ident">Assign</span>,
+<span class="attr">#[derive(logos::Logos, Debug, Eq, PartialEq, Clone, Copy)]
+</span><span class="kw">pub enum </span>TokenKind {
+    <span class="attr">#[token(<span class="string">&quot;=&quot;</span>)]
+    </span>Assign,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;+=&quot;</span>)]</span>
-    <span class="ident">AssignPlus</span>,
+    <span class="attr">#[token(<span class="string">&quot;+=&quot;</span>)]
+    </span>AssignPlus,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;-=&quot;</span>)]</span>
-    <span class="ident">AssignMinus</span>,
+    <span class="attr">#[token(<span class="string">&quot;-=&quot;</span>)]
+    </span>AssignMinus,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;*=&quot;</span>)]</span>
-    <span class="ident">AssignTimes</span>,
+    <span class="attr">#[token(<span class="string">&quot;*=&quot;</span>)]
+    </span>AssignTimes,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;/=&quot;</span>)]</span>
-    <span class="ident">AssignDivide</span>,
+    <span class="attr">#[token(<span class="string">&quot;/=&quot;</span>)]
+    </span>AssignDivide,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;%=&quot;</span>)]</span>
-    <span class="ident">AssignModulo</span>,
+    <span class="attr">#[token(<span class="string">&quot;%=&quot;</span>)]
+    </span>AssignModulo,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;true&quot;</span>)]</span>
-    <span class="ident">BoolTrue</span>,
+    <span class="attr">#[token(<span class="string">&quot;true&quot;</span>)]
+    </span>BoolTrue,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;false&quot;</span>)]</span>
-    <span class="ident">BoolFalse</span>,
+    <span class="attr">#[token(<span class="string">&quot;false&quot;</span>)]
+    </span>BoolFalse,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;{&quot;</span>)]</span>
-    <span class="ident">BraceOpen</span>,
+    <span class="attr">#[token(<span class="string">&quot;{&quot;</span>)]
+    </span>BraceOpen,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;}&quot;</span>)]</span>
-    <span class="ident">BraceClose</span>,
+    <span class="attr">#[token(<span class="string">&quot;}&quot;</span>)]
+    </span>BraceClose,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;[&quot;</span>)]</span>
-    <span class="ident">BracketOpen</span>,
+    <span class="attr">#[token(<span class="string">&quot;[&quot;</span>)]
+    </span>BracketOpen,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;]&quot;</span>)]</span>
-    <span class="ident">BracketClose</span>,
+    <span class="attr">#[token(<span class="string">&quot;]&quot;</span>)]
+    </span>BracketClose,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;:&quot;</span>)]</span>
-    <span class="ident">Colon</span>,
+    <span class="attr">#[token(<span class="string">&quot;:&quot;</span>)]
+    </span>Colon,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;,&quot;</span>)]</span>
-    <span class="ident">Comma</span>,
+    <span class="attr">#[token(<span class="string">&quot;,&quot;</span>)]
+    </span>Comma,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;#[^\n]*&quot;</span>)]</span>
-    <span class="ident">Comment</span>,
+    <span class="attr">#[regex(<span class="string">&quot;#[^\n]*&quot;</span>)]
+    </span>Comment,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;.&quot;</span>)]</span>
-    <span class="ident">Dot</span>,
+    <span class="attr">#[token(<span class="string">&quot;.&quot;</span>)]
+    </span>Dot,
 
-    <span class="doccomment">/// Manually created in format strings,</span>
-    <span class="ident">Dollar</span>,
+    <span class="doccomment">/// Manually created in format strings,
+    </span>Dollar,
 
-    <span class="doccomment">/// Manually created in format strings</span>
-    <span class="doccomment">/// Always consists of two characters, where only the second character should be used.</span>
-    <span class="ident">EscapedChar</span>,
+    <span class="doccomment">/// Manually created in format strings
+    /// Always consists of two characters, where only the second character should be used.
+    </span>EscapedChar,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;`(:?[^`]|\\`)*`&quot;</span>)]</span>
-    <span class="ident">FormatString</span>,
+    <span class="attr">#[regex(<span class="string">r&quot;`(:?[^`]|\\`)*`&quot;</span>)]
+    </span>FormatString,
 
-    <span class="doccomment">/// Manually created in format strings</span>
-    <span class="doccomment">/// Always starts with a &#39;$&#39;</span>
-    <span class="ident">FormatStringVariable</span>,
+    <span class="doccomment">/// Manually created in format strings
+    /// Always starts with a &#39;$&#39;
+    </span>FormatStringVariable,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;[a-zA-Z_][a-zA-Z_0-9]*&quot;</span>)]</span>
-    <span class="ident">Ident</span>,
+    <span class="attr">#[regex(<span class="string">r&quot;[a-zA-Z_][a-zA-Z_0-9]*&quot;</span>)]
+    </span>Ident,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r&quot;\d+&quot;</span>)]</span>
-    <span class="ident">Int</span>,
+    <span class="attr">#[regex(<span class="string">r&quot;\d+&quot;</span>)]
+    </span>Int,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;break&quot;</span>)]</span>
-    <span class="ident">KwBreak</span>,
+    <span class="attr">#[token(<span class="string">&quot;break&quot;</span>)]
+    </span>KwBreak,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;comptime&quot;</span>)]</span>
-    <span class="ident">KwComptime</span>,
+    <span class="attr">#[token(<span class="string">&quot;comptime&quot;</span>)]
+    </span>KwComptime,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;continue&quot;</span>)]</span>
-    <span class="ident">KwContinue</span>,
+    <span class="attr">#[token(<span class="string">&quot;continue&quot;</span>)]
+    </span>KwContinue,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;else&quot;</span>)]</span>
-    <span class="ident">KwElse</span>,
+    <span class="attr">#[token(<span class="string">&quot;else&quot;</span>)]
+    </span>KwElse,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;fn&quot;</span>)]</span>
-    <span class="ident">KwFunction</span>,
+    <span class="attr">#[token(<span class="string">&quot;fn&quot;</span>)]
+    </span>KwFunction,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;if&quot;</span>)]</span>
-    <span class="ident">KwIf</span>,
+    <span class="attr">#[token(<span class="string">&quot;if&quot;</span>)]
+    </span>KwIf,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;import&quot;</span>)]</span>
-    <span class="ident">KwImport</span>,
+    <span class="attr">#[token(<span class="string">&quot;import&quot;</span>)]
+    </span>KwImport,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;let&quot;</span>)]</span>
-    <span class="ident">KwLet</span>,
+    <span class="attr">#[token(<span class="string">&quot;let&quot;</span>)]
+    </span>KwLet,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;loop&quot;</span>)]</span>
-    <span class="ident">KwLoop</span>,
+    <span class="attr">#[token(<span class="string">&quot;loop&quot;</span>)]
+    </span>KwLoop,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;mod&quot;</span>)]</span>
-    <span class="ident">KwMod</span>,
+    <span class="attr">#[token(<span class="string">&quot;mod&quot;</span>)]
+    </span>KwMod,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;struct&quot;</span>)]</span>
-    <span class="ident">KwStruct</span>,
+    <span class="attr">#[token(<span class="string">&quot;struct&quot;</span>)]
+    </span>KwStruct,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;return&quot;</span>)]</span>
-    <span class="ident">KwReturn</span>,
+    <span class="attr">#[token(<span class="string">&quot;return&quot;</span>)]
+    </span>KwReturn,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;while&quot;</span>)]</span>
-    <span class="ident">KwWhile</span>,
+    <span class="attr">#[token(<span class="string">&quot;while&quot;</span>)]
+    </span>KwWhile,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;+&quot;</span>)]</span>
-    <span class="ident">OpPlus</span>,
+    <span class="attr">#[token(<span class="string">&quot;+&quot;</span>)]
+    </span>OpPlus,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;-&quot;</span>)]</span>
-    <span class="ident">OpMinus</span>,
+    <span class="attr">#[token(<span class="string">&quot;-&quot;</span>)]
+    </span>OpMinus,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;*&quot;</span>)]</span>
-    <span class="ident">OpTimes</span>,
+    <span class="attr">#[token(<span class="string">&quot;*&quot;</span>)]
+    </span>OpTimes,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;/&quot;</span>)]</span>
-    <span class="ident">OpDivide</span>,
+    <span class="attr">#[token(<span class="string">&quot;/&quot;</span>)]
+    </span>OpDivide,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;%&quot;</span>)]</span>
-    <span class="ident">OpModulo</span>,
+    <span class="attr">#[token(<span class="string">&quot;%&quot;</span>)]
+    </span>OpModulo,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;==&quot;</span>)]</span>
-    <span class="ident">OpEqual</span>,
+    <span class="attr">#[token(<span class="string">&quot;==&quot;</span>)]
+    </span>OpEqual,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;!=&quot;</span>)]</span>
-    <span class="ident">OpNotEqual</span>,
+    <span class="attr">#[token(<span class="string">&quot;!=&quot;</span>)]
+    </span>OpNotEqual,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&gt;=&quot;</span>)]</span>
-    <span class="ident">OpGreaterOrEqual</span>,
+    <span class="attr">#[token(<span class="string">&quot;&gt;=&quot;</span>)]
+    </span>OpGreaterOrEqual,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&gt;&quot;</span>)]</span>
-    <span class="ident">OpGreater</span>,
+    <span class="attr">#[token(<span class="string">&quot;&gt;&quot;</span>)]
+    </span>OpGreater,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&lt;=&quot;</span>)]</span>
-    <span class="ident">OpLessOrEqual</span>,
+    <span class="attr">#[token(<span class="string">&quot;&lt;=&quot;</span>)]
+    </span>OpLessOrEqual,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;&lt;&quot;</span>)]</span>
-    <span class="ident">OpLess</span>,
+    <span class="attr">#[token(<span class="string">&quot;&lt;&quot;</span>)]
+    </span>OpLess,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;and&quot;</span>)]</span>
-    <span class="ident">OpAnd</span>,
+    <span class="attr">#[token(<span class="string">&quot;and&quot;</span>)]
+    </span>OpAnd,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;or&quot;</span>)]</span>
-    <span class="ident">OpOr</span>,
+    <span class="attr">#[token(<span class="string">&quot;or&quot;</span>)]
+    </span>OpOr,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;not&quot;</span>)]</span>
-    <span class="ident">OpNot</span>,
+    <span class="attr">#[token(<span class="string">&quot;not&quot;</span>)]
+    </span>OpNot,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;(&quot;</span>)]</span>
-    <span class="ident">ParenthesisOpen</span>,
+    <span class="attr">#[token(<span class="string">&quot;(&quot;</span>)]
+    </span>ParenthesisOpen,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;)&quot;</span>)]</span>
-    <span class="ident">ParenthesisClose</span>,
+    <span class="attr">#[token(<span class="string">&quot;)&quot;</span>)]
+    </span>ParenthesisClose,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;;&quot;</span>)]</span>
-    <span class="ident">Semicolon</span>,
+    <span class="attr">#[token(<span class="string">&quot;;&quot;</span>)]
+    </span>Semicolon,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">r#&quot;&quot;(:?[^&quot;]|\\&quot;)*&quot;&quot;#</span>)]</span>
-    <span class="ident">String</span>,
+    <span class="attr">#[regex(<span class="string">r#&quot;&quot;(:?[^&quot;]|\\&quot;)*&quot;&quot;#</span>)]
+    </span>String,
 
-    <span class="doccomment">/// Created manually</span>
-    <span class="ident">StringInner</span>,
+    <span class="doccomment">/// Created manually
+    </span>StringInner,
 
-    <span class="attribute">#[<span class="ident">token</span>(<span class="string">&quot;-&gt;&quot;</span>)]</span>
-    <span class="ident">ThinArrow</span>,
+    <span class="attr">#[token(<span class="string">&quot;-&gt;&quot;</span>)]
+    </span>ThinArrow,
 
-    <span class="doccomment">/// Created manually</span>
-    <span class="ident">Tick</span>,
+    <span class="doccomment">/// Created manually
+    </span>Tick,
 
-    <span class="attribute">#[<span class="ident">regex</span>(<span class="string">&quot;[ \n\r]+&quot;</span>)]</span>
-    <span class="ident">Whitespace</span>,
+    <span class="attr">#[regex(<span class="string">&quot;[ \n\r]+&quot;</span>)]
+    </span>Whitespace,
 
-    <span class="attribute">#[<span class="ident">error</span>]</span>
-    <span class="ident">Error</span>,
+    <span class="attr">#[error]
+    </span>Error,
 
-    <span class="ident">EndOfInput</span>,
+    EndOfInput,
 
-    <span class="ident">UnexpectedToken</span>,
+    UnexpectedToken,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">TokenKind</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::use_debug</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{self:?}&quot;</span>)
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>TokenKind {
+    <span class="attr">#[allow(clippy::use_debug)]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{self:?}&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TokenKind</span> {
-    <span class="doccomment">/// Tokens that have no semantic meaning attached are considered whitespace</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">TokenKind::Whitespace</span> <span class="op">|</span> <span class="ident">TokenKind::Comment</span>)
+<span class="kw">impl </span>TokenKind {
+    <span class="doccomment">/// Tokens that have no semantic meaning attached are considered whitespace
+    </span><span class="kw">pub fn </span>is_whitespace(<span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, TokenKind::Whitespace | TokenKind::Comment)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assign_operator</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssignOperator</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenKind::Assign</span> =&gt; <span class="ident">AssignOperator::Assign</span>,
-            <span class="ident">TokenKind::AssignPlus</span> =&gt; <span class="ident">AssignOperator::AssignPlus</span>,
-            <span class="ident">TokenKind::AssignMinus</span> =&gt; <span class="ident">AssignOperator::AssignMinus</span>,
-            <span class="ident">TokenKind::AssignTimes</span> =&gt; <span class="ident">AssignOperator::AssignTimes</span>,
-            <span class="ident">TokenKind::AssignDivide</span> =&gt; <span class="ident">AssignOperator::AssignDivide</span>,
-            <span class="ident">TokenKind::AssignModulo</span> =&gt; <span class="ident">AssignOperator::AssignModulo</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>assign_operator(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;AssignOperator&gt; {
+        <span class="kw">let </span>operator = <span class="kw">match </span><span class="self">self </span>{
+            TokenKind::Assign =&gt; AssignOperator::Assign,
+            TokenKind::AssignPlus =&gt; AssignOperator::AssignPlus,
+            TokenKind::AssignMinus =&gt; AssignOperator::AssignMinus,
+            TokenKind::AssignTimes =&gt; AssignOperator::AssignTimes,
+            TokenKind::AssignDivide =&gt; AssignOperator::AssignDivide,
+            TokenKind::AssignModulo =&gt; AssignOperator::AssignModulo,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="prelude-val">Some</span>(<span class="ident">operator</span>)
+        <span class="prelude-val">Some</span>(operator)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">postfix_operator</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PostfixOperator</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenKind::ParenthesisOpen</span> =&gt; <span class="ident">PostfixOperator::Call</span>,
-            <span class="ident">TokenKind::BraceOpen</span> =&gt; <span class="ident">PostfixOperator::StructLiteral</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>postfix_operator(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PostfixOperator&gt; {
+        <span class="kw">let </span>operator = <span class="kw">match </span><span class="self">self </span>{
+            TokenKind::ParenthesisOpen =&gt; PostfixOperator::Call,
+            TokenKind::BraceOpen =&gt; PostfixOperator::StructLiteral,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="prelude-val">Some</span>(<span class="ident">operator</span>)
+        <span class="prelude-val">Some</span>(operator)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prefix_operator</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrefixOperator</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenKind::OpMinus</span> =&gt; <span class="ident">PrefixOperator::Minus</span>,
-            <span class="ident">TokenKind::OpNot</span> =&gt; <span class="ident">PrefixOperator::Not</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>prefix_operator(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PrefixOperator&gt; {
+        <span class="kw">let </span>operator = <span class="kw">match </span><span class="self">self </span>{
+            TokenKind::OpMinus =&gt; PrefixOperator::Minus,
+            TokenKind::OpNot =&gt; PrefixOperator::Not,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="prelude-val">Some</span>(<span class="ident">operator</span>)
+        <span class="prelude-val">Some</span>(operator)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">infix_operator</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InfixOperator</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">operator</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenKind::Dot</span> =&gt; <span class="ident">InfixOperator::Dot</span>,
-            <span class="ident">TokenKind::OpPlus</span> =&gt; <span class="ident">InfixOperator::Plus</span>,
-            <span class="ident">TokenKind::OpMinus</span> =&gt; <span class="ident">InfixOperator::Minus</span>,
-            <span class="ident">TokenKind::OpTimes</span> =&gt; <span class="ident">InfixOperator::Times</span>,
-            <span class="ident">TokenKind::OpDivide</span> =&gt; <span class="ident">InfixOperator::Divide</span>,
-            <span class="ident">TokenKind::OpModulo</span> =&gt; <span class="ident">InfixOperator::Modulo</span>,
-            <span class="ident">TokenKind::OpEqual</span> =&gt; <span class="ident">InfixOperator::Equal</span>,
-            <span class="ident">TokenKind::OpNotEqual</span> =&gt; <span class="ident">InfixOperator::NotEqual</span>,
-            <span class="ident">TokenKind::OpGreaterOrEqual</span> =&gt; <span class="ident">InfixOperator::GreaterOrEqual</span>,
-            <span class="ident">TokenKind::OpGreater</span> =&gt; <span class="ident">InfixOperator::Greater</span>,
-            <span class="ident">TokenKind::OpLessOrEqual</span> =&gt; <span class="ident">InfixOperator::LessOrEqual</span>,
-            <span class="ident">TokenKind::OpLess</span> =&gt; <span class="ident">InfixOperator::Less</span>,
-            <span class="ident">TokenKind::OpAnd</span> =&gt; <span class="ident">InfixOperator::And</span>,
-            <span class="ident">TokenKind::OpOr</span> =&gt; <span class="ident">InfixOperator::Or</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>infix_operator(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;InfixOperator&gt; {
+        <span class="kw">let </span>operator = <span class="kw">match </span><span class="self">self </span>{
+            TokenKind::Dot =&gt; InfixOperator::Dot,
+            TokenKind::OpPlus =&gt; InfixOperator::Plus,
+            TokenKind::OpMinus =&gt; InfixOperator::Minus,
+            TokenKind::OpTimes =&gt; InfixOperator::Times,
+            TokenKind::OpDivide =&gt; InfixOperator::Divide,
+            TokenKind::OpModulo =&gt; InfixOperator::Modulo,
+            TokenKind::OpEqual =&gt; InfixOperator::Equal,
+            TokenKind::OpNotEqual =&gt; InfixOperator::NotEqual,
+            TokenKind::OpGreaterOrEqual =&gt; InfixOperator::GreaterOrEqual,
+            TokenKind::OpGreater =&gt; InfixOperator::Greater,
+            TokenKind::OpLessOrEqual =&gt; InfixOperator::LessOrEqual,
+            TokenKind::OpLess =&gt; InfixOperator::Less,
+            TokenKind::OpAnd =&gt; InfixOperator::And,
+            TokenKind::OpOr =&gt; InfixOperator::Or,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
 
-        <span class="prelude-val">Some</span>(<span class="ident">operator</span>)
+        <span class="prelude-val">Some</span>(operator)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">control_flow_operator</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ControlFlowOperator</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">control_flow</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenKind::KwBreak</span> =&gt; <span class="ident">ControlFlowOperator::Break</span>,
-            <span class="ident">TokenKind::KwContinue</span> =&gt; <span class="ident">ControlFlowOperator::Continue</span>,
-            <span class="ident">TokenKind::KwReturn</span> =&gt; <span class="ident">ControlFlowOperator::Return</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+    <span class="kw">pub fn </span>control_flow_operator(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;ControlFlowOperator&gt; {
+        <span class="kw">let </span>control_flow = <span class="kw">match </span><span class="self">self </span>{
+            TokenKind::KwBreak =&gt; ControlFlowOperator::Break,
+            TokenKind::KwContinue =&gt; ControlFlowOperator::Continue,
+            TokenKind::KwReturn =&gt; ControlFlowOperator::Return,
+            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
         };
-        <span class="prelude-val">Some</span>(<span class="ident">control_flow</span>)
+        <span class="prelude-val">Some</span>(control_flow)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignOperator</span> {
-    <span class="ident">Assign</span>,
-    <span class="ident">AssignPlus</span>,
-    <span class="ident">AssignMinus</span>,
-    <span class="ident">AssignTimes</span>,
-    <span class="ident">AssignDivide</span>,
-    <span class="ident">AssignModulo</span>,
+<span class="kw">pub enum </span>AssignOperator {
+    Assign,
+    AssignPlus,
+    AssignMinus,
+    AssignTimes,
+    AssignDivide,
+    AssignModulo,
 }
 
-<span class="doccomment">/// Postfix operator with infinite precedence</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PostfixOperator</span> {
-    <span class="ident">Call</span>,
-    <span class="ident">StructLiteral</span>,
+<span class="doccomment">/// Postfix operator with infinite precedence
+</span><span class="kw">pub enum </span>PostfixOperator {
+    Call,
+    StructLiteral,
 }
 
-<span class="kw">impl</span> <span class="ident">PostfixOperator</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">precedence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PostfixOperator::Call</span> <span class="op">|</span> <span class="ident">PostfixOperator::StructLiteral</span> =&gt; <span class="number">7</span>,
+<span class="kw">impl </span>PostfixOperator {
+    <span class="kw">pub fn </span>precedence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="kw">match </span><span class="self">self </span>{
+            PostfixOperator::Call | PostfixOperator::StructLiteral =&gt; <span class="number">7</span>,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PrefixOperator</span> {
-    <span class="ident">Minus</span>,
-    <span class="ident">Not</span>,
+<span class="kw">pub enum </span>PrefixOperator {
+    Minus,
+    Not,
 }
 
-<span class="kw">impl</span> <span class="ident">PrefixOperator</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">precedence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PrefixOperator::Minus</span> <span class="op">|</span> <span class="ident">PrefixOperator::Not</span> =&gt; <span class="number">6</span>,
+<span class="kw">impl </span>PrefixOperator {
+    <span class="kw">pub fn </span>precedence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="kw">match </span><span class="self">self </span>{
+            PrefixOperator::Minus | PrefixOperator::Not =&gt; <span class="number">6</span>,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">InfixOperator</span> {
-    <span class="ident">Dot</span>,
-    <span class="ident">Plus</span>,
-    <span class="ident">Minus</span>,
-    <span class="ident">Times</span>,
-    <span class="ident">Divide</span>,
-    <span class="ident">Modulo</span>,
-    <span class="ident">Equal</span>,
-    <span class="ident">NotEqual</span>,
-    <span class="ident">GreaterOrEqual</span>,
-    <span class="ident">Greater</span>,
-    <span class="ident">LessOrEqual</span>,
-    <span class="ident">Less</span>,
-    <span class="ident">And</span>,
-    <span class="ident">Or</span>,
+<span class="kw">pub enum </span>InfixOperator {
+    Dot,
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Modulo,
+    Equal,
+    NotEqual,
+    GreaterOrEqual,
+    Greater,
+    LessOrEqual,
+    Less,
+    And,
+    Or,
 }
 
-<span class="kw">impl</span> <span class="ident">InfixOperator</span> {
-    <span class="doccomment">/// Returns the precedence of this [`InfixOperator`].</span>
-    <span class="doccomment">/// The higher the precedence the tighter the operator binds.</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::match_same_arms</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">precedence</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">InfixOperator::Or</span> =&gt; <span class="number">1</span>,
-            <span class="ident">InfixOperator::And</span> =&gt; <span class="number">2</span>,
-            <span class="ident">InfixOperator::Equal</span> =&gt; <span class="number">3</span>,
-            <span class="ident">InfixOperator::NotEqual</span> =&gt; <span class="number">3</span>,
-            <span class="ident">InfixOperator::Greater</span> =&gt; <span class="number">3</span>,
-            <span class="ident">InfixOperator::GreaterOrEqual</span> =&gt; <span class="number">3</span>,
-            <span class="ident">InfixOperator::Less</span> =&gt; <span class="number">3</span>,
-            <span class="ident">InfixOperator::LessOrEqual</span> =&gt; <span class="number">3</span>,
-            <span class="ident">InfixOperator::Minus</span> =&gt; <span class="number">4</span>,
-            <span class="ident">InfixOperator::Plus</span> =&gt; <span class="number">4</span>,
-            <span class="ident">InfixOperator::Divide</span> =&gt; <span class="number">5</span>,
-            <span class="ident">InfixOperator::Modulo</span> =&gt; <span class="number">5</span>,
-            <span class="ident">InfixOperator::Times</span> =&gt; <span class="number">5</span>,
-            <span class="ident">InfixOperator::Dot</span> =&gt; <span class="number">8</span>,
+<span class="kw">impl </span>InfixOperator {
+    <span class="doccomment">/// Returns the precedence of this [`InfixOperator`].
+    /// The higher the precedence the tighter the operator binds.
+    </span><span class="attr">#[allow(clippy::match_same_arms)]
+    </span><span class="kw">pub fn </span>precedence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="kw">match </span><span class="self">self </span>{
+            InfixOperator::Or =&gt; <span class="number">1</span>,
+            InfixOperator::And =&gt; <span class="number">2</span>,
+            InfixOperator::Equal =&gt; <span class="number">3</span>,
+            InfixOperator::NotEqual =&gt; <span class="number">3</span>,
+            InfixOperator::Greater =&gt; <span class="number">3</span>,
+            InfixOperator::GreaterOrEqual =&gt; <span class="number">3</span>,
+            InfixOperator::Less =&gt; <span class="number">3</span>,
+            InfixOperator::LessOrEqual =&gt; <span class="number">3</span>,
+            InfixOperator::Minus =&gt; <span class="number">4</span>,
+            InfixOperator::Plus =&gt; <span class="number">4</span>,
+            InfixOperator::Divide =&gt; <span class="number">5</span>,
+            InfixOperator::Modulo =&gt; <span class="number">5</span>,
+            InfixOperator::Times =&gt; <span class="number">5</span>,
+            InfixOperator::Dot =&gt; <span class="number">8</span>,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ControlFlowOperator</span> {
-    <span class="ident">Break</span>,
-    <span class="ident">Continue</span>,
-    <span class="ident">Return</span>,
+<span class="kw">pub enum </span>ControlFlowOperator {
+    Break,
+    Continue,
+    Return,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_parser" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

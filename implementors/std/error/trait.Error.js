@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["debris_error"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/std/error/trait.Error.html\" title=\"trait std::error::Error\">Error</a> for <a class=\"enum\" href=\"debris_error/lang_error/enum.LangErrorKind.html\" title=\"enum debris_error::lang_error::LangErrorKind\">LangErrorKind</a>","synthetic":false,"types":["debris_error::lang_error::LangErrorKind"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
