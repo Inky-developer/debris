@@ -67,7 +67,7 @@ fn get_common_call(
         let mut calls = FxHashMap::default();
         let mut current_block = block_a;
         loop {
-            let function = commands.optimizer.get_function(&current_block);
+            let function = commands.optimizer.get_function(current_block);
             if let Some(Node::Call(Call { id })) = function.nodes().last() {
                 // Stop at recursion
                 if calls.contains_key(id) {
@@ -90,7 +90,7 @@ fn get_common_call(
 
     let mut current_block = block_b;
     loop {
-        let function = commands.optimizer.get_function(&current_block);
+        let function = commands.optimizer.get_function(current_block);
         match function.nodes().last() {
             Some(Node::Call(Call { id })) => match a_calls.get(id) {
                 Some(a_call) if commands.get_call_count(current_block) <= 1 => {

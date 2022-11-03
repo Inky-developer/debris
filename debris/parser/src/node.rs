@@ -111,7 +111,7 @@ impl fmt::Display for NodeDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let node = &self.ast[self.node_id];
         // self.writeln(f, node.children.len())?;
-        self.writeln(f, &node.kind)?;
+        self.writeln(f, node.kind)?;
 
         for child in node.children.as_ref() {
             match child {

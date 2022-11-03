@@ -99,9 +99,8 @@ impl ScoreboardOperation {
                 } else {
                     // Minecraft rounds towards -infinity, while rust rounds towards 0
                     let nat_div = lhs.wrapping_div(rhs);
-                    let prod = match rhs.checked_mul(nat_div) {
-                        Some(prod) => prod,
-                        None => return nat_div,
+                    let Some(prod) = rhs.checked_mul(nat_div) else {
+                        return nat_div;
                     };
                     if lhs != prod && (lhs >= 0) != (rhs >= 0) {
                         nat_div - 1

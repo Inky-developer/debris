@@ -85,13 +85,13 @@ pub fn load(ctx: &TypeContext) -> ObjModule {
 
     register_primitives(ctx, &mut module);
 
-    module.register_function(ctx, function_for("execute", &execute));
-    module.register_function(ctx, function_for("print", &print));
-    module.register_function(ctx, function_for("dyn_int", &dyn_int));
-    module.register_function(ctx, function_for("on_tick", &on_tick));
-    module.register_function(ctx, function_for("export", &export));
-    module.register_function(ctx, function_for("dbg", &dbg));
-    module.register_function(ctx, function_for("type", &get_type));
+    module.register_function(ctx, function_for("execute", execute));
+    module.register_function(ctx, function_for("print", print));
+    module.register_function(ctx, function_for("dyn_int", dyn_int));
+    module.register_function(ctx, function_for("on_tick", on_tick));
+    module.register_function(ctx, function_for("export", export));
+    module.register_function(ctx, function_for("dbg", dbg));
+    module.register_function(ctx, function_for("type", get_type));
 
     module
 }

@@ -194,15 +194,14 @@ impl<'a> Parser<'a> {
     /// Consumes the first matching token of `options`
     /// Returns [`Err`] if no option matches
     fn consume_first_of(&mut self, options: &[TokenKind]) -> ParseResult<Token> {
-        match self.consume_first_with(|kind| options.contains(&kind)) {
-            Some(token) => Ok(token),
-            None => {
-                self.st.errors.push(ParseErrorKind::UnexpectedToken {
-                    got: self.current,
-                    expected: options.iter().map(Clone::clone).map(Into::into).collect(),
-                });
-                Err(())
-            }
+        if let Some(token) = self.consume_first_with(|kind| options.contains(&kind)) {
+            Ok(token)
+        } else {
+            self.st.errors.push(ParseErrorKind::UnexpectedToken {
+                got: self.current,
+                expected: options.iter().map(Clone::clone).map(Into::into).collect(),
+            });
+            Err(())
         }
     }
 

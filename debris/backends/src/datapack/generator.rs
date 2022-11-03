@@ -255,25 +255,25 @@ impl<'a> DatapackGenerator<'a> {
     fn handle_fast_store_from_result(&mut self, fast_store_from_result: &FastStoreFromResult) {
         let mut inner_commands = self.catch_output(&fast_store_from_result.command);
 
-        if let Some(last) = inner_commands.pop() {
-            for command in inner_commands {
-                self.add_command(command);
-            }
-            let command = MinecraftCommand::ScoreboardSetFromResult {
-                player: ScoreboardPlayer {
-                    player: self
-                        .scoreboard_ctx
-                        .get_scoreboard_player(fast_store_from_result.id),
-                    scoreboard: self
-                        .scoreboard_ctx
-                        .get_scoreboard(fast_store_from_result.scoreboard),
-                },
-                command: Box::new(last),
-            };
+        let Some(last) = inner_commands.pop() else {
+            panic!("Expected at least one inner function, but got None");
+        };
+
+        for command in inner_commands {
             self.add_command(command);
-        } else {
-            panic!("Expected at least one inner function, but got None",);
         }
+        let command = MinecraftCommand::ScoreboardSetFromResult {
+            player: ScoreboardPlayer {
+                player: self
+                    .scoreboard_ctx
+                    .get_scoreboard_player(fast_store_from_result.id),
+                scoreboard: self
+                    .scoreboard_ctx
+                    .get_scoreboard(fast_store_from_result.scoreboard),
+            },
+            command: Box::new(last),
+        };
+        self.add_command(command);
     }
 
     fn handle_binary_operation(&mut self, binary_operation: &BinaryOperation) {

@@ -47,19 +47,16 @@ impl CompileConfig {
         {
             file_id
         } else {
-            let file_contents = match self.file_provider.read_file(&module_name) {
-                Some(val) => val,
-                None => {
-                    return Err(vec![LangError::new(
-                        LangErrorKind::MissingModule {
-                            path: module_name,
-                            error: std::io::ErrorKind::NotFound,
-                        },
-                        span,
-                    )
-                    .into()]
-                    .into());
-                }
+            let Some(file_contents) = self.file_provider.read_file(&module_name) else {
+                return Err(vec![LangError::new(
+                    LangErrorKind::MissingModule {
+                        path: module_name,
+                        error: std::io::ErrorKind::NotFound,
+                    },
+                    span,
+                )
+                .into()]
+                .into());
             };
             self.compile_context.add_input_file(Code {
                 path: Some(module_name.into()),

@@ -20,7 +20,7 @@ pub fn optimize_call_chain(commands: &mut Commands) {
         .iter_dfs(commands.optimizer.runtime.root_blocks())
     {
         // If this function only directs to another function, inline this function
-        let function = commands.optimizer.get_function(&id);
+        let function = commands.optimizer.get_function(id);
         if let Some(Node::Call(Call { id: other_function })) = function.nodes().last() {
             if other_function != &id && !encountered_functions.contains(&id) {
                 let idx = function.nodes.len() - 1;

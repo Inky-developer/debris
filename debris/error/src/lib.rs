@@ -57,12 +57,12 @@ impl From<Vec<SingleCompileError>> for CompileErrors {
 /// This type is the Err value for most of this crate.
 /// It is compatible with the `annotate_snippets` library.
 /// That means that nice rust-style error messages can be printed.
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug)]
 pub enum SingleCompileError {
     /// An error which happens when parsing the input
-    ParseError(ParseError),
+    ParseError(Box<ParseError>),
     /// An error which happens when compiling the input
-    LangError(LangError),
+    LangError(Box<LangError>),
 }
 
 impl SingleCompileError {
@@ -73,13 +73,13 @@ impl SingleCompileError {
 
 impl From<ParseError> for SingleCompileError {
     fn from(parse_error: ParseError) -> Self {
-        SingleCompileError::ParseError(parse_error)
+        SingleCompileError::ParseError(Box::new(parse_error))
     }
 }
 
 impl From<LangError> for SingleCompileError {
     fn from(lang_error: LangError) -> Self {
-        SingleCompileError::LangError(lang_error)
+        SingleCompileError::LangError(Box::new(lang_error))
     }
 }
 

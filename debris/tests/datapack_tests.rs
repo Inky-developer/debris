@@ -44,7 +44,7 @@ fn compile_test_file(
     opt_mode: OptMode,
     interpreter: InterpreterKind,
 ) -> Option<Directory> {
-    let file = fs::read_to_string(&input_file)
+    let file = fs::read_to_string(input_file)
         .unwrap_or_else(|_| panic!("Could not read test file {}", input_file.display()));
 
     if interpreter == InterpreterKind::DatapackVM
@@ -124,9 +124,8 @@ fn test_compiled_datapacks_interpreted() {
     for file in read_files("tests/datapack_test_snippets") {
         println!("Testing '{}'", file.display());
         for opt_mode in [OptMode::Debug, OptMode::Full] {
-            let pack = match compile_test_file(&file, opt_mode, InterpreterKind::DatapackVM) {
-                Some(pack) => pack,
-                None => continue,
+            let Some(pack) = compile_test_file(&file, opt_mode, InterpreterKind::DatapackVM) else {
+                continue;
             };
 
             let result_code = run_pack(&pack).unwrap_or(0);
@@ -235,9 +234,8 @@ fn test_compiled_datapacks() {
     for file in test_files {
         println!("Compiling {}", file.display());
         for &opt_mode in &[OptMode::Debug, OptMode::Full] {
-            let pack = match compile_test_file(&file, opt_mode, InterpreterKind::VanillaMinecraft) {
-                Some(pack) => pack,
-                None => break,
+            let Some(pack) = compile_test_file(&file, opt_mode, InterpreterKind::VanillaMinecraft) else {
+                break;
             };
             pack.persist("debris_test", &datapacks)
                 .expect("Could not write the generated datapack");

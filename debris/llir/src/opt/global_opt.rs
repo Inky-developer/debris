@@ -157,12 +157,12 @@ impl GlobalOptimizer<'_> {
         }
     }
 
-    pub fn get_function(&self, id: &BlockId) -> &Function {
-        self.functions.get(id).unwrap()
+    pub fn get_function(&self, id: BlockId) -> &Function {
+        self.functions.get(&id).unwrap()
     }
 
-    pub fn get_function_mut(&mut self, id: &BlockId) -> &mut Function {
-        self.functions.get_mut(id).unwrap()
+    pub fn get_function_mut(&mut self, id: BlockId) -> &mut Function {
+        self.functions.get_mut(&id).unwrap()
     }
 
     /// Iterates over all functions
@@ -199,7 +199,7 @@ impl GlobalOptimizer<'_> {
         }
         let new_index = index - 1;
 
-        let function = self.get_function(&node_id.0);
+        let function = self.get_function(node_id.0);
         Some(((node_id.0, new_index), &function.nodes[new_index]))
     }
 }
@@ -346,9 +346,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     new_node,
                 } => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
-                    let branch = if let Node::Branch(branch) = node {
-                        branch
-                    } else {
+                    let Node::Branch(branch) = node else {
                         unreachable!()
                     };
                     let branch_node = if branch_selector {
@@ -480,9 +478,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     let new_condition_node = Node::Condition(condition);
                     self.stats.add_node(&new_condition_node, &id);
 
-                    let new_condition = if let Node::Condition(cond) = new_condition_node {
-                        cond
-                    } else {
+                    let Node::Condition(new_condition) = new_condition_node else {
                         unreachable!()
                     };
                     let old_condition = std::mem::replace(old_condition, new_condition);
@@ -503,16 +499,14 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                         .filter(|cmd| cmd.id.0 == id.0 && cmd.id.1 > id.1)
                         .for_each(OptimizeCommand::shift_forward);
                     self.optimizer
-                        .get_function_mut(&id.0)
+                        .get_function_mut(id.0)
                         .nodes
                         .insert(id.1 + 1, next_node);
                 }
                 OptimizeCommandKind::UpdateExecuteRaw(index, update) => {
                     let node = &mut self.optimizer.functions.get_mut(&id.0).unwrap().nodes[id.1];
                     self.stats.remove_node(node, &id);
-                    let execute_raw = if let Node::Execute(execute_raw) = node {
-                        execute_raw
-                    } else {
+                    let Node::Execute(execute_raw) = node else {
                         unreachable!()
                     };
                     match update {

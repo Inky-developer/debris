@@ -151,7 +151,7 @@ pub trait AstToken: Sized {
 pub struct Program(AstNode);
 impl AstItem for Program {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Root).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Root).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -168,7 +168,7 @@ impl Program {
 pub struct AttributeList(AstNode);
 impl AstItem for AttributeList {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::AttributeList).then(|| Self(node))
+        (node.syntax().kind == NodeKind::AttributeList).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -185,7 +185,7 @@ impl AttributeList {
 pub struct Struct(AstNode);
 impl AstItem for Struct {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::StructDef).then(|| Self(node))
+        (node.syntax().kind == NodeKind::StructDef).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -210,7 +210,7 @@ impl Struct {
 pub struct StructVars(AstNode);
 impl AstItem for StructVars {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::StructVariables).then(|| Self(node))
+        (node.syntax().kind == NodeKind::StructVariables).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -227,7 +227,7 @@ impl StructVars {
 pub struct StructVar(AstNode);
 impl AstItem for StructVar {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::StructVar).then(|| Self(node))
+        (node.syntax().kind == NodeKind::StructVar).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -248,7 +248,7 @@ impl StructVar {
 pub struct Function(AstNode);
 impl AstItem for Function {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Function).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Function).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -285,7 +285,7 @@ impl Function {
 pub struct ParamListDecl(AstNode);
 impl AstItem for ParamListDecl {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ParamListDeclaration).then(|| Self(node))
+        (node.syntax().kind == NodeKind::ParamListDeclaration).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -302,7 +302,7 @@ impl ParamListDecl {
 pub struct ParamDecl(AstNode);
 impl AstItem for ParamDecl {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ParamDeclaration).then(|| Self(node))
+        (node.syntax().kind == NodeKind::ParamDeclaration).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -323,7 +323,7 @@ impl ParamDecl {
 pub struct Module(AstNode);
 impl AstItem for Module {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Module).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Module).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -344,7 +344,7 @@ impl Module {
 pub struct Import(AstNode);
 impl AstItem for Import {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Import).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Import).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -361,7 +361,7 @@ impl Import {
 pub struct Block(AstNode);
 impl AstItem for Block {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Block).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Block).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -435,7 +435,7 @@ impl AstItem for Statement {
 pub struct Branch(AstNode);
 impl AstItem for Branch {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Branch).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Branch).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -489,7 +489,7 @@ impl AstItem for BranchElse {
 pub struct InfLoop(AstNode);
 impl AstItem for InfLoop {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::InfLoop).then(|| Self(node))
+        (node.syntax().kind == NodeKind::InfLoop).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -506,7 +506,7 @@ impl InfLoop {
 pub struct WhileLoop(AstNode);
 impl AstItem for WhileLoop {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::WhileLoop).then(|| Self(node))
+        (node.syntax().kind == NodeKind::WhileLoop).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -527,7 +527,7 @@ impl WhileLoop {
 pub struct Assignment(AstNode);
 impl AstItem for Assignment {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Assignment).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Assignment).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -574,7 +574,7 @@ impl AstToken for AssignMode {
 pub struct Update(AstNode);
 impl AstItem for Update {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Update).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Update).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -603,7 +603,7 @@ impl AstToken for AssignOperator {
             .kind
             .assign_operator()
             .is_some()
-            .then(|| AssignOperator(token))
+            .then_some(AssignOperator(token))
     }
 
     fn to_token(&self) -> Token {
@@ -642,7 +642,7 @@ impl AstItem for Pattern {
 pub struct TuplePattern(AstNode);
 impl AstItem for TuplePattern {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Pattern).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Pattern).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -659,7 +659,7 @@ impl TuplePattern {
 pub struct FunctionPattern(AstNode);
 impl AstItem for FunctionPattern {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::FunctionPattern).then(|| Self(node))
+        (node.syntax().kind == NodeKind::FunctionPattern).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -680,7 +680,7 @@ impl FunctionPattern {
 pub struct FunctionPatternParams(AstNode);
 impl AstItem for FunctionPatternParams {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::FunctionPatternParams).then(|| Self(node))
+        (node.syntax().kind == NodeKind::FunctionPatternParams).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -744,7 +744,7 @@ impl AstItem for Expression {
 pub struct InfixOp(AstNode);
 impl AstItem for InfixOp {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::InfixOp).then(|| Self(node))
+        (node.syntax().kind == NodeKind::InfixOp).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -769,7 +769,7 @@ impl InfixOp {
 pub struct PostfixOp(AstNode);
 impl AstItem for PostfixOp {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::PostfixOp).then(|| Self(node))
+        (node.syntax().kind == NodeKind::PostfixOp).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -810,7 +810,7 @@ impl AstItem for PostfixOperator {
 pub struct PrefixOp(AstNode);
 impl AstItem for PrefixOp {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::PrefixOp).then(|| Self(node))
+        (node.syntax().kind == NodeKind::PrefixOp).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -843,7 +843,7 @@ impl AstToken for PrefixOperator {
 pub struct ParamList(AstNode);
 impl AstItem for ParamList {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ParamList).then(|| Self(node))
+        (node.syntax().kind == NodeKind::ParamList).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -925,7 +925,7 @@ impl AstItem for Value {
 pub struct StructLiteral(AstNode);
 impl AstItem for StructLiteral {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::StructLiteral).then(|| Self(node))
+        (node.syntax().kind == NodeKind::StructLiteral).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -942,7 +942,7 @@ impl StructLiteral {
 pub struct StructLiteralItem(AstNode);
 impl AstItem for StructLiteralItem {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::StructLiteralItem).then(|| Self(node))
+        (node.syntax().kind == NodeKind::StructLiteralItem).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -963,7 +963,7 @@ impl StructLiteralItem {
 pub struct ControlFlowOperation(AstNode);
 impl AstItem for ControlFlowOperation {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ControlFlow).then(|| Self(node))
+        (node.syntax().kind == NodeKind::ControlFlow).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -988,7 +988,7 @@ impl AstToken for ControlFlowOperator {
             .kind
             .control_flow_operator()
             .is_some()
-            .then(|| Self(token))
+            .then_some(Self(token))
     }
 
     fn to_token(&self) -> Token {
@@ -1000,7 +1000,7 @@ impl AstToken for ControlFlowOperator {
 pub struct ParensValue(AstNode);
 impl AstItem for ParensValue {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::ParensValue).then(|| Self(node))
+        (node.syntax().kind == NodeKind::ParensValue).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -1017,7 +1017,7 @@ impl ParensValue {
 pub struct Tuple(AstNode);
 impl AstItem for Tuple {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::Tuple).then(|| Self(node))
+        (node.syntax().kind == NodeKind::Tuple).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -1034,7 +1034,7 @@ impl Tuple {
 pub struct Int(Token);
 impl AstToken for Int {
     fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::Int).then(|| Self(token))
+        (token.kind == TokenKind::Int).then_some(Self(token))
     }
 
     fn to_token(&self) -> Token {
@@ -1046,7 +1046,7 @@ impl AstToken for Int {
 pub struct Ident(Token);
 impl AstToken for Ident {
     fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::Ident).then(|| Self(token))
+        (token.kind == TokenKind::Ident).then_some(Self(token))
     }
 
     fn to_token(&self) -> Token {
@@ -1058,7 +1058,7 @@ impl AstToken for Ident {
 pub struct String(Token);
 impl AstToken for String {
     fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::String).then(|| Self(token))
+        (token.kind == TokenKind::String).then_some(Self(token))
     }
 
     fn to_token(&self) -> Token {
@@ -1070,7 +1070,7 @@ impl AstToken for String {
 pub struct FormatString(AstNode);
 impl AstItem for FormatString {
     fn from_node(node: AstNode) -> Option<Self> {
-        (node.syntax().kind == NodeKind::FormatString).then(|| Self(node))
+        (node.syntax().kind == NodeKind::FormatString).then_some(Self(node))
     }
 
     fn to_item(&self) -> AstNodeOrToken {
@@ -1127,7 +1127,7 @@ impl AstToken for Bool {
 pub struct ComptimeToken(Token);
 impl AstToken for ComptimeToken {
     fn from_token(token: Token) -> Option<Self> {
-        (token.kind == TokenKind::KwComptime).then(|| Self(token))
+        (token.kind == TokenKind::KwComptime).then_some(Self(token))
     }
 
     fn to_token(&self) -> Token {
@@ -1139,7 +1139,7 @@ impl AstToken for ComptimeToken {
 pub struct InfixOperator(Token);
 impl AstToken for InfixOperator {
     fn from_token(token: Token) -> Option<Self> {
-        token.kind.infix_operator().is_some().then(|| Self(token))
+        token.kind.infix_operator().is_some().then_some(Self(token))
     }
 
     fn to_token(&self) -> Token {

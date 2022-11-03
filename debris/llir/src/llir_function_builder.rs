@@ -489,15 +489,12 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             // Promote the value if required
             let target_class = &target_value.class;
             let value_class = value.class.clone();
-            let value = match verify_value!(match_exact, self, target_class, value, target_span)? {
-                Some(value) => value,
-                None => {
-                    return Err(unexpected_type(
-                        target_span,
-                        &target_value.class,
-                        &value_class,
-                    ))
-                }
+            let Some(value) = verify_value!(match_exact, self, target_class, value, target_span)? else {
+                return Err(unexpected_type(
+                    target_span,
+                    &target_value.class,
+                    &value_class,
+                ))
             };
 
             // Special case if the target value is never, which means we can just update the mapping
@@ -518,11 +515,8 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Tries to promote an object to the `target` class and returns the promoted object in case of success.
     /// `target` must be a class object.
     fn promote_obj(ctx: &mut FunctionContext) -> Option<Result<ObjectRef>> {
-        let function = match ctx.parameters[0]
-            .get_property(ctx.type_ctx(), &Ident::Special(SpecialIdent::Promote))
-        {
-            Some(f) => f,
-            None => return None,
+        let Some(function) = ctx.parameters[0].get_property(ctx.type_ctx(), &Ident::Special(SpecialIdent::Promote)) else {
+            return None;
         };
 
         let builtin_function: &ObjFunction = function
@@ -786,22 +780,19 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 let mut layout = Vec::with_capacity(tuple_class.len());
                 for (obj_id, span) in tuple_class {
                     let obj = self.get_obj(*obj_id);
-                    let class = match obj.downcast_payload::<ObjClass>() {
-                        Some(class) => class,
-                        None => {
-                            return Err(LangError::new(
-                                LangErrorKind::UnexpectedType {
-                                    declared: None,
-                                    expected: vec![ObjClass::static_class(
-                                        &self.builder.type_context,
-                                    )
-                                    .to_string()],
-                                    got: obj.class.to_string(),
-                                },
-                                *span,
-                            )
-                            .into())
-                        }
+                    let Some(class) = obj.downcast_payload::<ObjClass>() else {
+                        return Err(LangError::new(
+                            LangErrorKind::UnexpectedType {
+                                declared: None,
+                                expected: vec![ObjClass::static_class(
+                                    &self.builder.type_context,
+                                )
+                                .to_string()],
+                                got: obj.class.to_string(),
+                            },
+                            *span,
+                        )
+                        .into())
                     };
                     layout.push(class.class.clone());
                 }
@@ -1035,21 +1026,15 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let parent_obj = self.get_obj(property_update.parent);
         let value = self.get_obj(property_update.value);
 
-        let old_property = match parent_obj
-            .payload
-            .get_property(&self.builder.type_context, &property_update.ident)
-        {
-            Some(obj) => obj,
-            None => {
-                return Err(LangError::new(
-                    LangErrorKind::UnexpectedProperty {
-                        property: property_update.ident.to_string(),
-                        value_class: parent_obj.class.to_string(),
-                    },
-                    property_update.span,
-                )
-                .into())
-            }
+        let Some(old_property) = parent_obj.payload.get_property(&self.builder.type_context, &property_update.ident) else {
+            return Err(LangError::new(
+                LangErrorKind::UnexpectedProperty {
+                    property: property_update.ident.to_string(),
+                    value_class: parent_obj.class.to_string(),
+                },
+                property_update.span,
+            )
+            .into())
         };
 
         let new_property = {
@@ -1460,9 +1445,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             return_value,
             return_value_span
         )?;
-        let return_value = if let Some(correct_return_value) = return_value_opt {
-            correct_return_value
-        } else {
+        let Some(return_value) = return_value_opt else {
             let mir_function = self.get_function_generics(function_id).mir_function;
 
             return Err(LangError::new(

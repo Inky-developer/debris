@@ -85,16 +85,16 @@ impl ConstOptimizer {
             }) => {
                 if let Node::Condition(condition) = &**command {
                     if let Some(result) = self.value_hints.static_condition(condition) {
-                        let value = if result { 1 } else { 0 };
                         commands.push(OptimizeCommand::new(
                             node_id,
                             OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                                 id: *id,
                                 scoreboard: *scoreboard,
-                                value: ScoreboardValue::Static(value),
+                                value: ScoreboardValue::Static(i32::from(result)),
                             })),
                         ));
-                        self.value_hints.set_hint(*id, Hint::Exact(value));
+                        self.value_hints
+                            .set_hint(*id, Hint::Exact(i32::from(result)));
                         return true;
                     }
                 }

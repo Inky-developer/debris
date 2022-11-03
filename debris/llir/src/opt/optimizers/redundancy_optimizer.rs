@@ -135,14 +135,10 @@ impl Optimizer for RedundancyOptimizer {
 
                             match simplified_condition {
                                 SimplifiedCondition::False | SimplifiedCondition::True => {
-                                    let value = if matches!(
+                                    let value = i32::from(matches!(
                                         simplified_condition,
                                         SimplifiedCondition::True
-                                    ) {
-                                        1
-                                    } else {
-                                        0
-                                    };
+                                    ));
 
                                     commands.commands.push(OptimizeCommand::new(
                                         node_id,
@@ -275,7 +271,7 @@ impl Optimizer for RedundancyOptimizer {
                         })),
                     ));
                 }
-                Node::Call(Call { id }) => {
+                &Node::Call(Call { id }) => {
                     let function = commands.optimizer.get_function(id);
                     if function.is_empty() {
                         commands
@@ -289,17 +285,17 @@ impl Optimizer for RedundancyOptimizer {
                             commands
                                 .stats
                                 .call_graph
-                                .get_called_functions(*id)
+                                .get_called_functions(id)
                                 .next()
                                 .is_none()
                         };
-                        if commands.get_call_count(*id) == 1
+                        if commands.get_call_count(id) == 1
                             || calls_no_function()
                             || (self.aggressive_function_inlining
                                 && !function.calls_function(&node_id.0)
                                 && !commands
                                     .infinite_loop_detector
-                                    .detect_infinite_loop(&commands.optimizer.functions, *id))
+                                    .detect_infinite_loop(&commands.optimizer.functions, id))
                         {
                             commands
                                 .commands
@@ -311,7 +307,7 @@ impl Optimizer for RedundancyOptimizer {
                 }
                 Node::Execute(ExecuteRaw(components)) => {
                     for (index, component) in components.iter().enumerate() {
-                        if let ExecuteRawComponent::Node(Node::Call(Call { id })) = component {
+                        if let &ExecuteRawComponent::Node(Node::Call(Call { id })) = component {
                             let function = commands.optimizer.get_function(id);
                             if function.is_empty() {
                                 commands.commands.push(OptimizeCommand::new(
@@ -324,13 +320,13 @@ impl Optimizer for RedundancyOptimizer {
                                 commands
                                     .stats
                                     .call_graph
-                                    .get_called_functions(*id)
+                                    .get_called_functions(id)
                                     .next()
                                     .is_none()
                             };
                             let has_single_node = function.nodes.len() == 1;
                             if has_single_node
-                                && (commands.get_call_count(*id) == 1 || calls_no_function())
+                                && (commands.get_call_count(id) == 1 || calls_no_function())
                             {
                                 let node = function.nodes()[0].clone();
                                 commands.commands.push(OptimizeCommand::new(
@@ -407,7 +403,7 @@ impl Optimizer for RedundancyOptimizer {
                     // Otherwise check if one of the branches is a nop or a single command
                     if !could_optimize {
                         for (branch, flag) in [(&**pos_branch, true), (&**neg_branch, false)] {
-                            if let Node::Call(Call { id }) = branch {
+                            if let &Node::Call(Call { id }) = branch {
                                 let function = commands.optimizer.get_function(id);
                                 match function.nodes() {
                                     [] => commands.commands.push(OptimizeCommand::new(

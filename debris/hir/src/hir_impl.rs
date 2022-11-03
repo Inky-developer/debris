@@ -638,7 +638,7 @@ impl HirContext<'_, '_> {
             debris_parser::token::AssignOperator::AssignModulo => HirInfixOperator::Modulo,
         };
 
-        let lhs = Box::new(self.convert_pattern_to_value(&pattern));
+        let lhs = Box::new(Self::convert_pattern_to_value(&pattern));
         let operation = HirInfix {
             operator,
             span: self.span(op_token),
@@ -656,16 +656,13 @@ impl HirContext<'_, '_> {
         }
     }
 
-    fn convert_pattern_to_value(&self, pattern: &HirVariablePattern) -> HirExpression {
+    fn convert_pattern_to_value(pattern: &HirVariablePattern) -> HirExpression {
         match pattern {
             HirVariablePattern::Path(path) => HirExpression::Path(path.clone()),
             HirVariablePattern::Tuple(tuple) => {
                 HirExpression::TupleInitialization(HirTupleInitialization {
                     span: pattern.span(),
-                    values: tuple
-                        .iter()
-                        .map(|pat| self.convert_pattern_to_value(pat))
-                        .collect(),
+                    values: tuple.iter().map(Self::convert_pattern_to_value).collect(),
                 })
             }
         }

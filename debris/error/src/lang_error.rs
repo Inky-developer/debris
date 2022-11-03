@@ -1,5 +1,6 @@
 #[cfg(debug_assertions)]
-use std::panic::Location;
+use std::backtrace::Backtrace;
+
 use std::{borrow::Cow, cmp::Ordering};
 
 use annotate_snippets::snippet::AnnotationType;
@@ -15,15 +16,15 @@ use super::{
 /// A generic error which gets thrown when compiling
 ///
 /// Contains a more specific [`LangErrorKind`]
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug)]
 pub struct LangError {
     /// The specific error
     pub kind: LangErrorKind,
     pub span: Span,
-    /// In debug mode stores the caller to provide additional
+    /// In debug mode stores the backtrace to provide additional
     /// debugging help
     #[cfg(debug_assertions)]
-    caller: &'static Location<'static>,
+    backtrace: Backtrace,
 }
 
 impl LangError {
@@ -38,7 +39,7 @@ impl LangError {
         LangError {
             kind,
             span,
-            caller: Location::caller(),
+            backtrace: Backtrace::force_capture(),
         }
     }
 }
@@ -133,7 +134,7 @@ impl<'a> AsAnnotationSnippet<'a> for LangError {
         footer.push(AnnotationOwned {
             annotation_type: AnnotationType::Info,
             id: None,
-            label: Some(Cow::Owned(format!("Error thrown at {}", self.caller))),
+            label: Some(Cow::Owned(format!("Backtrace:\n{}", self.backtrace))),
         });
 
         SnippetOwned {
@@ -618,7 +619,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: "".to_string(),
+                        label: String::new(),
                         range,
                     }]
                 }],

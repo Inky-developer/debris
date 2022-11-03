@@ -335,7 +335,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
         };
 
         if let Some((return_value, _)) =
-            get_context(&self.contexts, &self.current_context, &context_id)
+            get_context(&self.contexts, &self.current_context, context_id)
                 .return_values(&self.return_values_arena)
                 .explicit_return
         {
@@ -347,7 +347,7 @@ impl<'ctx, 'hir> MirBuilder<'ctx, 'hir> {
             });
         } else {
             let context =
-                get_context_mut(&mut self.contexts, &mut self.current_context, &context_id);
+                get_context_mut(&mut self.contexts, &mut self.current_context, context_id);
             context
                 .return_values_mut(&mut self.return_values_arena)
                 .explicit_return = Some((value, span));
@@ -1465,12 +1465,12 @@ fn get_entry_context(ctx: &CompileContext) -> MirContextId {
 fn get_context_mut<'a>(
     contexts: &'a mut FxHashMap<MirContextId, MirContext>,
     current_context: &'a mut MirContext,
-    context_id: &MirContextId,
+    context_id: MirContextId,
 ) -> &'a mut MirContext {
-    if let Some(context) = contexts.get_mut(context_id) {
+    if let Some(context) = contexts.get_mut(&context_id) {
         context
     } else {
-        assert_eq!(current_context.id, *context_id);
+        assert_eq!(current_context.id, context_id);
         current_context
     }
 }
@@ -1478,11 +1478,11 @@ fn get_context_mut<'a>(
 fn get_context<'a>(
     contexts: &'a FxHashMap<MirContextId, MirContext>,
     current_context: &'a MirContext,
-    context_id: &MirContextId,
+    context_id: MirContextId,
 ) -> &'a MirContext {
-    contexts.get(context_id).map_or_else(
+    contexts.get(&context_id).map_or_else(
         || {
-            assert_eq!(current_context.id, *context_id);
+            assert_eq!(current_context.id, context_id);
             current_context
         },
         |context| context,
@@ -1497,11 +1497,11 @@ fn exists_runtime_context(
     current_context: &MirContext,
 ) -> bool {
     let mut target_hierarchy = HashSet::new();
-    let mut target_context = get_context(contexts, current_context, &target_id);
+    let mut target_context = get_context(contexts, current_context, target_id);
     loop {
         target_hierarchy.insert(target_context.id);
         if let Some(predecessor) = target_context.super_context_id {
-            target_context = get_context(contexts, current_context, &predecessor);
+            target_context = get_context(contexts, current_context, predecessor);
         } else {
             break;
         }
