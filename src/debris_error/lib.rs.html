@@ -153,9 +153,9 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>SingleCompileError {
     <span class="doccomment">/// An error which happens when parsing the input
-    </span>ParseError(ParseError),
+    </span>ParseError(Box&lt;ParseError&gt;),
     <span class="doccomment">/// An error which happens when compiling the input
-    </span>LangError(LangError),
+    </span>LangError(Box&lt;LangError&gt;),
 }
 
 <span class="kw">impl </span>SingleCompileError {
@@ -166,13 +166,13 @@
 
 <span class="kw">impl </span>From&lt;ParseError&gt; <span class="kw">for </span>SingleCompileError {
     <span class="kw">fn </span>from(parse_error: ParseError) -&gt; <span class="self">Self </span>{
-        SingleCompileError::ParseError(parse_error)
+        SingleCompileError::ParseError(Box::new(parse_error))
     }
 }
 
 <span class="kw">impl </span>From&lt;LangError&gt; <span class="kw">for </span>SingleCompileError {
     <span class="kw">fn </span>from(lang_error: LangError) -&gt; <span class="self">Self </span>{
-        SingleCompileError::LangError(lang_error)
+        SingleCompileError::LangError(Box::new(lang_error))
     }
 }
 
@@ -185,4 +185,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="debris_error" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (215e3cd21 2022-11-03)" ></div></body></html>
