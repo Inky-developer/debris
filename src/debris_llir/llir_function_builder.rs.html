@@ -1683,6 +1683,11 @@
 <a href="#1683" id="1683">1683</a>
 <a href="#1684" id="1684">1684</a>
 <a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     collections::{HashSet, VecDeque},
     fmt::Debug,
@@ -2174,12 +2179,13 @@
             <span class="comment">// Promote the value if required
             </span><span class="kw">let </span>target_class = <span class="kw-2">&amp;</span>target_value.class;
             <span class="kw">let </span>value_class = value.class.clone();
-            <span class="kw">let </span><span class="prelude-val">Some</span>(value) = <span class="macro">verify_value!</span>(match_exact, <span class="self">self</span>, target_class, value, target_span)<span class="question-mark">? </span><span class="kw">else </span>{
+            <span class="kw">let </span><span class="prelude-val">Some</span>(value) = <span class="macro">verify_value!</span>(match_exact, <span class="self">self</span>, target_class, value, target_span)<span class="question-mark">?
+            </span><span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(unexpected_type(
                     target_span,
                     <span class="kw-2">&amp;</span>target_value.class,
                     <span class="kw-2">&amp;</span>value_class,
-                ))
+                ));
             };
 
             <span class="comment">// Special case if the target value is never, which means we can just update the mapping
@@ -2200,7 +2206,9 @@
     <span class="doccomment">/// Tries to promote an object to the `target` class and returns the promoted object in case of success.
     /// `target` must be a class object.
     </span><span class="kw">fn </span>promote_obj(ctx: <span class="kw-2">&amp;mut </span>FunctionContext) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;ObjectRef&gt;&gt; {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(function) = ctx.parameters[<span class="number">0</span>].get_property(ctx.type_ctx(), <span class="kw-2">&amp;</span>Ident::Special(SpecialIdent::Promote)) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(function) =
+            ctx.parameters[<span class="number">0</span>].get_property(ctx.type_ctx(), <span class="kw-2">&amp;</span>Ident::Special(SpecialIdent::Promote))
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">None</span>;
         };
 
@@ -2469,15 +2477,14 @@
                         <span class="kw">return </span><span class="prelude-val">Err</span>(LangError::new(
                             LangErrorKind::UnexpectedType {
                                 declared: <span class="prelude-val">None</span>,
-                                expected: <span class="macro">vec!</span>[ObjClass::static_class(
-                                    <span class="kw-2">&amp;</span><span class="self">self</span>.builder.type_context,
-                                )
-                                .to_string()],
+                                expected: <span class="macro">vec!</span>[
+                                    ObjClass::static_class(<span class="kw-2">&amp;</span><span class="self">self</span>.builder.type_context).to_string()
+                                ],
                                 got: obj.class.to_string(),
                             },
                             <span class="kw-2">*</span>span,
                         )
-                        .into())
+                        .into());
                     };
                     layout.push(class.class.clone());
                 }
@@ -2711,7 +2718,10 @@
         <span class="kw">let </span>parent_obj = <span class="self">self</span>.get_obj(property_update.parent);
         <span class="kw">let </span>value = <span class="self">self</span>.get_obj(property_update.value);
 
-        <span class="kw">let </span><span class="prelude-val">Some</span>(old_property) = parent_obj.payload.get_property(<span class="kw-2">&amp;</span><span class="self">self</span>.builder.type_context, <span class="kw-2">&amp;</span>property_update.ident) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(old_property) = parent_obj
+            .payload
+            .get_property(<span class="kw-2">&amp;</span><span class="self">self</span>.builder.type_context, <span class="kw-2">&amp;</span>property_update.ident)
+        <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(LangError::new(
                 LangErrorKind::UnexpectedProperty {
                     property: property_update.ident.to_string(),
@@ -2719,7 +2729,7 @@
                 },
                 property_update.span,
             )
-            .into())
+            .into());
         };
 
         <span class="kw">let </span>new_property = {
