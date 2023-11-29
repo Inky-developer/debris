@@ -191,7 +191,6 @@ pub enum TokenKind {
     #[regex("[ \n\r]+")]
     Whitespace,
 
-    #[error]
     Error,
 
     EndOfInput,

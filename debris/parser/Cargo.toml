@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-logos = "0.12"
+logos = "0.13"
 debris-common = { path = "../common" }
 
 [dev-dependencies]
-proptest = "1.0"
-expect-test = "1.2"
+proptest = "1.4"
+expect-test = "1.4"

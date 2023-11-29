@@ -1,6 +1,6 @@
 use std::{any::TypeId, cell::RefCell};
+use std::cell::OnceCell;
 
-use once_cell::unsync::OnceCell;
 use rustc_hash::FxHashMap;
 
 use crate::objects::{obj_class::ObjClass, obj_never::ObjNever};

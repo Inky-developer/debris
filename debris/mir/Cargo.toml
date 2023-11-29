@@ -10,5 +10,5 @@ license-file = "../../LICENSE"
 debris-common = { path = "../common" }
 debris-error = { path = "../error" }
 debris-hir = { path = "../hir" }
-itertools = "0.10"
+itertools = "0.12"
 rustc-hash = "1.1"

@@ -30,7 +30,6 @@ enum TokenKind {
     #[regex("[a-zA-Z_][a-zA-Z_0-9]*")]
     Ident,
 
-    #[error]
     Error,
 }
 
@@ -86,7 +85,11 @@ impl<'a, 'b> FormatStringParser<'a, 'b> {
     }
 
     fn next(&mut self) -> Token {
-        let kind = self.tokens.next().unwrap_or(TokenKind::EndOfInput);
+        let kind = match self.tokens.next() {
+            Some(Ok(kind)) => kind,
+            Some(Err(())) => TokenKind::Error,
+            None => TokenKind::EndOfInput,
+        };
         let span = LocalSpan(self.offset + Span::from(self.tokens.span()));
         Token { kind, span }
     }

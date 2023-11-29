@@ -9,5 +9,5 @@ license-file = "../../LICENSE"
 
 [dependencies]
 rustc-hash = "1.1"
-smol_str = "0.1"
-indexmap = "1.8"
+smol_str = "0.2"
+indexmap = "2.1"

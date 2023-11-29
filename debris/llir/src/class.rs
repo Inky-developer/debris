@@ -6,9 +6,9 @@
 //! user defined classes, like structs, carry a reference to the concrete struct.
 
 use std::{fmt, rc::Rc};
+use std::cell::OnceCell;
 
 use debris_common::Ident;
-use once_cell::unsync::OnceCell;
 use rustc_hash::FxHashMap;
 
 use crate::{

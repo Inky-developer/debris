@@ -37,7 +37,7 @@ datapack_vm = { git = "https://github.com/SuperTails/datapackvm", optional=true 
 
 [dev-dependencies]
 mc_utils = { git = "https://github.com/Inky-developer/mc_utils" }
-criterion = "0.3"
+criterion = "0.5"
 datapack_vm = { git = "https://github.com/SuperTails/datapackvm.git" }
 
 [[bench]]

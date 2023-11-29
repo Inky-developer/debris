@@ -145,7 +145,11 @@ impl<'a> Parser<'a> {
 
     /// Should only be used by `nth_next` and `skip`
     fn _next_token(&mut self) -> Token {
-        let kind = self.tokens.next().unwrap_or(TokenKind::EndOfInput);
+        let kind = match self.tokens.next() {
+            Some(Ok(kind)) => kind,
+            Some(Err(())) => TokenKind::Error,
+            None => TokenKind::EndOfInput,
+        };
         let span = self
             .tokens
             .span()

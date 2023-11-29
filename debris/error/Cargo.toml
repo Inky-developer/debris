@@ -10,7 +10,7 @@ license-file = "../../LICENSE"
 debris-common = {"path"="../common"}
 
 annotate-snippets = {version = "0.9", features = ["color"]}
-itertools = "0.10"
+itertools = "0.12"
 
 [features]
 default = []

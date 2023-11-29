@@ -1,9 +1,9 @@
 use std::{fmt, hash::BuildHasherDefault, rc::Rc};
+use std::cell::OnceCell;
 
 use debris_common::Ident;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use once_cell::unsync::OnceCell;
 use rustc_hash::FxHasher;
 
 use crate::{
