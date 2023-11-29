@@ -73,8 +73,7 @@ impl SyntaxTree {
     pub fn insert(&mut self, kind: NodeKind, children: Box<[NodeChild]>) -> NodeId {
         assert!(
             !children.is_empty(),
-            "Got unexpected empty node of kind {}",
-            kind
+            "Got unexpected empty node of kind {kind}"
         );
 
         let idx = self.nodes.len();

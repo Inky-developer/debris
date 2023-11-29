@@ -151,6 +151,9 @@ impl InputFiles {
     }
 
     /// Returns the str that corresponds to a span
+    ///
+    /// # Panics
+    /// panics if the span is out of bounds
     pub fn get_span_str(&self, span: Span) -> &str {
         let input_file = self.get_span_file(span).1;
 
@@ -254,14 +257,15 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "byte index 18 is out of bounds")]
     fn test_span_str_panic_a() {
         input_files().get_span_str(Span::new(15, 3));
     }
+
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "byte index 8 is out of bounds")]
     fn test_span_str_panic_b() {
-        input_files().get_span_str(Span::new(15, 3));
+        input_files().get_span_str(Span::new(16, 8));
     }
 
     #[test]

@@ -166,7 +166,7 @@ mod tests {
                 &mut scoreboard_context,
                 &mut function_context,
             ),
-            r#"[]"#
+            r"[]"
         );
     }
 

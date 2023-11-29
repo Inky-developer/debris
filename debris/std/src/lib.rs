@@ -261,7 +261,7 @@ fn export_impl(ctx: &FunctionContext, exported_path: Rc<str>) -> ObjectRef {
 
 fn dbg(ctx: &mut FunctionContext, parameters: &[ObjectRef]) {
     if let [param, ..] = parameters {
-        let string = format!("{:?}", param);
+        let string = format!("{param:?}");
         ctx.emit(Node::Write(WriteMessage {
             target: WriteTarget::Chat,
             message: FormattedText {

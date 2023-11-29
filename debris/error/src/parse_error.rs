@@ -65,7 +65,7 @@ impl<'a> AsAnnotationSnippet<'a> for ParseError {
             ParseError::UnexpectedPath { .. } => "Paths are not allowed here".into(),
             ParseError::UnexpectedToken { expected, .. } => match expected.as_slice() {
                 [] => Cow::Borrowed("Expected nothing"),
-                [one] => Cow::Owned(format!("Expected {}", one)),
+                [one] => Cow::Owned(format!("Expected {one}")),
                 multiple => Cow::Owned(format!("Expected one of: {}", multiple.join(", "))),
             },
         };

@@ -2,7 +2,7 @@
     "name": "debris",
     "displayName": "Debris - basic language support",
     "description": "Basic support for the debris language",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "repository": "https://github.com/Inky-developer/debris",
     "publisher": "Debris",
     "engines": {

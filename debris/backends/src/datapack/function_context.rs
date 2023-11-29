@@ -18,7 +18,7 @@ struct BuildingFunction {
 impl BuildingFunction {
     fn assemble(self) -> Vec<MinecraftCommand> {
         let mut result = self.commands;
-        result.extend(self.post_commands.into_iter());
+        result.extend(self.post_commands);
         result
     }
 }

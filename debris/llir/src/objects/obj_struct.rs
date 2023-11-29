@@ -1,5 +1,5 @@
-use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 use std::cell::OnceCell;
+use std::{fmt, hash::BuildHasherDefault, rc::Rc};
 
 use debris_common::Ident;
 use indexmap::IndexMap;

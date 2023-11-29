@@ -234,7 +234,8 @@ fn test_compiled_datapacks() {
     for file in test_files {
         println!("Compiling {}", file.display());
         for &opt_mode in &[OptMode::Debug, OptMode::Full] {
-            let Some(pack) = compile_test_file(&file, opt_mode, InterpreterKind::VanillaMinecraft) else {
+            let Some(pack) = compile_test_file(&file, opt_mode, InterpreterKind::VanillaMinecraft)
+            else {
                 break;
             };
             pack.persist("debris_test", &datapacks)

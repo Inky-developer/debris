@@ -57,7 +57,7 @@ pub enum LangErrorKind {
     },
     IndexOutOfBounds {
         index: i32,
-        max: i64,
+        max: usize,
     },
     ImmutableProperty,
     UnexpectedType {
@@ -271,7 +271,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: format!("{} has no property '{}'", value_class, property),
+                            label: format!("{value_class} has no property '{property}'"),
                             range,
                         }],
                     }],
@@ -290,7 +290,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: format!("{}: expected {} but got {}", message, lhs_count, rhs_count),
+                            label: format!("{message}: expected {lhs_count} but got {rhs_count}"),
                             range,
                         }]
                     }],
@@ -329,7 +329,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: format!("{}, but got {}", expected_msg, got),
+                            label: format!("{expected_msg}, but got {got}"),
                             range,
                         }],
                     }],
@@ -354,7 +354,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Unexpected member: {}", ident),
+                        label: format!("Unexpected member: {ident}"),
                         range,
                     }],
                 }],
@@ -370,7 +370,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Incomplete struct initialization of {}", strukt),
+                        label: format!("Incomplete struct initialization of {strukt}"),
                         range,
                     }],
                 }],
@@ -434,7 +434,7 @@ impl LangErrorKind {
 
                 let footer = match similar.as_slice() {
                     [] => None,
-                    [one] => Some(format!("Did you mean: '{}'?", one).into()),
+                    [one] => Some(format!("Did you mean: '{one}'?").into()),
                     multiple => {
                         Some(format!("Similar names exist: {}", multiple.join(", ")).into())
                     }
@@ -452,7 +452,7 @@ impl LangErrorKind {
                         source,
                         annotations: vec![SourceAnnotationOwned {
                             annotation_type: AnnotationType::Error,
-                            label: format!("Variable {} not found in this scope", var_name),
+                            label: format!("Variable {var_name} not found in this scope"),
                             range,
                         }],
                     }],
@@ -467,14 +467,14 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("Cannot assign non-comptime value to '{}'", var_name),
+                        label: format!("Cannot assign non-comptime value to '{var_name}'"),
                         range,
                     }],
                 }],
                 footer: vec![AnnotationOwned {
                     id: None,
                     annotation_type: AnnotationType::Note,
-                    label: Some(format!("The value of type {} cannot be known at compile time", class).into())
+                    label: Some(format!("The value of type {class} cannot be known at compile time").into())
                 }],
             },
             LangErrorKind::UnexpectedOperator {
@@ -487,7 +487,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("{} does not implement operator {}", lhs, operator),
+                        label: format!("{lhs} does not implement operator {operator}"),
                         range,
                     }],
                 }],
@@ -505,7 +505,7 @@ impl LangErrorKind {
                         label: match error {
                             std::io::ErrorKind::NotFound => "Cannot find this module".to_string(),
                             std::io::ErrorKind::PermissionDenied => "Cannot access this module because the permission was denied".to_string(),
-                            other => format!("Error reading this module: {:?}", other)
+                            other => format!("Error reading this module: {other:?}")
                         },
                         range,
                     }],
@@ -537,7 +537,7 @@ impl LangErrorKind {
                     source,
                     annotations: vec![SourceAnnotationOwned {
                         annotation_type: AnnotationType::Error,
-                        label: format!("{} is {}", control_flow, message),
+                        label: format!("{control_flow} is {message}"),
                         range,
                     }],
                 }],

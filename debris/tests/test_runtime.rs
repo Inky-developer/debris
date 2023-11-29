@@ -4,10 +4,10 @@ use debris_llir::Runtime;
 mod common;
 pub use common::*;
 
-const TICKING_PROGRAM: &str = r#"
+const TICKING_PROGRAM: &str = r"
 [on_tick]
 fn tick() { }
-"#;
+";
 
 const EXPORTED_FUNCTION_PROGRAM: &str = r#"
 [export("foo/bar/baz")]

@@ -38,9 +38,9 @@ impl Runtime {
             load_blocks,
             extern_blocks,
         } = other_runtime;
-        self.scheduled_blocks.extend(scheduled_blocks.into_iter());
-        self.load_blocks.extend(load_blocks.into_iter());
-        self.extern_blocks.extend(extern_blocks.into_iter());
+        self.scheduled_blocks.extend(scheduled_blocks);
+        self.load_blocks.extend(load_blocks);
+        self.extern_blocks.extend(extern_blocks);
     }
 
     /// Schedules a specific block to run every tick.

@@ -29,7 +29,7 @@ const BENCHES: [(&str, &str); 3] = [
 fn run_compiler_benchmarks(c: &mut Criterion) {
     for (name, bench) in BENCHES {
         for &opt_mode in &[OptMode::Debug, OptMode::Full] {
-            c.bench_function(&format!("{}({:?})", name, opt_mode), |b| {
+            c.bench_function(&format!("{name}({opt_mode:?})"), |b| {
                 b.iter(|| run_code(bench.into(), opt_mode));
             });
         }

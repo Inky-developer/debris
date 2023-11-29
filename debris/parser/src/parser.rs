@@ -123,7 +123,6 @@ impl<'a> Parser<'a> {
         } else if n <= self.peeked_tokens.len() {
             self.peeked_tokens[n - 1]
         } else {
-            let n = n;
             let current = self.peeked_tokens.len();
             for _ in current..n {
                 let token = self._next_token();

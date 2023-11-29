@@ -789,7 +789,7 @@ impl<'a> DatapackGenerator<'a> {
                 }
             },
             Condition::And(conditions) => {
-                for condition in conditions.iter() {
+                for condition in conditions {
                     self.get_condition_inner(condition, parts);
                 }
             }

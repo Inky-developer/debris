@@ -15,11 +15,11 @@ pub fn display_expected_of_all<T: Display>(collection: &[T]) -> String {
 pub fn display_expected_of<T: Display>(collection: &[T], expected_of: &str) -> String {
     match collection {
         [] => "Did not expect anything".to_string(),
-        [single] => format!("Expected {}", single),
+        [single] => format!("Expected {single}"),
         many => format!(
             "{} ({})",
             expected_of,
-            many.iter().map(|val| format!("{}", val)).join(", ")
+            many.iter().map(|val| format!("{val}")).join(", ")
         ),
     }
 }

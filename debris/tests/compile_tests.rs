@@ -18,9 +18,8 @@ macro_rules! expect_error {
                 Path::new("tests/compile_test_fail").to_path_buf(),
             )
         });
-        let (result, config) = match panic_result {
-            Ok(result) => result,
-            Err(_) => panic!("ICE occurred. See message above"),
+        let Ok((result, config)) = panic_result else {
+            panic!("ICE occurred. See message above");
         };
         match result {
             Ok(_) => panic!("Expected {} but compiled successfully", stringify!($error)),

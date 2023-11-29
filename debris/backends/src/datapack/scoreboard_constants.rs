@@ -15,7 +15,7 @@ pub struct ScoreboardConstants {
 
 impl ScoreboardConstants {
     pub fn name(value: i32) -> Rc<str> {
-        format!("const_{}", value).into()
+        format!("const_{value}").into()
     }
 
     pub fn get_name(&mut self, value: i32, ctx: &mut ScoreboardContext) -> ScoreboardPlayer {

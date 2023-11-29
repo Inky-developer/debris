@@ -2,16 +2,16 @@
 resolver = "2"
 
 members = [
-  "debris",
-  "debris/backends",
-  "debris/common",
-  "debris/error",
-  "debris/hir",
-  "debris/language_server",
-  "debris/llir",
-  "debris/mir",
-  "debris/parser",
-  "debris/std",
+    "debris",
+    "debris/backends",
+    "debris/common",
+    "debris/error",
+    "debris/hir",
+    "debris/language_server",
+    "debris/llir",
+    "debris/mir",
+    "debris/parser",
+    "debris/std",
 ]
 
 [profile.release]
@@ -19,3 +19,30 @@ lto = true
 panic = "abort"
 codegen-units = 1
 strip = true
+
+[workspace.lints.clippy]
+pedantic = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+dbg_macro = "deny"
+rc_buffer = "deny"
+string_to_string = "deny"
+use_debug = "deny"
+
+must_use_candidate = "allow"
+default_trait_access = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+match_bool = "allow"
+too_many_lines = "allow"
+enum_glob_use = "allow"
+non_ascii_literal = "allow"
+return_self_not_must_use = "allow"
+cargo-common-metadata = "allow"
+use_self = "allow"
+missing_const_for_fn = "allow"
+cognitive_complexity = "allow"
+option-if-let-else = "allow"
+type-complexity = "allow"
+needless_collect = "allow"

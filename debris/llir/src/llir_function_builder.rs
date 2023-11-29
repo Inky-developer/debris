@@ -220,7 +220,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Gets an object in the current state or panics
     pub(super) fn get_obj(&self, obj_id: MirObjectId) -> ObjectRef {
         self.get_obj_opt(obj_id)
-            .unwrap_or_else(|| panic!("Bad MIR (Value {:?} accessed before it is defined", obj_id))
+            .unwrap_or_else(|| panic!("Bad MIR (Value {obj_id:?} accessed before it is defined"))
     }
 
     /// Tries to get an object in the current state
@@ -489,12 +489,13 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
             // Promote the value if required
             let target_class = &target_value.class;
             let value_class = value.class.clone();
-            let Some(value) = verify_value!(match_exact, self, target_class, value, target_span)? else {
+            let Some(value) = verify_value!(match_exact, self, target_class, value, target_span)?
+            else {
                 return Err(unexpected_type(
                     target_span,
                     &target_value.class,
                     &value_class,
-                ))
+                ));
             };
 
             // Special case if the target value is never, which means we can just update the mapping
@@ -515,7 +516,9 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
     /// Tries to promote an object to the `target` class and returns the promoted object in case of success.
     /// `target` must be a class object.
     fn promote_obj(ctx: &mut FunctionContext) -> Option<Result<ObjectRef>> {
-        let Some(function) = ctx.parameters[0].get_property(ctx.type_ctx(), &Ident::Special(SpecialIdent::Promote)) else {
+        let Some(function) =
+            ctx.parameters[0].get_property(ctx.type_ctx(), &Ident::Special(SpecialIdent::Promote))
+        else {
             return None;
         };
 
@@ -784,15 +787,14 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                         return Err(LangError::new(
                             LangErrorKind::UnexpectedType {
                                 declared: None,
-                                expected: vec![ObjClass::static_class(
-                                    &self.builder.type_context,
-                                )
-                                .to_string()],
+                                expected: vec![
+                                    ObjClass::static_class(&self.builder.type_context).to_string()
+                                ],
                                 got: obj.class.to_string(),
                             },
                             *span,
                         )
-                        .into())
+                        .into());
                     };
                     layout.push(class.class.clone());
                 }
@@ -1026,7 +1028,10 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
         let parent_obj = self.get_obj(property_update.parent);
         let value = self.get_obj(property_update.value);
 
-        let Some(old_property) = parent_obj.payload.get_property(&self.builder.type_context, &property_update.ident) else {
+        let Some(old_property) = parent_obj
+            .payload
+            .get_property(&self.builder.type_context, &property_update.ident)
+        else {
             return Err(LangError::new(
                 LangErrorKind::UnexpectedProperty {
                     property: property_update.ident.to_string(),
@@ -1034,7 +1039,7 @@ impl<'builder, 'ctx> LlirFunctionBuilder<'builder, 'ctx> {
                 },
                 property_update.span,
             )
-            .into())
+            .into());
         };
 
         let new_property = {

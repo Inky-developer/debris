@@ -5,8 +5,8 @@
 //! Builtin values have a class with an associated type, while
 //! user defined classes, like structs, carry a reference to the concrete struct.
 
-use std::{fmt, rc::Rc};
 use std::cell::OnceCell;
+use std::{fmt, rc::Rc};
 
 use debris_common::Ident;
 use rustc_hash::FxHashMap;
@@ -252,7 +252,7 @@ impl fmt::Display for ClassKind {
 impl fmt::Display for Class {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let kind = &self.kind;
-        write!(f, "{}", kind)
+        write!(f, "{kind}")
     }
 }
 

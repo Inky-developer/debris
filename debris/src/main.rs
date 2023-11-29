@@ -60,7 +60,7 @@ fn main() {
             let dir = config_file.lines().next().expect("Invalid config file");
             result
                 .persist("temp_pack", Path::new(dir))
-                .unwrap_or_else(|err| panic!("Could not persist to {dir:?}: {}", err));
+                .unwrap_or_else(|err| panic!("Could not persist to {dir:?}: {err}"));
 
             #[cfg(feature = "interpret")]
             {
@@ -82,7 +82,7 @@ fn init() -> CompileConfig {
     let mut args = env::args();
     let build_mode = args
         .nth(1)
-        .map_or(BuildMode::default(), |arg| match arg.as_str() {
+        .map_or_else(BuildMode::default, |arg| match arg.as_str() {
             "release" => BuildMode::Release,
             _ => BuildMode::default(),
         });

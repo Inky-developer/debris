@@ -55,7 +55,7 @@ impl fmt::Display for ObjFormatString {
                 .iter()
                 .map(|component| match component {
                     FormatStringComponent::String(string) => string.to_string(),
-                    FormatStringComponent::Value(obj) => format!("{:?}", obj),
+                    FormatStringComponent::Value(obj) => format!("{obj:?}"),
                 })
                 .format(", ")
         ))
