@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjNull",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ObjNull"]};

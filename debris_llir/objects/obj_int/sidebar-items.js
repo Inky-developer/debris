@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["bin_op","Shorthand for adding a binary operation node"],["cmp",""]],"struct":[["ObjInt","A dynamic Integer"]]};
+window.SIDEBAR_ITEMS = {"macro":["bin_op","cmp"],"struct":["ObjInt"]};

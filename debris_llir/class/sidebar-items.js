@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ClassKind","An enum over every type that exists in debris. Either a simple [`Type`] or a complex type with additional data."]],"struct":[["Class","A class combines [`ClassKind`] and corresponding properties (Mostly associated methods)."]],"type":[["ClassRef",""]]};
+window.SIDEBAR_ITEMS = {"enum":["ClassKind"],"struct":["Class"],"type":["ClassRef"]};

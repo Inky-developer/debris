@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["optimize_alias_function","This optimizer handles functions that alias other function. An aliasing function consists of only one node, which calls another function. If such a function is found, it gets deleted and all references to it get moved to the aliased function. This prevents the optimizer from inlining into an aliasing function, reducing the code size."]]};
+window.SIDEBAR_ITEMS = {"fn":["optimize_alias_function"]};

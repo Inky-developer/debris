@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjFunctionRef","A reference to an already generated native function A function ref is uniquely identified by its block id and (for now) has no parameters"]]};
+window.SIDEBAR_ITEMS = {"struct":["ObjFunctionRef"]};

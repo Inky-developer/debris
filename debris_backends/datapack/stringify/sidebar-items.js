@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["fmt_comparison",""],["fmt_operation",""]]};
+window.SIDEBAR_ITEMS = {"fn":["fmt_comparison","fmt_operation"]};

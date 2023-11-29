@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["MirLocalNamespace","Stores all the identifiers that are local to a given object or context."],["MirLocalNamespaceId",""],["MirNamespace",""]],"type":[["LocalNamespaceValue","A tuple of the actual object and the span where it was first declared"]]};
+window.SIDEBAR_ITEMS = {"struct":["MirLocalNamespace","MirLocalNamespaceId","MirNamespace"],"type":["LocalNamespaceValue"]};

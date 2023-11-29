@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["LOG_ENABLED",""]]};
+window.SIDEBAR_ITEMS = {"constant":["LOG_ENABLED"]};

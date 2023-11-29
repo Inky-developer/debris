@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["and_static",""],["cmp",""],["or_static","Returns the boolean or-ed with the static value"]],"struct":[["ObjBool","A boolean value that is stored on a scoreboard"]]};
+window.SIDEBAR_ITEMS = {"fn":["and_static","cmp","or_static"],"struct":["ObjBool"]};

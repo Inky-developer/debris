@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["HirFile","This struct stores the high-level intermediate representation of a single file. A [`HirFile`] is very similar to a [`super::hir_nodes::HirModule`], but it can store a list of imports"]]};
+window.SIDEBAR_ITEMS = {"struct":["HirFile"]};

@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"debris_parser":[["impl&lt;'s&gt; Logos&lt;'s&gt; for <a class=\"enum\" href=\"debris_parser/token/enum.TokenKind.html\" title=\"enum debris_parser::token::TokenKind\">TokenKind</a>"],["impl&lt;'s&gt; Logos&lt;'s&gt; for <a class=\"enum\" href=\"debris_parser/format_string_parser/enum.TokenKind.html\" title=\"enum debris_parser::format_string_parser::TokenKind\">TokenKind</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

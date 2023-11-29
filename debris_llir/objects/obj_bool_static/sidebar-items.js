@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjStaticBool",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ObjStaticBool"]};

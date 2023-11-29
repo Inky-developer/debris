@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CallStackFrame",""],["FunctionParameter",""]],"struct":[["BlockIdGenerator",""],["CallStack",""],["FunctionGenerics",""],["LlirBuilder",""],["MonomorphizedFunction",""],["NativeFunctionMap","Stores the already compiled native functions"]],"type":[["NativeFunctionId",""]]};
+window.SIDEBAR_ITEMS = {"enum":["CallStackFrame","FunctionParameter"],"struct":["BlockIdGenerator","CallStack","FunctionGenerics","LlirBuilder","MonomorphizedFunction","NativeFunctionMap"],"type":["NativeFunctionId"]};

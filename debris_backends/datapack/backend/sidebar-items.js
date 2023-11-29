@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DatapackBackend","The Datapack Backend implementation"]]};
+window.SIDEBAR_ITEMS = {"struct":["DatapackBackend"]};

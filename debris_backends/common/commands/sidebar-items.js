@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ExecuteComponent","A component in an execute command"],["MinecraftCommand","Enumerates all minecraft commands that are used by any backend"],["MinecraftRange","Any valid minecraft range"],["ObjectiveCriterion","Any objective criterion"]],"struct":[["FunctionIdent","A unique minecraft function identifier"],["ScoreboardPlayer","A combination of scoreboard and player"]]};
+window.SIDEBAR_ITEMS = {"enum":["ExecuteComponent","MinecraftCommand","MinecraftRange","ObjectiveCriterion"],"struct":["FunctionIdent","ScoreboardPlayer"]};

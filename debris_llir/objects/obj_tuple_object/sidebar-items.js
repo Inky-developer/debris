@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjTupleObject","A heterogenous, compile-time known collection of objects. Todo: Consider making the construction of tuples which share all but a few elements with another tuple cheaper."],["Tuple",""]],"type":[["TupleRef",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ObjTupleObject","Tuple"],"type":["TupleRef"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["AssignOperator",""],["ControlFlowOperator",""],["InfixOperator",""],["PostfixOperator","Postfix operator with infinite precedence"],["PrefixOperator",""],["TokenKind",""]],"struct":[["Token",""]]};
+window.SIDEBAR_ITEMS = {"enum":["AssignOperator","ControlFlowOperator","InfixOperator","PostfixOperator","PrefixOperator","TokenKind"],"struct":["Token"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CodeStats","tracks statistics about the global code which can be used to allow some optimizations"]]};
+window.SIDEBAR_ITEMS = {"struct":["CodeStats"]};

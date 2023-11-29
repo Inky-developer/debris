@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["RedundantCopyOptimizer","A node which copies a value `a` to `b` is often redundant. This is especially important, because the compiler tends to generate operations in the shape of `let temp = a; operation_with_temp(temp); a = temp`. This optimizer aggressively removes copy instructions (`let temp = a`) and changes all subsequent reads to the previous variable (`a`)."]]};
+window.SIDEBAR_ITEMS = {"struct":["RedundantCopyOptimizer"]};

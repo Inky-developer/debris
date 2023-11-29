@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["CloneCell","Cell which supports `get()` by cloning the value out."]]};
+window.SIDEBAR_ITEMS = {"struct":["CloneCell"]};

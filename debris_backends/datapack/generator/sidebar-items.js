@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DatapackGenerator","This struct is used to generate a datapack from the llir representation"]]};
+window.SIDEBAR_ITEMS = {"struct":["DatapackGenerator"]};

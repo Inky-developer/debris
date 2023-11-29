@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["NodeChild",""],["NodeKind",""]],"struct":[["Node",""],["NodeDisplay",""],["NodeId",""]]};
+window.SIDEBAR_ITEMS = {"enum":["NodeChild","NodeKind"],"struct":["Node","NodeDisplay","NodeId"]};

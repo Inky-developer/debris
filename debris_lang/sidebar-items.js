@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["debug_run","Compiles the file `test.txt` into llir"],["init",""],["main",""]]};
+window.SIDEBAR_ITEMS = {"fn":["debug_run","init","main"]};

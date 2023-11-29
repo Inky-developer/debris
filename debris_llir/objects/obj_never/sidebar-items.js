@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ObjNever","Signals that a block will never return. The most interesting property of this type is its ability to match any other type. This does not circumvent the entire type system, because any code that depends on a value with the `Never` type must not be evaluated (in llir)."]]};
+window.SIDEBAR_ITEMS = {"struct":["ObjNever"]};

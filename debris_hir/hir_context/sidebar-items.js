@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["HirContext","Contains state data that are used during the hir construction"]]};
+window.SIDEBAR_ITEMS = {"struct":["HirContext"]};

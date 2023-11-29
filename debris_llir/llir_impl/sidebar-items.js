@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Llir","The low-level intermediate representation struct"]]};
+window.SIDEBAR_ITEMS = {"struct":["Llir"]};

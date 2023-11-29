@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["MirContextKind",""],["ReturnContext","Specifies where to jump to when all commands of a context are run"]],"struct":[["MirContext",""],["MirContextDebug",""],["MirContextId",""],["ReturnValuesArena",""],["ReturnValuesData","Stores returns values a given context can return Multiple contexts can share the same return values data"],["ReturnValuesDataId",""]]};
+window.SIDEBAR_ITEMS = {"enum":["MirContextKind","ReturnContext"],"struct":["MirContext","MirContextDebug","MirContextId","ReturnValuesArena","ReturnValuesData","ReturnValuesDataId"]};

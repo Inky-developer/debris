@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BlockId","Identifies a single callable block of code"]]};
+window.SIDEBAR_ITEMS = {"struct":["BlockId"]};

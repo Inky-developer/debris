@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FunctionClass",""],["FunctionContext","The context which gets passed to a function"],["ObjFunction","A function object"]],"type":[["FunctionClassRef",""]]};
+window.SIDEBAR_ITEMS = {"struct":["FunctionClass","FunctionContext","ObjFunction"],"type":["FunctionClassRef"]};
