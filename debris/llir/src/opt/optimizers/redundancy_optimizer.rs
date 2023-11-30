@@ -101,27 +101,27 @@ impl Optimizer for RedundancyOptimizer {
                             .push(OptimizeCommand::new(node_id, DiscardResult));
                     }
                 }
-                // Checks if a variable x gets created and then immediately copied to y without being used later
+                // Checks if a variable y gets copied to variable x and changes all writes to y to write to x instead if
+                // y is only read here
                 Node::FastStore(FastStore {
                     scoreboard: _,
                     id,
                     value: ScoreboardValue::Scoreboard(_, copy_from),
-                }) if commands.get_info(*copy_from).used_once() => {
-                    if let Some((prev_node_id, prev_node)) =
-                        commands.optimizer.previous_node(&node_id)
-                    {
-                        if prev_node.writes_to(*copy_from) {
+                }) if commands.get_info(*copy_from).reads == 1 => {
+                    // Now delete this assignment and update all writes to `copy_from`
+                    commands
+                        .commands
+                        .push(OptimizeCommand::new(node_id, Delete));
+                    for (other_node_id, other_node) in commands.optimizer.iter_nodes() {
+                        if other_node.writes_to(*copy_from) {
                             commands
                                 .commands
-                                .push(OptimizeCommand::new(prev_node_id, ChangeWrite(*id)));
-                            commands
-                                .commands
-                                .push(OptimizeCommand::new(node_id, Delete));
-                            // This optimization modifies command other than the current one,
-                            // So to avoid inconsistency, return here
-                            return;
+                                .push(OptimizeCommand::new(other_node_id, ChangeWrite(*id)));
                         }
                     }
+                    // This optimization modifies commands other than the current one,
+                    // So to avoid inconsistency, return here
+                    return;
                 }
                 Node::FastStoreFromResult(FastStoreFromResult {
                     scoreboard,
