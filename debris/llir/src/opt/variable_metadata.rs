@@ -181,6 +181,58 @@ impl ValueHints {
             }
         }
     }
+
+    pub fn simplify_condition(&self, condition: &Condition) -> Option<Condition> {
+        match condition {
+            Condition::Compare {
+                comparison,
+                lhs,
+                rhs,
+            } => {
+                let lhs = self
+                    .get_scoreboard_value(lhs)
+                    .map_or(*lhs, ScoreboardValue::Static);
+                let rhs = self
+                    .get_scoreboard_value(rhs)
+                    .map_or(*rhs, ScoreboardValue::Static);
+                let new_condition = Condition::Compare {
+                    comparison: *comparison,
+                    lhs,
+                    rhs,
+                };
+                if &new_condition != condition {
+                    return Some(new_condition);
+                }
+                None
+            }
+            Condition::And(parts) => {
+                let new_parts = parts
+                    .iter()
+                    .map(|cond| {
+                        self.simplify_condition(cond)
+                            .unwrap_or_else(|| cond.clone())
+                    })
+                    .collect::<Vec<_>>();
+                if &new_parts != parts {
+                    return Some(Condition::And(new_parts));
+                }
+                None
+            }
+            Condition::Or(parts) => {
+                let new_parts = parts
+                    .iter()
+                    .map(|cond| {
+                        self.simplify_condition(cond)
+                            .unwrap_or_else(|| cond.clone())
+                    })
+                    .collect::<Vec<_>>();
+                if &new_parts != parts {
+                    return Some(Condition::Or(new_parts));
+                }
+                None
+            }
+        }
+    }
 }
 
 /// General data about the usage of a specific variable

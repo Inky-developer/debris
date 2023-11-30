@@ -111,6 +111,14 @@ impl ConstOptimizer {
                     let branch = if result { pos_branch } else { neg_branch };
                     self.value_hints.update_hints(branch, true);
                     return true;
+                } else if let Some(simplified_condition) =
+                    self.value_hints.simplify_condition(condition)
+                {
+                    commands.push(OptimizeCommand::new(
+                        node_id,
+                        OptimizeCommandKind::UpdateBranchCondition(simplified_condition),
+                    ));
+                    return true;
                 }
             }
             _ => {}
