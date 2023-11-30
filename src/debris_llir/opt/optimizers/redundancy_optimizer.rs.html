@@ -724,7 +724,7 @@
                     scoreboard: <span class="kw">_</span>,
                     id,
                     value: ScoreboardValue::Scoreboard(<span class="kw">_</span>, copy_from),
-                }) <span class="kw">if </span>commands.get_info(<span class="kw-2">*</span>copy_from).used_once() =&gt; {
+                }) <span class="kw">if </span>commands.get_info(<span class="kw-2">*</span>copy_from).reads == <span class="number">1 </span>=&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((prev_node_id, prev_node)) =
                         commands.optimizer.previous_node(<span class="kw-2">&amp;</span>node_id)
                     {
