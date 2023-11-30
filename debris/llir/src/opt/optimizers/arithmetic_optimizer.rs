@@ -20,9 +20,8 @@ pub fn simple_arithmetic_optimization(commands: &mut Commands) {
     'functions: for function in commands.optimizer.iter_functions() {
         for (node_id, node) in function {
             if let Node::BinaryOperation(BinaryOperation {
-                scoreboard,
                 id: target,
-                lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
+                lhs: ScoreboardValue::Scoreboard(lhs_id),
                 rhs: ScoreboardValue::Static(value),
                 operation,
             }) = node
@@ -36,9 +35,8 @@ pub fn simple_arithmetic_optimization(commands: &mut Commands) {
                         .iter_at(&node_id)
                         .map(|(_, other_node)| {
                             if let Node::BinaryOperation(BinaryOperation {
-                                scoreboard: _,
                                 id: new_target,
-                                lhs: ScoreboardValue::Scoreboard(_, also_new_target),
+                                lhs: ScoreboardValue::Scoreboard(also_new_target),
                                 rhs: ScoreboardValue::Static(new_value),
                                 operation,
                             }) = other_node
@@ -74,9 +72,8 @@ pub fn simple_arithmetic_optimization(commands: &mut Commands) {
                         commands.commands.push(OptimizeCommand::new(
                             node_id,
                             OptimizeCommandKind::Replace(Node::BinaryOperation(BinaryOperation {
-                                scoreboard: *scoreboard,
                                 id: *target,
-                                lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *lhs_id),
+                                lhs: ScoreboardValue::Scoreboard(*lhs_id),
                                 rhs: ScoreboardValue::Static(optimized_value),
                                 operation: *operation,
                             })),
@@ -97,9 +94,8 @@ pub fn simple_arithmetic_optimization(commands: &mut Commands) {
                         .iter_at(&node_id)
                         .map(|(_, other_node)| {
                             if let Node::BinaryOperation(BinaryOperation {
-                                scoreboard: _,
                                 id: new_target,
-                                lhs: ScoreboardValue::Scoreboard(_, also_new_target),
+                                lhs: ScoreboardValue::Scoreboard(also_new_target),
                                 rhs: ScoreboardValue::Static(new_value),
                                 operation,
                             }) = other_node
@@ -149,9 +145,8 @@ pub fn simple_arithmetic_optimization(commands: &mut Commands) {
                         commands.commands.push(OptimizeCommand::new(
                             node_id,
                             OptimizeCommandKind::Replace(Node::BinaryOperation(BinaryOperation {
-                                scoreboard: *scoreboard,
                                 id: *target,
-                                lhs: ScoreboardValue::Scoreboard(*lhs_scoreboard, *lhs_id),
+                                lhs: ScoreboardValue::Scoreboard(*lhs_id),
                                 rhs: ScoreboardValue::Static(new_value),
                                 operation: new_operation,
                             })),

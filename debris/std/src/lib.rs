@@ -16,7 +16,7 @@ use debris_llir::{
         Call, ExecuteRaw, ExecuteRawComponent, FastStore, FastStoreFromResult, Node, WriteMessage,
         WriteTarget,
     },
-    minecraft_utils::{Scoreboard, ScoreboardValue},
+    minecraft_utils::ScoreboardValue,
     objects::{
         obj_bool::ObjBool,
         obj_bool_static::ObjStaticBool,
@@ -141,7 +141,6 @@ fn execute_string(ctx: &mut FunctionContext, string: &ObjString) -> ObjInt {
     ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
         command: execute_command.into(),
         id: return_value,
-        scoreboard: Scoreboard::Main,
     }));
 
     return_value.into()
@@ -176,7 +175,6 @@ fn execute_format_string(ctx: &mut FunctionContext, format_string: &ObjFormatStr
     ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
         command: execute_command.into(),
         id: return_value,
-        scoreboard: Scoreboard::Main,
     }));
 
     return_value.into()
@@ -214,7 +212,6 @@ fn dyn_int(ctx: &mut FunctionContext, args: &[ObjectRef]) -> LangResult<ObjInt> 
 
 fn static_int_to_int(ctx: &mut FunctionContext, x: &ObjStaticInt) -> ObjInt {
     ctx.emit(Node::FastStore(FastStore {
-        scoreboard: Scoreboard::Main,
         id: ctx.item_id,
         value: ScoreboardValue::Static(x.value),
     }));

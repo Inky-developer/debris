@@ -112,8 +112,8 @@ impl CodeStats {
                             self.function_parameters.set_write(function_id, *id);
                         }
                     }
-                    VariableAccess::Read(ScoreboardValue::Scoreboard(_, id))
-                    | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
+                    VariableAccess::Read(ScoreboardValue::Scoreboard(id))
+                    | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id)) => {
                         self.function_parameters.set_read(function_id, *id);
                     }
                     _ => {}
@@ -164,7 +164,7 @@ impl CodeStats {
         FW: Fn(&mut VariableUsage, Option<i32>),
     {
         node.variable_accesses(&mut |access| match access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(_, value)) => {
+            VariableAccess::Read(ScoreboardValue::Scoreboard(value)) => {
                 if let Some(function) = block {
                     self.function_parameters.set_read(function, *value);
                 }
@@ -179,7 +179,7 @@ impl CodeStats {
                     const_val,
                 );
             }
-            VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+            VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(value)) => {
                 if let Some(function) = block {
                     self.function_parameters.set_read(function, *value);
                     self.function_parameters.set_write(function, *value);

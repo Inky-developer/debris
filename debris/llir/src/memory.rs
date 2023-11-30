@@ -3,7 +3,7 @@ use std::iter::zip;
 use crate::{
     item_id::ItemId,
     llir_nodes::{FastStore, Node},
-    minecraft_utils::{Scoreboard, ScoreboardValue},
+    minecraft_utils::ScoreboardValue,
     ObjectRef,
 };
 
@@ -12,8 +12,7 @@ use crate::{
 pub fn copy(dest: ItemId, source: ItemId) -> Node {
     Node::FastStore(FastStore {
         id: dest,
-        scoreboard: Scoreboard::Main,
-        value: ScoreboardValue::Scoreboard(Scoreboard::Main, source),
+        value: ScoreboardValue::Scoreboard(source),
     })
 }
 

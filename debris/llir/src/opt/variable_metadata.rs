@@ -63,10 +63,10 @@ impl ValueHints {
     }
 
     /// Tries to get the static value of a scoreboard value
-    pub fn get_scoreboard_value(&self, value: &ScoreboardValue) -> Option<i32> {
+    pub fn get_scoreboard_value(&self, value: ScoreboardValue) -> Option<i32> {
         match value {
-            ScoreboardValue::Scoreboard(_, id) => self.get_hint(*id).exact(),
-            &ScoreboardValue::Static(val) => Some(val),
+            ScoreboardValue::Scoreboard(id) => self.get_hint(id).exact(),
+            ScoreboardValue::Static(val) => Some(val),
         }
     }
 
@@ -74,17 +74,13 @@ impl ValueHints {
     /// `guaranteed_run` specifies whether `node` will definitely execute
     pub fn update_hints(&mut self, node: &Node, guaranteed_run: bool) {
         match node {
-            Node::FastStore(FastStore {
-                id,
-                value,
-                scoreboard: _,
-            }) => {
+            Node::FastStore(FastStore { id, value }) => {
                 if guaranteed_run {
                     match value {
                         ScoreboardValue::Static(static_value) => {
                             self.set_hint(*id, Hint::Exact(*static_value));
                         }
-                        ScoreboardValue::Scoreboard(_scoreboard, other_id) => {
+                        ScoreboardValue::Scoreboard(other_id) => {
                             let other_value_hint = self.get_hint(*other_id);
                             self.set_hint(*id, other_value_hint);
                         }
@@ -93,16 +89,11 @@ impl ValueHints {
                     self.clear_hint(*id);
                 }
             }
-            Node::FastStoreFromResult(FastStoreFromResult {
-                id,
-                scoreboard: _,
-                command,
-            }) => {
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) => {
                 self.update_hints(command, guaranteed_run);
                 self.clear_hint(*id);
             }
             Node::BinaryOperation(BinaryOperation {
-                scoreboard: _,
                 id,
                 lhs: _,
                 rhs: _,
@@ -118,10 +109,9 @@ impl ValueHints {
             Node::Execute(ExecuteRaw(components)) => {
                 for component in components {
                     match component {
-                        ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(
-                            _,
-                            id,
-                        )) => self.clear_hint(*id),
+                        ExecuteRawComponent::ScoreboardValue(ScoreboardValue::Scoreboard(id)) => {
+                            self.clear_hint(*id);
+                        }
                         ExecuteRawComponent::Node(node) => self.update_hints(node, false),
                         ExecuteRawComponent::ScoreboardValue(_)
                         | ExecuteRawComponent::String(_) => {}
@@ -136,15 +126,14 @@ impl ValueHints {
     /// Tries to evaluate a binary operation with static values
     pub fn static_binary_operation(&self, bin_op: &BinaryOperation) -> Option<i32> {
         let BinaryOperation {
-            scoreboard: _,
             id: _,
             lhs,
             rhs,
             operation,
         } = bin_op;
 
-        let lhs_value = self.get_scoreboard_value(lhs)?;
-        let rhs_value = self.get_scoreboard_value(rhs)?;
+        let lhs_value = self.get_scoreboard_value(*lhs)?;
+        let rhs_value = self.get_scoreboard_value(*rhs)?;
 
         Some(operation.evaluate(lhs_value, rhs_value))
     }
@@ -157,8 +146,8 @@ impl ValueHints {
                 rhs,
                 comparison,
             } => {
-                let lhs_value = self.get_scoreboard_value(lhs)?;
-                let rhs_value = self.get_scoreboard_value(rhs)?;
+                let lhs_value = self.get_scoreboard_value(*lhs)?;
+                let rhs_value = self.get_scoreboard_value(*rhs)?;
                 Some(comparison.evaluate(lhs_value, rhs_value))
             }
             Condition::And(parts) => {
@@ -190,10 +179,10 @@ impl ValueHints {
                 rhs,
             } => {
                 let lhs = self
-                    .get_scoreboard_value(lhs)
+                    .get_scoreboard_value(*lhs)
                     .map_or(*lhs, ScoreboardValue::Static);
                 let rhs = self
-                    .get_scoreboard_value(rhs)
+                    .get_scoreboard_value(*rhs)
                     .map_or(*rhs, ScoreboardValue::Static);
                 let new_condition = Condition::Compare {
                     comparison: *comparison,

@@ -7,7 +7,7 @@ use crate::{
     json_format::JsonFormatComponent,
     llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardValue},
     objects::obj_bool_static::ObjStaticBool,
     ObjectPayload, Type,
 };
@@ -21,7 +21,6 @@ pub fn or_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBool
             false => copy(item_id, bool.id),
             true => Node::FastStore(FastStore {
                 id: item_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(1),
             }),
         },
@@ -35,7 +34,6 @@ pub fn and_static(item_id: ItemId, bool: &ObjBool, value: bool) -> (Node, ObjBoo
             true => copy(item_id, bool.id),
             false => Node::FastStore(FastStore {
                 id: item_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(0),
             }),
         },
@@ -52,7 +50,6 @@ pub fn cmp(
     (
         Node::FastStoreFromResult(FastStoreFromResult {
             id: item_id,
-            scoreboard: Scoreboard::Main,
             command: Box::new(Node::Condition(Condition::Compare {
                 comparison: cmp,
                 lhs: bool.as_scoreboard_value(),
@@ -84,7 +81,6 @@ impl_class! {ObjBool, Type::DynamicBool, {
         |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
             ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
                 id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
                 command: Box::new(Node::Condition(Condition::And(vec![
                     Condition::Compare {
                         lhs: lhs.as_scoreboard_value(),
@@ -111,7 +107,6 @@ impl_class! {ObjBool, Type::DynamicBool, {
         |ctx: &mut FunctionContext, lhs: &ObjBool, rhs: &ObjBool| -> ObjBool {
             ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
                 id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
                 command: Box::new(Node::Condition(Condition::Or(vec![
                     Condition::Compare {
                         lhs: lhs.as_scoreboard_value(),
@@ -132,7 +127,6 @@ impl_class! {ObjBool, Type::DynamicBool, {
     Not => |ctx: &mut FunctionContext, value: &ObjBool| -> ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
             id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
             command: Box::new(Node::Condition(Condition::Compare {
                 lhs: value.as_scoreboard_value(),
                 rhs: ScoreboardValue::Static(0),
@@ -198,7 +192,7 @@ impl ObjBool {
     }
 
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
-        ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
+        ScoreboardValue::Scoreboard(self.id)
     }
 }
 

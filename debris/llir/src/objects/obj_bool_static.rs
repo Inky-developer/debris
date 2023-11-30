@@ -8,7 +8,7 @@ use crate::{
     impl_class,
     llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardValue},
     objects::{
         obj_bool::{and_static, cmp, or_static},
         obj_class::ObjClass,
@@ -30,7 +30,6 @@ impl_class! {ObjStaticBool, Type::ComptimeBool, {
             Type::DynamicBool => {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(i32::from(this.value)),
                 }));
                 Some(Ok(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx())))

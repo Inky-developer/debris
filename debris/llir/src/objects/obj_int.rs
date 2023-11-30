@@ -7,7 +7,7 @@ use crate::{
     json_format::JsonFormatComponent,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     objects::obj_int_static::ObjStaticInt,
     ObjectPayload, Type,
 };
@@ -19,7 +19,6 @@ macro_rules! bin_op {
     ($operation:expr, $ctx:ident, $lhs:ident, $rhs:ident) => {
         $ctx.emit(Node::BinaryOperation(BinaryOperation {
             id: $ctx.item_id,
-            scoreboard: Scoreboard::Main,
             operation: $operation,
             lhs: $lhs.as_scoreboard_value(),
             rhs: $rhs.as_scoreboard_value(),
@@ -30,7 +29,6 @@ macro_rules! bin_op {
 macro_rules! cmp {
     ($ctx:expr, $lhs:expr, $rhs:expr, $cmp:expr) => {{
         $ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            scoreboard: Scoreboard::Main,
             id: $ctx.item_id,
             command: Box::new(Node::Condition(Condition::Compare {
                 lhs: $lhs.as_scoreboard_value(),
@@ -164,7 +162,6 @@ impl_class! {ObjInt, Type::DynamicInt, {
             if rhs.value == i32::MAX {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(0),
                 }));
                 return ObjBool::new(ctx.item_id);
@@ -182,7 +179,6 @@ impl_class! {ObjInt, Type::DynamicInt, {
             if rhs.value == i32::MIN {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(1),
                 }));
                 return ObjBool::new(ctx.item_id);
@@ -200,7 +196,6 @@ impl_class! {ObjInt, Type::DynamicInt, {
             if rhs.value == i32::MIN {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(0),
                 }));
                 return ObjBool::new(ctx.item_id);
@@ -218,7 +213,6 @@ impl_class! {ObjInt, Type::DynamicInt, {
             if rhs.value == i32::MAX {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(1),
                 }));
                 return ObjBool::new(ctx.item_id);
@@ -242,7 +236,7 @@ impl ObjInt {
 
     /// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard
     pub fn as_scoreboard_value(&self) -> ScoreboardValue {
-        ScoreboardValue::Scoreboard(Scoreboard::Main, self.id)
+        ScoreboardValue::Scoreboard(self.id)
     }
 }
 

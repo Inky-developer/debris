@@ -4,6 +4,7 @@ use datapack_common::vfs::Directory;
 use itertools::Itertools;
 
 use debris_common::CompileContext;
+use debris_llir::minecraft_utils::Scoreboard;
 use debris_llir::{
     block_id::BlockId,
     extern_item_path::ExternItemPath,
@@ -226,27 +227,26 @@ impl<'a> DatapackGenerator<'a> {
 
     fn handle_fast_store(&mut self, fast_store: &FastStore) {
         let value = &fast_store.value;
+        let scoreboard = self.scoreboard_ctx.get_scoreboard(Scoreboard::Main);
 
         let command = match value {
             ScoreboardValue::Static(static_value) => MinecraftCommand::ScoreboardSet {
                 player: ScoreboardPlayer {
                     player: self.scoreboard_ctx.get_scoreboard_player(fast_store.id),
-                    scoreboard: self.scoreboard_ctx.get_scoreboard(fast_store.scoreboard),
+                    scoreboard,
                 },
                 value: *static_value,
             },
-            ScoreboardValue::Scoreboard(other_scoreboard, other_player) => {
-                MinecraftCommand::ScoreboardSetEqual {
-                    player1: ScoreboardPlayer {
-                        player: self.scoreboard_ctx.get_scoreboard_player(fast_store.id),
-                        scoreboard: self.scoreboard_ctx.get_scoreboard(fast_store.scoreboard),
-                    },
-                    player2: ScoreboardPlayer {
-                        player: self.scoreboard_ctx.get_scoreboard_player(*other_player),
-                        scoreboard: self.scoreboard_ctx.get_scoreboard(*other_scoreboard),
-                    },
-                }
-            }
+            ScoreboardValue::Scoreboard(other_player) => MinecraftCommand::ScoreboardSetEqual {
+                player1: ScoreboardPlayer {
+                    player: self.scoreboard_ctx.get_scoreboard_player(fast_store.id),
+                    scoreboard: Rc::clone(&scoreboard),
+                },
+                player2: ScoreboardPlayer {
+                    player: self.scoreboard_ctx.get_scoreboard_player(*other_player),
+                    scoreboard,
+                },
+            },
         };
 
         self.add_command(command);
@@ -267,9 +267,7 @@ impl<'a> DatapackGenerator<'a> {
                 player: self
                     .scoreboard_ctx
                     .get_scoreboard_player(fast_store_from_result.id),
-                scoreboard: self
-                    .scoreboard_ctx
-                    .get_scoreboard(fast_store_from_result.scoreboard),
+                scoreboard: self.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
             },
             command: Box::new(last),
         };
@@ -277,32 +275,29 @@ impl<'a> DatapackGenerator<'a> {
     }
 
     fn handle_binary_operation(&mut self, binary_operation: &BinaryOperation) {
+        let scoreboard = self.scoreboard_ctx.get_scoreboard(Scoreboard::Main);
         // Calculate the lhs scoreboard value and the rhs scoreboard value
-        let (lhs_player, lhs_scoreboard, rhs_player, rhs_scoreboard, overwrite_lhs) =
+        let (lhs_player, rhs_player, overwrite_lhs) =
             match (binary_operation.lhs, binary_operation.rhs) {
                 (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) => {
                     let result = binary_operation.operation.evaluate(lhs, rhs);
                     let player = self
                         .scoreboard_ctx
                         .get_scoreboard_player(binary_operation.id);
-                    let scoreboard = self
-                        .scoreboard_ctx
-                        .get_scoreboard(binary_operation.scoreboard);
                     let command = MinecraftCommand::ScoreboardSet {
-                        player: ScoreboardPlayer { player, scoreboard },
+                        player: ScoreboardPlayer {
+                            player,
+                            scoreboard: Rc::clone(&scoreboard),
+                        },
                         value: result,
                     };
                     self.add_command(command);
                     return;
                 }
-                (
-                    ScoreboardValue::Static(lhs_val),
-                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) => {
+                (ScoreboardValue::Static(lhs_val), ScoreboardValue::Scoreboard(rhs_id)) => {
                     if binary_operation.id == rhs_id {
                         let lhs_player = self.scoreboard_ctx.get_temporary_player();
                         let rhs_id = self.scoreboard_ctx.get_scoreboard_player(rhs_id);
-                        let rhs_scoreboard = self.scoreboard_ctx.get_scoreboard(rhs_scoreboard);
                         self.add_command(MinecraftCommand::ScoreboardSet {
                             player: lhs_player.clone(),
                             value: lhs_val,
@@ -312,15 +307,12 @@ impl<'a> DatapackGenerator<'a> {
                             player1: lhs_player,
                             player2: ScoreboardPlayer {
                                 player: rhs_id,
-                                scoreboard: rhs_scoreboard,
+                                scoreboard: Rc::clone(&scoreboard),
                             },
                         });
                         return;
                     }
 
-                    let lhs_scoreboard = self
-                        .scoreboard_ctx
-                        .get_scoreboard(binary_operation.scoreboard);
                     let lhs_id = self
                         .scoreboard_ctx
                         .get_scoreboard_player(binary_operation.id);
@@ -328,33 +320,24 @@ impl<'a> DatapackGenerator<'a> {
                     self.add_command(MinecraftCommand::ScoreboardSet {
                         player: ScoreboardPlayer {
                             player: lhs_id.clone(),
-                            scoreboard: lhs_scoreboard.clone(),
+                            scoreboard: Rc::clone(&scoreboard),
                         },
                         value: lhs_val,
                     });
                     (
                         lhs_id,
-                        lhs_scoreboard,
                         self.scoreboard_ctx.get_scoreboard_player(rhs_id),
-                        self.scoreboard_ctx.get_scoreboard(rhs_scoreboard),
                         true,
                     )
                 }
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) => (
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Scoreboard(rhs_id)) => (
                     self.scoreboard_ctx.get_scoreboard_player(lhs_id),
-                    self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
                     self.scoreboard_ctx.get_scoreboard_player(rhs_id),
-                    self.scoreboard_ctx.get_scoreboard(rhs_scoreboard),
                     lhs_id == binary_operation.id,
                 ),
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Static(value),
-                ) if (binary_operation.operation == ScoreboardOperation::Plus
-                    || binary_operation.operation == ScoreboardOperation::Minus) =>
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Static(value))
+                    if (binary_operation.operation == ScoreboardOperation::Plus
+                        || binary_operation.operation == ScoreboardOperation::Minus) =>
                 {
                     let real_value = if binary_operation.operation == ScoreboardOperation::Minus {
                         -value
@@ -365,32 +348,25 @@ impl<'a> DatapackGenerator<'a> {
                     // let player = self.scoreboard_ctx.get_scoreboard_player(lhs_id);
                     // let scoreboard = self.scoreboard_ctx.get_scoreboard(lhs_scoreboard);
 
-                    let (player, scoreboard) = if lhs_id == binary_operation.id {
-                        (
-                            self.scoreboard_ctx.get_scoreboard_player(lhs_id),
-                            self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
-                        )
+                    let player = if lhs_id == binary_operation.id {
+                        self.scoreboard_ctx.get_scoreboard_player(lhs_id)
                     } else {
                         // Convert the lhs to a new scoreboard value
                         let player = self
                             .scoreboard_ctx
                             .get_scoreboard_player(binary_operation.id);
-                        let scoreboard = self
-                            .scoreboard_ctx
-                            .get_scoreboard(binary_operation.scoreboard);
                         let lhs_player = self.scoreboard_ctx.get_scoreboard_player(lhs_id);
-                        let lhs_scoreboard = self.scoreboard_ctx.get_scoreboard(lhs_scoreboard);
                         self.add_command(MinecraftCommand::ScoreboardSetEqual {
                             player1: ScoreboardPlayer {
                                 player: player.clone(),
-                                scoreboard: scoreboard.clone(),
+                                scoreboard: Rc::clone(&scoreboard),
                             },
                             player2: ScoreboardPlayer {
                                 player: lhs_player,
-                                scoreboard: lhs_scoreboard,
+                                scoreboard: Rc::clone(&scoreboard),
                             },
                         });
-                        (player, scoreboard)
+                        player
                     };
 
                     self.add_command(MinecraftCommand::ScoreboardOperationAdd {
@@ -400,19 +376,17 @@ impl<'a> DatapackGenerator<'a> {
 
                     return;
                 }
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Static(value),
-                ) => {
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Static(value)) => {
                     // Convert the rhs to a scoreboard value
-                    let ScoreboardPlayer { player, scoreboard } = self
+                    let ScoreboardPlayer {
+                        player,
+                        scoreboard: _,
+                    } = self
                         .scoreboard_constants
                         .get_name(value, &mut self.scoreboard_ctx);
                     (
                         self.scoreboard_ctx.get_scoreboard_player(lhs_id),
-                        self.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
                         player,
-                        scoreboard,
                         lhs_id == binary_operation.id,
                     )
                 }
@@ -423,19 +397,15 @@ impl<'a> DatapackGenerator<'a> {
             let player1 = self
                 .scoreboard_ctx
                 .get_scoreboard_player(binary_operation.id);
-            let scoreboard1 = self
-                .scoreboard_ctx
-                .get_scoreboard(binary_operation.scoreboard);
             let player2 = lhs_player;
-            let scoreboard2 = lhs_scoreboard;
             self.add_command(MinecraftCommand::ScoreboardSetEqual {
                 player1: ScoreboardPlayer {
                     player: player1,
-                    scoreboard: scoreboard1,
+                    scoreboard: Rc::clone(&scoreboard),
                 },
                 player2: ScoreboardPlayer {
                     player: player2,
-                    scoreboard: scoreboard2,
+                    scoreboard: Rc::clone(&scoreboard),
                 },
             });
         }
@@ -444,17 +414,14 @@ impl<'a> DatapackGenerator<'a> {
         let player1 = self
             .scoreboard_ctx
             .get_scoreboard_player(binary_operation.id);
-        let scoreboard1 = self
-            .scoreboard_ctx
-            .get_scoreboard(binary_operation.scoreboard);
         self.add_command(MinecraftCommand::ScoreboardOperation {
             player1: ScoreboardPlayer {
                 player: player1,
-                scoreboard: scoreboard1,
+                scoreboard: Rc::clone(&scoreboard),
             },
             player2: ScoreboardPlayer {
                 player: rhs_player,
-                scoreboard: rhs_scoreboard,
+                scoreboard: Rc::clone(&scoreboard),
             },
             operation: binary_operation.operation,
         });
@@ -475,7 +442,7 @@ impl<'a> DatapackGenerator<'a> {
             let mut found_write = false;
             node.variable_accesses(&mut |access| match access {
                 VariableAccess::Write(id, _)
-                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id))
                     if options.contains(id) =>
                 {
                     found_write = true;
@@ -676,11 +643,11 @@ impl<'a> DatapackGenerator<'a> {
                         ScoreboardValue::Static(val) => {
                             command.push_str(&val.to_string());
                         }
-                        ScoreboardValue::Scoreboard(scoreboard, id) => write!(
+                        ScoreboardValue::Scoreboard(id) => write!(
                             command,
                             "{} {}",
                             self.scoreboard_ctx.get_scoreboard_player(*id),
-                            self.scoreboard_ctx.get_scoreboard(*scoreboard)
+                            self.scoreboard_ctx.get_scoreboard(Scoreboard::Main)
                         )
                         .unwrap(),
                     },
@@ -735,20 +702,18 @@ impl<'a> DatapackGenerator<'a> {
                 rhs,
                 comparison,
             } => match (lhs, rhs) {
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) => parts.push(ExecuteComponent::IfScoreRelation {
-                    comparison: *comparison,
-                    player1: ScoreboardPlayer {
-                        player: self.scoreboard_ctx.get_scoreboard_player(*lhs_id),
-                        scoreboard: self.scoreboard_ctx.get_scoreboard(*lhs_scoreboard),
-                    },
-                    player2: ScoreboardPlayer {
-                        player: self.scoreboard_ctx.get_scoreboard_player(*rhs_id),
-                        scoreboard: self.scoreboard_ctx.get_scoreboard(*rhs_scoreboard),
-                    },
-                }),
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Scoreboard(rhs_id)) => parts
+                    .push(ExecuteComponent::IfScoreRelation {
+                        comparison: *comparison,
+                        player1: ScoreboardPlayer {
+                            player: self.scoreboard_ctx.get_scoreboard_player(*lhs_id),
+                            scoreboard: self.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
+                        },
+                        player2: ScoreboardPlayer {
+                            player: self.scoreboard_ctx.get_scoreboard_player(*rhs_id),
+                            scoreboard: self.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
+                        },
+                    }),
                 (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) => {
                     let lhs = self
                         .scoreboard_constants
@@ -765,15 +730,15 @@ impl<'a> DatapackGenerator<'a> {
                 (lhs, rhs) => {
                     // 0 < a can be rewritten as a > 0, so we can make a (scoreboard, static) pair
                     // This means we can make an expression of the form `scoreboard comparison static value`
-                    let (scoreboard, id, static_value, operator) = match (lhs, rhs) {
+                    let (id, static_value, operator) = match (lhs, rhs) {
                         (
                             ScoreboardValue::Static(static_value),
-                            ScoreboardValue::Scoreboard(scoreboard, id),
-                        ) => (scoreboard, id, static_value, comparison.flip_sides()),
+                            ScoreboardValue::Scoreboard(id),
+                        ) => (id, static_value, comparison.flip_sides()),
                         (
-                            ScoreboardValue::Scoreboard(scoreboard, id),
+                            ScoreboardValue::Scoreboard(id),
                             ScoreboardValue::Static(static_value),
-                        ) => (scoreboard, id, static_value, *comparison),
+                        ) => (id, static_value, *comparison),
                         (_, _) => unreachable!(
                             "Verified that there is one static and one scoreboard value"
                         ),
@@ -782,7 +747,7 @@ impl<'a> DatapackGenerator<'a> {
                     parts.push(ExecuteComponent::IfScoreRange {
                         player: ScoreboardPlayer {
                             player: self.scoreboard_ctx.get_scoreboard_player(*id),
-                            scoreboard: self.scoreboard_ctx.get_scoreboard(*scoreboard),
+                            scoreboard: self.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
                         },
                         range: MinecraftRange::from_operator(*static_value, operator),
                     });

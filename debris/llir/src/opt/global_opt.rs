@@ -432,7 +432,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     self.stats.remove_node(node, &id);
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Write(value, _)
-                        | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(_, value)) => {
+                        | VariableAccessMut::ReadWrite(ScoreboardValue::Scoreboard(value)) => {
                             *value = new_target;
                         }
                         _ => {}
@@ -444,7 +444,7 @@ impl<'opt, 'ctx> Commands<'opt, 'ctx> {
                     self.stats.remove_node(node, &id);
                     node.variable_accesses_mut(&mut |access| match access {
                         VariableAccessMut::Read(value) | VariableAccessMut::ReadWrite(value) => {
-                            if let ScoreboardValue::Scoreboard(_, id) = value {
+                            if let ScoreboardValue::Scoreboard(id) = value {
                                 if id == &old_id {
                                     *value = new_value;
                                 }

@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+use debris_llir::minecraft_utils::Scoreboard;
 use debris_llir::{
     json_format::{FormattedText, JsonFormatComponent},
     minecraft_utils::ScoreboardValue,
@@ -41,10 +42,10 @@ impl JsonTextWriter {
             JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) => {
                 self.write_str(&static_value.to_string());
             }
-            JsonFormatComponent::Score(ScoreboardValue::Scoreboard(scoreboard, id)) => {
+            JsonFormatComponent::Score(ScoreboardValue::Scoreboard(id)) => {
                 let player = ScoreboardPlayer {
                     player: scoreboards.get_scoreboard_player(*id),
-                    scoreboard: scoreboards.get_scoreboard(*scoreboard),
+                    scoreboard: scoreboards.get_scoreboard(Scoreboard::Main),
                 };
                 self.write_score(&player);
             }
@@ -110,7 +111,7 @@ mod tests {
     use debris_llir::{
         item_id::ItemId,
         json_format::{FormattedText, JsonFormatComponent},
-        minecraft_utils::{Scoreboard, ScoreboardValue},
+        minecraft_utils::ScoreboardValue,
     };
 
     use crate::datapack::{
@@ -130,7 +131,7 @@ mod tests {
                     components: vec![JsonFormatComponent::RawText("Hello World!".into())]
                 },
                 &mut scoreboard_context,
-                &mut function_context
+                &mut function_context,
             ),
             r#"[{"text":"Hello World!"}]"#
         );
@@ -181,10 +182,7 @@ mod tests {
                     components: vec![
                         JsonFormatComponent::RawText("Hello World!".into()),
                         JsonFormatComponent::RawText(" The score is: ".into()),
-                        JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
-                            Scoreboard::Main,
-                            ItemId { id: 0 }
-                        ))
+                        JsonFormatComponent::Score(ScoreboardValue::Scoreboard(ItemId { id: 0 })),
                     ]
                 },
                 &mut scoreboard_context,

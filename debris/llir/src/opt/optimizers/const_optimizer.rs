@@ -35,7 +35,7 @@ impl Optimizer for ConstOptimizer {
                 let commands_vec = &mut *commands.commands;
                 let variable_information = &commands.stats.variable_information;
                 node.variable_accesses(&mut |access| {
-                    if let VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) = access {
+                    if let VariableAccess::Read(ScoreboardValue::Scoreboard(id)) = access {
                         let hint = self.value_hints.get_hint(*id).exact();
                         let global_const = variable_information[id].constant_value;
                         if let Some(exact_value) = hint.or(global_const) {
@@ -69,7 +69,6 @@ impl ConstOptimizer {
                         node_id,
                         OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: bin_op.id,
-                            scoreboard: bin_op.scoreboard,
                             value: ScoreboardValue::Static(result),
                         })),
                     ));
@@ -77,18 +76,13 @@ impl ConstOptimizer {
                     return true;
                 }
             }
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard,
-                id,
-                command,
-            }) => {
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) => {
                 if let Node::Condition(condition) = &**command {
                     if let Some(result) = self.value_hints.static_condition(condition) {
                         commands.push(OptimizeCommand::new(
                             node_id,
                             OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                                 id: *id,
-                                scoreboard: *scoreboard,
                                 value: ScoreboardValue::Static(i32::from(result)),
                             })),
                         ));

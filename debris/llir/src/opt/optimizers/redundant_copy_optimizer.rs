@@ -24,19 +24,17 @@ impl Optimizer for RedundantCopyOptimizer {
     fn optimize(&mut self, commands: &mut Commands) {
         for (function_id, function) in &commands.optimizer.functions {
             'node_loop: for (idx, node) in function.nodes().iter().enumerate() {
-                let (temp_id, original_id, original_scoreboard, is_bin_op) = match node {
+                let (temp_id, original_id, is_bin_op) = match node {
                     Node::FastStore(FastStore {
-                        scoreboard: _,
                         id: temp_id,
-                        value: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
-                    }) => (temp_id, original_id, original_scoreboard, false),
+                        value: ScoreboardValue::Scoreboard(original_id),
+                    }) => (temp_id, original_id, false),
                     Node::BinaryOperation(BinaryOperation {
-                        scoreboard: _,
                         id: temp_id,
-                        lhs: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
+                        lhs: ScoreboardValue::Scoreboard(original_id),
                         rhs: _,
                         operation: _,
-                    }) => (temp_id, original_id, original_scoreboard, true),
+                    }) => (temp_id, original_id, true),
                     _ => continue,
                 };
 
@@ -80,7 +78,7 @@ impl Optimizer for RedundantCopyOptimizer {
                     }
 
                     node.variable_accesses(&mut |access| match access {
-                        VariableAccess::Read(ScoreboardValue::Scoreboard(_, id)) => {
+                        VariableAccess::Read(ScoreboardValue::Scoreboard(id)) => {
                             if id == original_id {
                                 encountered_original_reads += 1;
                                 reads_from_original = true;
@@ -96,7 +94,7 @@ impl Optimizer for RedundantCopyOptimizer {
                                 write_to_copy = true;
                             }
                         }
-                        VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id)) => {
+                        VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id)) => {
                             if id == original_id {
                                 encountered_original_reads += 1;
                                 write_to_original = true;
@@ -122,7 +120,7 @@ impl Optimizer for RedundantCopyOptimizer {
                             node_id,
                             OptimizeCommandKind::ChangeReads(
                                 *temp_id,
-                                ScoreboardValue::Scoreboard(*original_scoreboard, *original_id),
+                                ScoreboardValue::Scoreboard(*original_id),
                             ),
                         ));
                     }
@@ -131,9 +129,8 @@ impl Optimizer for RedundantCopyOptimizer {
                     }
                     let is_copy_back = match node {
                         Node::FastStore(FastStore {
-                            scoreboard: _,
                             id: dest,
-                            value: ScoreboardValue::Scoreboard(_, src),
+                            value: ScoreboardValue::Scoreboard(src),
                         }) => dest == original_id && src == temp_id,
                         _ => false,
                     };
@@ -192,7 +189,6 @@ impl Optimizer for RedundantCopyOptimizer {
                     // First, update the copy node:
                     match node {
                         Node::BinaryOperation(BinaryOperation {
-                            scoreboard,
                             id: _,
                             lhs,
                             rhs,
@@ -203,7 +199,6 @@ impl Optimizer for RedundantCopyOptimizer {
                                 OptimizeCommandKind::Replace(Node::BinaryOperation(
                                     BinaryOperation {
                                         id: *original_id,
-                                        scoreboard: *scoreboard,
                                         lhs: *lhs,
                                         operation: *operation,
                                         rhs: *rhs,

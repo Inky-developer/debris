@@ -4,7 +4,7 @@ use crate::{
         BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
         FastStoreFromResult, Node, VariableAccess,
     },
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     opt::{
         global_opt::{Commands, GlobalOptimizer, Optimizer},
         optimize_commands::{ExecuteRawUpdate, OptimizeCommand, OptimizeCommandKind},
@@ -37,10 +37,9 @@ impl Optimizer for RedundancyOptimizer {
                     .push(OptimizeCommand::new(node_id, Delete)),
                 // Copies to itself (`a = a`) are useless and can be removed.
                 Node::FastStore(FastStore {
-                    scoreboard: target_scoreboard,
                     id: target,
-                    value: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_value),
-                }) if target_scoreboard == rhs_scoreboard && target == rhs_value => {
+                    value: ScoreboardValue::Scoreboard(rhs_value),
+                }) if target == rhs_value => {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
@@ -65,7 +64,6 @@ impl Optimizer for RedundancyOptimizer {
                     }
                 }
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard: _,
                     id,
                     lhs: _,
                     rhs: _,
@@ -77,20 +75,16 @@ impl Optimizer for RedundancyOptimizer {
                 }
                 // Checks if a variable is written to and then being overwritten in the same function,
                 // without being read first
-                Node::FastStore(FastStore {
-                    scoreboard: _,
-                    id,
-                    value: _,
-                }) if write_after_write(commands.optimizer, *id, node_id) => {
+                Node::FastStore(FastStore { id, value: _ })
+                    if write_after_write(commands.optimizer, *id, node_id) =>
+                {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
                 }
-                Node::FastStoreFromResult(FastStoreFromResult {
-                    scoreboard: _,
-                    id,
-                    command,
-                }) if write_after_write(commands.optimizer, *id, node_id) => {
+                Node::FastStoreFromResult(FastStoreFromResult { id, command })
+                    if write_after_write(commands.optimizer, *id, node_id) =>
+                {
                     if command.is_effect_free(&commands.optimizer.functions) {
                         commands
                             .commands
@@ -104,9 +98,8 @@ impl Optimizer for RedundancyOptimizer {
                 // Checks if a variable y gets copied to variable x and changes all writes to y to write to x instead if
                 // y is only read here
                 Node::FastStore(FastStore {
-                    scoreboard: _,
                     id,
-                    value: ScoreboardValue::Scoreboard(_, copy_from),
+                    value: ScoreboardValue::Scoreboard(copy_from),
                 }) if commands.get_info(*copy_from).reads == 1 => {
                     // Now delete this assignment and update all writes to `copy_from`
                     commands
@@ -123,14 +116,9 @@ impl Optimizer for RedundancyOptimizer {
                     // So to avoid inconsistency, return here
                     return;
                 }
-                Node::FastStoreFromResult(FastStoreFromResult {
-                    scoreboard,
-                    id,
-                    command,
-                }) => {
+                Node::FastStoreFromResult(FastStoreFromResult { id, command }) => {
                     if let Node::Condition(condition) = &**command {
                         if let Some(simplified_condition) = simplify_condition(condition) {
-                            let scoreboard = *scoreboard;
                             let id = *id;
 
                             match simplified_condition {
@@ -144,7 +132,6 @@ impl Optimizer for RedundancyOptimizer {
                                         node_id,
                                         Replace(Node::FastStore(FastStore {
                                             id,
-                                            scoreboard,
                                             value: ScoreboardValue::Static(value),
                                         })),
                                     ));
@@ -155,7 +142,6 @@ impl Optimizer for RedundancyOptimizer {
                                         Replace(Node::FastStoreFromResult(FastStoreFromResult {
                                             command: Box::new(Node::Condition(condition)),
                                             id,
-                                            scoreboard,
                                         })),
                                     ));
                                 }
@@ -177,18 +163,16 @@ impl Optimizer for RedundancyOptimizer {
                 // If the operation is commutative, move the static value to the right side.
                 // This makes better consistency and is easier to implement in minecraft.
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
                     lhs: ScoreboardValue::Static(value),
-                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
+                    rhs: ScoreboardValue::Scoreboard(rhs_id),
                     operation: operation @ (ScoreboardOperation::Plus | ScoreboardOperation::Times),
                 }) => {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         Replace(Node::BinaryOperation(BinaryOperation {
                             id: *id,
-                            scoreboard: *scoreboard,
-                            lhs: ScoreboardValue::Scoreboard(*rhs_scoreboard, *rhs_id),
+                            lhs: ScoreboardValue::Scoreboard(*rhs_id),
                             rhs: ScoreboardValue::Static(*value),
                             operation: *operation,
                         })),
@@ -196,7 +180,6 @@ impl Optimizer for RedundancyOptimizer {
                 }
                 // Useless math operation (a + 0, a - 0)
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
                     lhs,
                     rhs: ScoreboardValue::Static(0),
@@ -206,14 +189,12 @@ impl Optimizer for RedundancyOptimizer {
                         node_id,
                         Replace(Node::FastStore(FastStore {
                             id: *id,
-                            scoreboard: *scoreboard,
                             value: *lhs,
                         })),
                     ));
                 }
                 // Useless math operation (a * 1, a / 1, a % 1)
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
                     lhs,
                     rhs: ScoreboardValue::Static(value @ 0..=1),
@@ -225,12 +206,10 @@ impl Optimizer for RedundancyOptimizer {
                     let kind = match value {
                         0 => OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: *id,
-                            scoreboard: *scoreboard,
                             value: ScoreboardValue::Static(0),
                         })),
                         1 => OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: *id,
-                            scoreboard: *scoreboard,
                             value: *lhs,
                         })),
                         _ => unreachable!(),
@@ -239,34 +218,30 @@ impl Optimizer for RedundancyOptimizer {
                 }
                 // `let b = a - a` => `let b = 0`
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
-                    lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs),
-                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs),
+                    lhs: ScoreboardValue::Scoreboard(lhs),
+                    rhs: ScoreboardValue::Scoreboard(rhs),
                     operation: ScoreboardOperation::Minus,
-                }) if lhs == rhs && lhs_scoreboard == rhs_scoreboard => {
+                }) if lhs == rhs => {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: *id,
-                            scoreboard: *scoreboard,
                             value: ScoreboardValue::Static(0),
                         })),
                     ));
                 }
                 // `let b = a / a` => `let b = 1`
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
-                    lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs),
-                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs),
+                    lhs: ScoreboardValue::Scoreboard(lhs),
+                    rhs: ScoreboardValue::Scoreboard(rhs),
                     operation: ScoreboardOperation::Divide,
-                }) if lhs == rhs && lhs_scoreboard == rhs_scoreboard => {
+                }) if lhs == rhs => {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: *id,
-                            scoreboard: *scoreboard,
                             value: ScoreboardValue::Static(1),
                         })),
                     ));
@@ -516,16 +491,15 @@ fn merge_condition(prev_node: &Node, condition: &Condition) -> Option<(Vec<usize
     match condition {
         Condition::Compare {
             comparison: ScoreboardComparison::Equal,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(1),
         }
         | Condition::Compare {
             comparison: ScoreboardComparison::NotEqual,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(0),
         } => {
             if let Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: Scoreboard::Main,
                 id: cond_id,
                 command,
             }) = prev_node
@@ -539,16 +513,15 @@ fn merge_condition(prev_node: &Node, condition: &Condition) -> Option<(Vec<usize
         }
         Condition::Compare {
             comparison: ScoreboardComparison::Equal,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(0),
         }
         | Condition::Compare {
             comparison: ScoreboardComparison::NotEqual,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(1),
         } => {
             if let Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: Scoreboard::Main,
                 id: cond_id,
                 command,
             }) = prev_node
@@ -594,8 +567,8 @@ fn write_after_write(optimizer: &GlobalOptimizer, id: ItemId, node: NodeId) -> b
         let mut writes_id = false;
         let mut reads_id = false;
         other_node.variable_accesses(&mut |access| match access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(_, target_id))
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, target_id))
+            VariableAccess::Read(ScoreboardValue::Scoreboard(target_id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(target_id))
                 if target_id == &id =>
             {
                 reads_id = true;

@@ -31,23 +31,23 @@ impl fmt::Display for Scoreboard {
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum ScoreboardValue {
     Static(i32),
-    Scoreboard(Scoreboard, ItemId),
+    Scoreboard(ItemId),
 }
 
 impl ScoreboardValue {
     pub fn id(&self) -> Option<&ItemId> {
         match self {
             ScoreboardValue::Static(_) => None,
-            ScoreboardValue::Scoreboard(_, id) => Some(id),
+            ScoreboardValue::Scoreboard(id) => Some(id),
         }
     }
 }
 
-impl std::fmt::Display for ScoreboardValue {
+impl fmt::Display for ScoreboardValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ScoreboardValue::Static(static_value) => write!(f, "{static_value}"),
-            ScoreboardValue::Scoreboard(_, id) => write!(f, "{id}"),
+            ScoreboardValue::Scoreboard(id) => write!(f, "{id}"),
         }
     }
 }

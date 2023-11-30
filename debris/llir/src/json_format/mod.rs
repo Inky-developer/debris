@@ -48,8 +48,8 @@ impl fmt::Display for JsonFormatComponent {
             JsonFormatComponent::RawText(text) => f.write_str(text),
             JsonFormatComponent::Score(value) => match value {
                 ScoreboardValue::Static(int) => write!(f, "{int}"),
-                ScoreboardValue::Scoreboard(scoreboard, value) => {
-                    write!(f, "{{{{{scoreboard}@{value}}}}}")
+                ScoreboardValue::Scoreboard(value) => {
+                    write!(f, "{{{{{value}}}}}")
                 }
             },
             JsonFormatComponent::Function(function) => write!(f, "{{call {function}}}"),

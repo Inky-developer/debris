@@ -70,7 +70,7 @@ impl PeepholeOptimizer {
             mut other => {
                 other.variable_accesses_mut(&mut |access| {
                     if let VariableAccessMut::Read(value) = access {
-                        if let ScoreboardValue::Scoreboard(_, id) = value {
+                        if let ScoreboardValue::Scoreboard(id) = value {
                             if let Hint::Exact(exact_value) = self.value_hints.get_hint(*id) {
                                 *value = ScoreboardValue::Static(exact_value);
                             }
@@ -88,7 +88,7 @@ impl PeepholeOptimizer {
             condition:
                 Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(_, id),
+                    lhs: ScoreboardValue::Scoreboard(id),
                     rhs: ScoreboardValue::Static(1),
                 },
             ..

@@ -33,7 +33,7 @@ mod tests {
         item_id::ItemId,
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{Branch, Condition, FastStore, Function, Node, WriteMessage, WriteTarget},
-        minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+        minecraft_utils::{ScoreboardComparison, ScoreboardValue},
         CallGraph, CodeStats, Llir, Runtime,
     };
     use rustc_hash::FxHashMap;
@@ -81,13 +81,12 @@ mod tests {
         let nodes = vec![
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(1),
             }),
             Node::Branch(Branch {
                 condition: Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    lhs: ScoreboardValue::Scoreboard(value_id),
                     rhs: ScoreboardValue::Static(1),
                 },
                 pos_branch: Box::new(Node::Write(WriteMessage {
@@ -121,18 +120,16 @@ mod tests {
         let nodes = vec![
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(1),
             }),
             Node::Branch(Branch {
                 condition: Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    lhs: ScoreboardValue::Scoreboard(value_id),
                     rhs: ScoreboardValue::Static(1),
                 },
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(0),
                 })),
                 neg_branch: Box::new(Node::Write(WriteMessage {
@@ -162,14 +159,13 @@ mod tests {
         let nodes = vec![
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(1),
             }),
             Node::Branch(Branch {
                 condition: Condition::Or(vec![
                     Condition::Compare {
                         comparison: ScoreboardComparison::Equal,
-                        lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                        lhs: ScoreboardValue::Scoreboard(value_id),
                         rhs: ScoreboardValue::Static(1),
                     },
                     Condition::Compare {
@@ -180,7 +176,6 @@ mod tests {
                 ]),
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(0),
                 })),
                 neg_branch: Box::new(Node::Write(WriteMessage {
@@ -214,23 +209,20 @@ mod tests {
         let nodes = vec![
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(1),
             }),
             Node::Branch(Branch {
                 condition: Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    lhs: ScoreboardValue::Scoreboard(value_id),
                     rhs: ScoreboardValue::Static(1),
                 },
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(0),
                 })),
                 neg_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(-1),
                 })),
             }),
@@ -266,14 +258,13 @@ mod tests {
         let nodes = vec![
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(1),
             }),
             Node::Branch(Branch {
                 condition: Condition::Or(vec![
                     Condition::Compare {
                         comparison: ScoreboardComparison::Equal,
-                        lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                        lhs: ScoreboardValue::Scoreboard(value_id),
                         rhs: ScoreboardValue::Static(1),
                     },
                     Condition::Compare {
@@ -284,12 +275,10 @@ mod tests {
                 ]),
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(0),
                 })),
                 neg_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(-1),
                 })),
             }),

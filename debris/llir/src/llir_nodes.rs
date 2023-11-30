@@ -13,7 +13,7 @@ use crate::{block_id::BlockId, item_id::ItemId, type_context::TypeContext};
 
 use super::{
     json_format::{FormattedText, JsonFormatComponent},
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectRef,
 };
 
@@ -32,8 +32,6 @@ pub struct Function {
 /// Fast variables are scoreboard values.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastStore {
-    /// The scoreboard of the target var
-    pub scoreboard: Scoreboard,
     /// The id of the target var
     pub id: ItemId,
     /// The value to store into the target var
@@ -43,8 +41,6 @@ pub struct FastStore {
 /// Stores a 'fast' variable from the result of another node
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastStoreFromResult {
-    /// The scoreboard of the target var
-    pub scoreboard: Scoreboard,
     /// The id of the target var
     pub id: ItemId,
     /// The command to use
@@ -54,8 +50,6 @@ pub struct FastStoreFromResult {
 /// Operates on two scoreboard values and stores the result into the target var
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinaryOperation {
-    /// The scoreboard of the resulting value
-    pub scoreboard: Scoreboard,
     /// The id of the resulting value
     pub id: ItemId,
     /// The left value
@@ -140,7 +134,6 @@ pub enum WriteTarget {
 }
 
 impl fmt::Display for WriteTarget {
-    // Debug is good enough for now
     #[allow(clippy::use_debug)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self:?}")
@@ -186,7 +179,6 @@ macro_rules! make_access_visitor {
     (node, $self:ident, $visitor:ident, $fn_name:ident, $VariableAccess:ident) => {
         match $self {
             Node::BinaryOperation(BinaryOperation {
-                scoreboard: _,
                 id,
                 lhs,
                 rhs,
@@ -221,11 +213,7 @@ macro_rules! make_access_visitor {
                     }
                 }
             }
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id,
-                value,
-            }) => {
+            Node::FastStore(FastStore { id, value }) => {
                 let static_val = if let ScoreboardValue::Static(value) = value {
                     Some(*value)
                 } else {
@@ -235,11 +223,7 @@ macro_rules! make_access_visitor {
 
                 $visitor($VariableAccess::Read(value));
             }
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: _,
-                id,
-                command,
-            }) => {
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) => {
                 $visitor($VariableAccess::Write(id, None));
                 command.$fn_name($visitor);
             }
@@ -371,7 +355,7 @@ impl Condition {
         let mut reads = FxHashSet::default();
         self.variable_accesses(&mut |access| {
             if let VariableAccess::Read(var) | VariableAccess::ReadWrite(var) = access {
-                if let ScoreboardValue::Scoreboard(_, item_id) = var {
+                if let ScoreboardValue::Scoreboard(item_id) = var {
                     reads.insert(*item_id);
                 }
             }
@@ -534,7 +518,7 @@ impl Node {
         let mut found_write = false;
         self.variable_accesses(&mut |access| match access {
             VariableAccess::Write(id, _)
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id))
                 if *id == item_id =>
             {
                 found_write = true;
@@ -548,8 +532,8 @@ impl Node {
     pub fn reads_from(&self, item_id: ItemId) -> bool {
         let mut has_read = false;
         self.variable_accesses(&mut |access| match access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(_, id))
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(_, id))
+            VariableAccess::Read(ScoreboardValue::Scoreboard(id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id))
                 if *id == item_id =>
             {
                 has_read = true;
@@ -601,16 +585,10 @@ impl fmt::Display for Node {
                 }
                 Ok(())
             }
-            Node::FastStore(FastStore {
-                scoreboard: _,
-                id,
-                value,
-            }) => write!(f, "{id} = {value}"),
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: _,
-                id,
-                command,
-            }) => write!(f, "{id} = {command}"),
+            Node::FastStore(FastStore { id, value }) => write!(f, "{id} = {value}"),
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) => {
+                write!(f, "{id} = {command}")
+            }
             Node::Write(WriteMessage { target, message }) => {
                 write!(f, "write {target}: {message}")
             }
