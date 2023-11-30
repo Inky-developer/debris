@@ -15,7 +15,7 @@ use crate::{
 /// A condition like `Condition {pos: Call(1), neg: Call(2)}`, where Block 2: `[..commands, Call(1)]`
 /// Gets optimized such that the common calls to block 1 are removed in both calls and instead
 /// inserted after the branch: `Condition {pos: Nop, neg: Call(2)}; Call(1)`, Block 2: `[..commands]`
-/// Since both blocks which contain the common call are modified, it must be verified, that no other
+/// Since both blocks which contain the common call are modified, it must be verified that no other
 /// context calls these.
 ///
 /// This optimization is important, because without it, a lot of useless else statements would

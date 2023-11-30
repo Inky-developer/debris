@@ -26,9 +26,8 @@ impl Optimizer for ConstOptimizer {
         for function_iter in commands.optimizer.iter_functions() {
             self.value_hints.clear_all();
             for (node_id, node) in function_iter {
-                self.value_hints.update_hints(node, true);
-
                 let could_optimize = self.optimize_node(commands.commands, node_id, node);
+                self.value_hints.update_hints(node, true);
                 if could_optimize {
                     continue;
                 }

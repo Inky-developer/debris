@@ -11,7 +11,7 @@ use crate::{
 /// Inlines the function call chain.
 /// This optimizer only runs once, at the start.
 pub fn optimize_call_chain(commands: &mut Commands) {
-    // Cannot inline a function which has a call that was already inline without updating stats
+    // Cannot inline a function which has a call that was already inlined without updating stats
     let mut encountered_functions = FxHashSet::default();
     encountered_functions.reserve(commands.optimizer.functions.len());
     for id in commands

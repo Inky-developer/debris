@@ -6,7 +6,7 @@ use crate::{
     },
 };
 
-/// This optimizer handles functions that alias other function.
+/// This optimizer handles functions that alias other functions.
 /// An aliasing function consists of only one node, which calls another function.
 /// If such a function is found, it gets deleted and all references to it get moved
 /// to the aliased function.
