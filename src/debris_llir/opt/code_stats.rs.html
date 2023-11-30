@@ -305,8 +305,8 @@
                             <span class="self">self</span>.function_parameters.set_write(function_id, <span class="kw-2">*</span>id);
                         }
                     }
-                    VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
-                    | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id)) =&gt; {
+                    VariableAccess::Read(ScoreboardValue::Scoreboard(id))
+                    | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id)) =&gt; {
                         <span class="self">self</span>.function_parameters.set_read(function_id, <span class="kw-2">*</span>id);
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -357,7 +357,7 @@
         FW: Fn(<span class="kw-2">&amp;mut </span>VariableUsage, <span class="prelude-ty">Option</span>&lt;i32&gt;),
     {
         node.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, value)) =&gt; {
+            VariableAccess::Read(ScoreboardValue::Scoreboard(value)) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = block {
                     <span class="self">self</span>.function_parameters.set_read(function, <span class="kw-2">*</span>value);
                 }
@@ -372,7 +372,7 @@
                     const_val,
                 );
             }
-            VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, value)) =&gt; {
+            VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(value)) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(function) = block {
                     <span class="self">self</span>.function_parameters.set_read(function, <span class="kw-2">*</span>value);
                     <span class="self">self</span>.function_parameters.set_write(function, <span class="kw-2">*</span>value);

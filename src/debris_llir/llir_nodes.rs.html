@@ -596,28 +596,6 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains every node that can be produced in the llir step.
 //!
 //! Note that changing any node kind can lead to miscompilations if it isn&#39;t also updated
@@ -633,7 +611,7 @@
 
 <span class="kw">use super</span>::{
     json_format::{FormattedText, JsonFormatComponent},
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     ObjectRef,
 };
 
@@ -652,8 +630,6 @@
 /// Fast variables are scoreboard values.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>FastStore {
-    <span class="doccomment">/// The scoreboard of the target var
-    </span><span class="kw">pub </span>scoreboard: Scoreboard,
     <span class="doccomment">/// The id of the target var
     </span><span class="kw">pub </span>id: ItemId,
     <span class="doccomment">/// The value to store into the target var
@@ -663,8 +639,6 @@
 <span class="doccomment">/// Stores a &#39;fast&#39; variable from the result of another node
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>FastStoreFromResult {
-    <span class="doccomment">/// The scoreboard of the target var
-    </span><span class="kw">pub </span>scoreboard: Scoreboard,
     <span class="doccomment">/// The id of the target var
     </span><span class="kw">pub </span>id: ItemId,
     <span class="doccomment">/// The command to use
@@ -674,8 +648,6 @@
 <span class="doccomment">/// Operates on two scoreboard values and stores the result into the target var
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>BinaryOperation {
-    <span class="doccomment">/// The scoreboard of the resulting value
-    </span><span class="kw">pub </span>scoreboard: Scoreboard,
     <span class="doccomment">/// The id of the resulting value
     </span><span class="kw">pub </span>id: ItemId,
     <span class="doccomment">/// The left value
@@ -760,8 +732,7 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>WriteTarget {
-    <span class="comment">// Debug is good enough for now
-    </span><span class="attr">#[allow(clippy::use_debug)]
+    <span class="attr">#[allow(clippy::use_debug)]
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;{self:?}&quot;</span>)
     }
@@ -806,7 +777,6 @@
     (node, <span class="macro-nonterminal">$self</span>:ident, <span class="macro-nonterminal">$visitor</span>:ident, <span class="macro-nonterminal">$fn_name</span>:ident, <span class="macro-nonterminal">$VariableAccess</span>:ident) =&gt; {
         <span class="kw">match </span><span class="macro-nonterminal">$self </span>{
             Node::BinaryOperation(BinaryOperation {
-                scoreboard: <span class="kw">_</span>,
                 id,
                 lhs,
                 rhs,
@@ -841,11 +811,7 @@
                     }
                 }
             }
-            Node::FastStore(FastStore {
-                scoreboard: <span class="kw">_</span>,
-                id,
-                value,
-            }) =&gt; {
+            Node::FastStore(FastStore { id, value }) =&gt; {
                 <span class="kw">let </span>static_val = <span class="kw">if let </span>ScoreboardValue::Static(value) = value {
                     <span class="prelude-val">Some</span>(<span class="kw-2">*</span>value)
                 } <span class="kw">else </span>{
@@ -855,11 +821,7 @@
 
                 <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Read</span>(value));
             }
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: <span class="kw">_</span>,
-                id,
-                command,
-            }) =&gt; {
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) =&gt; {
                 <span class="macro-nonterminal">$visitor</span>(<span class="macro-nonterminal">$VariableAccess::Write</span>(id, <span class="prelude-val">None</span>));
                 command.<span class="macro-nonterminal">$fn_name</span>(<span class="macro-nonterminal">$visitor</span>);
             }
@@ -991,7 +953,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>reads = FxHashSet::default();
         <span class="self">self</span>.variable_accesses(<span class="kw-2">&amp;mut </span>|access| {
             <span class="kw">if let </span>VariableAccess::Read(var) | VariableAccess::ReadWrite(var) = access {
-                <span class="kw">if let </span>ScoreboardValue::Scoreboard(<span class="kw">_</span>, item_id) = var {
+                <span class="kw">if let </span>ScoreboardValue::Scoreboard(item_id) = var {
                     reads.insert(<span class="kw-2">*</span>item_id);
                 }
             }
@@ -1154,7 +1116,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>found_write = <span class="bool-val">false</span>;
         <span class="self">self</span>.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
             VariableAccess::Write(id, <span class="kw">_</span>)
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id))
                 <span class="kw">if </span><span class="kw-2">*</span>id == item_id =&gt;
             {
                 found_write = <span class="bool-val">true</span>;
@@ -1168,8 +1130,8 @@
     </span><span class="kw">pub fn </span>reads_from(<span class="kw-2">&amp;</span><span class="self">self</span>, item_id: ItemId) -&gt; bool {
         <span class="kw">let </span><span class="kw-2">mut </span>has_read = <span class="bool-val">false</span>;
         <span class="self">self</span>.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
+            VariableAccess::Read(ScoreboardValue::Scoreboard(id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id))
                 <span class="kw">if </span><span class="kw-2">*</span>id == item_id =&gt;
             {
                 has_read = <span class="bool-val">true</span>;
@@ -1221,16 +1183,10 @@
                 }
                 <span class="prelude-val">Ok</span>(())
             }
-            Node::FastStore(FastStore {
-                scoreboard: <span class="kw">_</span>,
-                id,
-                value,
-            }) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id} = {value}&quot;</span>),
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: <span class="kw">_</span>,
-                id,
-                command,
-            }) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id} = {command}&quot;</span>),
+            Node::FastStore(FastStore { id, value }) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id} = {value}&quot;</span>),
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;{id} = {command}&quot;</span>)
+            }
             Node::Write(WriteMessage { target, message }) =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">&quot;write {target}: {message}&quot;</span>)
             }

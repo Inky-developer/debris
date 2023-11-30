@@ -222,7 +222,7 @@
             <span class="kw-2">mut </span>other =&gt; {
                 other.variable_accesses_mut(<span class="kw-2">&amp;mut </span>|access| {
                     <span class="kw">if let </span>VariableAccessMut::Read(value) = access {
-                        <span class="kw">if let </span>ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) = value {
+                        <span class="kw">if let </span>ScoreboardValue::Scoreboard(id) = value {
                             <span class="kw">if let </span>Hint::Exact(exact_value) = <span class="self">self</span>.value_hints.get_hint(<span class="kw-2">*</span>id) {
                                 <span class="kw-2">*</span>value = ScoreboardValue::Static(exact_value);
                             }
@@ -240,7 +240,7 @@
             condition:
                 Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(<span class="kw">_</span>, id),
+                    lhs: ScoreboardValue::Scoreboard(id),
                     rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
             ..

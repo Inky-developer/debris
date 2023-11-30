@@ -192,10 +192,9 @@
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
+<span class="kw">use </span>debris_llir::minecraft_utils::Scoreboard;
 <span class="kw">use </span>debris_llir::{
     json_format::{FormattedText, JsonFormatComponent},
     minecraft_utils::ScoreboardValue,
@@ -237,10 +236,10 @@
             JsonFormatComponent::Score(ScoreboardValue::Static(static_value)) =&gt; {
                 <span class="self">self</span>.write_str(<span class="kw-2">&amp;</span>static_value.to_string());
             }
-            JsonFormatComponent::Score(ScoreboardValue::Scoreboard(scoreboard, id)) =&gt; {
+            JsonFormatComponent::Score(ScoreboardValue::Scoreboard(id)) =&gt; {
                 <span class="kw">let </span>player = ScoreboardPlayer {
                     player: scoreboards.get_scoreboard_player(<span class="kw-2">*</span>id),
-                    scoreboard: scoreboards.get_scoreboard(<span class="kw-2">*</span>scoreboard),
+                    scoreboard: scoreboards.get_scoreboard(Scoreboard::Main),
                 };
                 <span class="self">self</span>.write_score(<span class="kw-2">&amp;</span>player);
             }
@@ -306,7 +305,7 @@
     <span class="kw">use </span>debris_llir::{
         item_id::ItemId,
         json_format::{FormattedText, JsonFormatComponent},
-        minecraft_utils::{Scoreboard, ScoreboardValue},
+        minecraft_utils::ScoreboardValue,
     };
 
     <span class="kw">use </span><span class="kw">crate</span>::datapack::{
@@ -326,7 +325,7 @@
                     components: <span class="macro">vec!</span>[JsonFormatComponent::RawText(<span class="string">&quot;Hello World!&quot;</span>.into())]
                 },
                 <span class="kw-2">&amp;mut </span>scoreboard_context,
-                <span class="kw-2">&amp;mut </span>function_context
+                <span class="kw-2">&amp;mut </span>function_context,
             ),
             <span class="string">r#&quot;[{&quot;text&quot;:&quot;Hello World!&quot;}]&quot;#
         </span>);
@@ -377,10 +376,7 @@
                     components: <span class="macro">vec!</span>[
                         JsonFormatComponent::RawText(<span class="string">&quot;Hello World!&quot;</span>.into()),
                         JsonFormatComponent::RawText(<span class="string">&quot; The score is: &quot;</span>.into()),
-                        JsonFormatComponent::Score(ScoreboardValue::Scoreboard(
-                            Scoreboard::Main,
-                            ItemId { id: <span class="number">0 </span>}
-                        ))
+                        JsonFormatComponent::Score(ScoreboardValue::Scoreboard(ItemId { id: <span class="number">0 </span>})),
                     ]
                 },
                 <span class="kw-2">&amp;mut </span>scoreboard_context,

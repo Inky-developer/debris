@@ -127,7 +127,6 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
 <span class="kw">use </span>debris_error::LangResult;
@@ -138,7 +137,7 @@
     impl_class,
     llir_nodes::{FastStore, Node},
     memory::MemoryLayout,
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardValue},
     objects::{
         obj_bool::{and_static, cmp, or_static},
         obj_class::ObjClass,
@@ -160,7 +159,6 @@
             Type::DynamicBool =&gt; {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(i32::from(this.value)),
                 }));
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(ObjBool::new(ctx.item_id).into_object(ctx.type_ctx())))

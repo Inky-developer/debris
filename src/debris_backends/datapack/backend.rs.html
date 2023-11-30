@@ -312,17 +312,6 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>datapack_common::vfs::Directory;
 <span class="kw">use </span>debris_common::CompileContext;
 <span class="kw">use </span>debris_llir::Llir;
@@ -358,7 +347,7 @@
         item_id::ItemId,
         json_format::{FormattedText, JsonFormatComponent},
         llir_nodes::{Branch, Condition, FastStore, Function, Node, WriteMessage, WriteTarget},
-        minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+        minecraft_utils::{ScoreboardComparison, ScoreboardValue},
         CallGraph, CodeStats, Llir, Runtime,
     };
     <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -406,13 +395,12 @@
         <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
             Node::Branch(Branch {
                 condition: Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    lhs: ScoreboardValue::Scoreboard(value_id),
                     rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
                 pos_branch: Box::new(Node::Write(WriteMessage {
@@ -446,18 +434,16 @@
         <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
             Node::Branch(Branch {
                 condition: Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    lhs: ScoreboardValue::Scoreboard(value_id),
                     rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
                 neg_branch: Box::new(Node::Write(WriteMessage {
@@ -487,14 +473,13 @@
         <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
             Node::Branch(Branch {
                 condition: Condition::Or(<span class="macro">vec!</span>[
                     Condition::Compare {
                         comparison: ScoreboardComparison::Equal,
-                        lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                        lhs: ScoreboardValue::Scoreboard(value_id),
                         rhs: ScoreboardValue::Static(<span class="number">1</span>),
                     },
                     Condition::Compare {
@@ -505,7 +490,6 @@
                 ]),
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
                 neg_branch: Box::new(Node::Write(WriteMessage {
@@ -539,23 +523,20 @@
         <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
             Node::Branch(Branch {
                 condition: Condition::Compare {
                     comparison: ScoreboardComparison::Equal,
-                    lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                    lhs: ScoreboardValue::Scoreboard(value_id),
                     rhs: ScoreboardValue::Static(<span class="number">1</span>),
                 },
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
                 neg_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(-<span class="number">1</span>),
                 })),
             }),
@@ -591,14 +572,13 @@
         <span class="kw">let </span>nodes = <span class="macro">vec!</span>[
             Node::FastStore(FastStore {
                 id: value_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
             Node::Branch(Branch {
                 condition: Condition::Or(<span class="macro">vec!</span>[
                     Condition::Compare {
                         comparison: ScoreboardComparison::Equal,
-                        lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, value_id),
+                        lhs: ScoreboardValue::Scoreboard(value_id),
                         rhs: ScoreboardValue::Static(<span class="number">1</span>),
                     },
                     Condition::Compare {
@@ -609,12 +589,10 @@
                 ]),
                 pos_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 })),
                 neg_branch: Box::new(Node::FastStore(FastStore {
                     id: value_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(-<span class="number">1</span>),
                 })),
             }),

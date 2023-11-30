@@ -217,23 +217,23 @@
 </span><span class="attr">#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 </span><span class="kw">pub enum </span>ScoreboardValue {
     Static(i32),
-    Scoreboard(Scoreboard, ItemId),
+    Scoreboard(ItemId),
 }
 
 <span class="kw">impl </span>ScoreboardValue {
     <span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ItemId&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             ScoreboardValue::Static(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) =&gt; <span class="prelude-val">Some</span>(id),
+            ScoreboardValue::Scoreboard(id) =&gt; <span class="prelude-val">Some</span>(id),
         }
     }
 }
 
-<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>ScoreboardValue {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>ScoreboardValue {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             ScoreboardValue::Static(static_value) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{static_value}&quot;</span>),
-            ScoreboardValue::Scoreboard(<span class="kw">_</span>, id) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id}&quot;</span>),
+            ScoreboardValue::Scoreboard(id) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{id}&quot;</span>),
         }
     }
 }

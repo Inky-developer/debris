@@ -888,47 +888,13 @@
 <a href="#888" id="888">888</a>
 <a href="#889" id="889">889</a>
 <a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{borrow::Cow, fmt::Write, rc::Rc};
 
 <span class="kw">use </span>datapack_common::vfs::Directory;
 <span class="kw">use </span>itertools::Itertools;
 
 <span class="kw">use </span>debris_common::CompileContext;
+<span class="kw">use </span>debris_llir::minecraft_utils::Scoreboard;
 <span class="kw">use </span>debris_llir::{
     block_id::BlockId,
     extern_item_path::ExternItemPath,
@@ -1151,27 +1117,26 @@
 
     <span class="kw">fn </span>handle_fast_store(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fast_store: <span class="kw-2">&amp;</span>FastStore) {
         <span class="kw">let </span>value = <span class="kw-2">&amp;</span>fast_store.value;
+        <span class="kw">let </span>scoreboard = <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main);
 
         <span class="kw">let </span>command = <span class="kw">match </span>value {
             ScoreboardValue::Static(static_value) =&gt; MinecraftCommand::ScoreboardSet {
                 player: ScoreboardPlayer {
                     player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(fast_store.id),
-                    scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(fast_store.scoreboard),
+                    scoreboard,
                 },
                 value: <span class="kw-2">*</span>static_value,
             },
-            ScoreboardValue::Scoreboard(other_scoreboard, other_player) =&gt; {
-                MinecraftCommand::ScoreboardSetEqual {
-                    player1: ScoreboardPlayer {
-                        player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(fast_store.id),
-                        scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(fast_store.scoreboard),
-                    },
-                    player2: ScoreboardPlayer {
-                        player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>other_player),
-                        scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(<span class="kw-2">*</span>other_scoreboard),
-                    },
-                }
-            }
+            ScoreboardValue::Scoreboard(other_player) =&gt; MinecraftCommand::ScoreboardSetEqual {
+                player1: ScoreboardPlayer {
+                    player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(fast_store.id),
+                    scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
+                },
+                player2: ScoreboardPlayer {
+                    player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>other_player),
+                    scoreboard,
+                },
+            },
         };
 
         <span class="self">self</span>.add_command(command);
@@ -1192,9 +1157,7 @@
                 player: <span class="self">self
                     </span>.scoreboard_ctx
                     .get_scoreboard_player(fast_store_from_result.id),
-                scoreboard: <span class="self">self
-                    </span>.scoreboard_ctx
-                    .get_scoreboard(fast_store_from_result.scoreboard),
+                scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
             },
             command: Box::new(last),
         };
@@ -1202,32 +1165,29 @@
     }
 
     <span class="kw">fn </span>handle_binary_operation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, binary_operation: <span class="kw-2">&amp;</span>BinaryOperation) {
+        <span class="kw">let </span>scoreboard = <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main);
         <span class="comment">// Calculate the lhs scoreboard value and the rhs scoreboard value
-        </span><span class="kw">let </span>(lhs_player, lhs_scoreboard, rhs_player, rhs_scoreboard, overwrite_lhs) =
+        </span><span class="kw">let </span>(lhs_player, rhs_player, overwrite_lhs) =
             <span class="kw">match </span>(binary_operation.lhs, binary_operation.rhs) {
                 (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) =&gt; {
                     <span class="kw">let </span>result = binary_operation.operation.evaluate(lhs, rhs);
                     <span class="kw">let </span>player = <span class="self">self
                         </span>.scoreboard_ctx
                         .get_scoreboard_player(binary_operation.id);
-                    <span class="kw">let </span>scoreboard = <span class="self">self
-                        </span>.scoreboard_ctx
-                        .get_scoreboard(binary_operation.scoreboard);
                     <span class="kw">let </span>command = MinecraftCommand::ScoreboardSet {
-                        player: ScoreboardPlayer { player, scoreboard },
+                        player: ScoreboardPlayer {
+                            player,
+                            scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
+                        },
                         value: result,
                     };
                     <span class="self">self</span>.add_command(command);
                     <span class="kw">return</span>;
                 }
-                (
-                    ScoreboardValue::Static(lhs_val),
-                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) =&gt; {
+                (ScoreboardValue::Static(lhs_val), ScoreboardValue::Scoreboard(rhs_id)) =&gt; {
                     <span class="kw">if </span>binary_operation.id == rhs_id {
                         <span class="kw">let </span>lhs_player = <span class="self">self</span>.scoreboard_ctx.get_temporary_player();
                         <span class="kw">let </span>rhs_id = <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(rhs_id);
-                        <span class="kw">let </span>rhs_scoreboard = <span class="self">self</span>.scoreboard_ctx.get_scoreboard(rhs_scoreboard);
                         <span class="self">self</span>.add_command(MinecraftCommand::ScoreboardSet {
                             player: lhs_player.clone(),
                             value: lhs_val,
@@ -1237,15 +1197,12 @@
                             player1: lhs_player,
                             player2: ScoreboardPlayer {
                                 player: rhs_id,
-                                scoreboard: rhs_scoreboard,
+                                scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
                             },
                         });
                         <span class="kw">return</span>;
                     }
 
-                    <span class="kw">let </span>lhs_scoreboard = <span class="self">self
-                        </span>.scoreboard_ctx
-                        .get_scoreboard(binary_operation.scoreboard);
                     <span class="kw">let </span>lhs_id = <span class="self">self
                         </span>.scoreboard_ctx
                         .get_scoreboard_player(binary_operation.id);
@@ -1253,33 +1210,24 @@
                     <span class="self">self</span>.add_command(MinecraftCommand::ScoreboardSet {
                         player: ScoreboardPlayer {
                             player: lhs_id.clone(),
-                            scoreboard: lhs_scoreboard.clone(),
+                            scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
                         },
                         value: lhs_val,
                     });
                     (
                         lhs_id,
-                        lhs_scoreboard,
                         <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(rhs_id),
-                        <span class="self">self</span>.scoreboard_ctx.get_scoreboard(rhs_scoreboard),
                         <span class="bool-val">true</span>,
                     )
                 }
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) =&gt; (
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Scoreboard(rhs_id)) =&gt; (
                     <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(lhs_id),
-                    <span class="self">self</span>.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
                     <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(rhs_id),
-                    <span class="self">self</span>.scoreboard_ctx.get_scoreboard(rhs_scoreboard),
                     lhs_id == binary_operation.id,
                 ),
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Static(value),
-                ) <span class="kw">if </span>(binary_operation.operation == ScoreboardOperation::Plus
-                    || binary_operation.operation == ScoreboardOperation::Minus) =&gt;
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Static(value))
+                    <span class="kw">if </span>(binary_operation.operation == ScoreboardOperation::Plus
+                        || binary_operation.operation == ScoreboardOperation::Minus) =&gt;
                 {
                     <span class="kw">let </span>real_value = <span class="kw">if </span>binary_operation.operation == ScoreboardOperation::Minus {
                         -value
@@ -1290,32 +1238,25 @@
                     <span class="comment">// let player = self.scoreboard_ctx.get_scoreboard_player(lhs_id);
                     // let scoreboard = self.scoreboard_ctx.get_scoreboard(lhs_scoreboard);
 
-                    </span><span class="kw">let </span>(player, scoreboard) = <span class="kw">if </span>lhs_id == binary_operation.id {
-                        (
-                            <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(lhs_id),
-                            <span class="self">self</span>.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
-                        )
+                    </span><span class="kw">let </span>player = <span class="kw">if </span>lhs_id == binary_operation.id {
+                        <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(lhs_id)
                     } <span class="kw">else </span>{
                         <span class="comment">// Convert the lhs to a new scoreboard value
                         </span><span class="kw">let </span>player = <span class="self">self
                             </span>.scoreboard_ctx
                             .get_scoreboard_player(binary_operation.id);
-                        <span class="kw">let </span>scoreboard = <span class="self">self
-                            </span>.scoreboard_ctx
-                            .get_scoreboard(binary_operation.scoreboard);
                         <span class="kw">let </span>lhs_player = <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(lhs_id);
-                        <span class="kw">let </span>lhs_scoreboard = <span class="self">self</span>.scoreboard_ctx.get_scoreboard(lhs_scoreboard);
                         <span class="self">self</span>.add_command(MinecraftCommand::ScoreboardSetEqual {
                             player1: ScoreboardPlayer {
                                 player: player.clone(),
-                                scoreboard: scoreboard.clone(),
+                                scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
                             },
                             player2: ScoreboardPlayer {
                                 player: lhs_player,
-                                scoreboard: lhs_scoreboard,
+                                scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
                             },
                         });
-                        (player, scoreboard)
+                        player
                     };
 
                     <span class="self">self</span>.add_command(MinecraftCommand::ScoreboardOperationAdd {
@@ -1325,19 +1266,17 @@
 
                     <span class="kw">return</span>;
                 }
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Static(value),
-                ) =&gt; {
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Static(value)) =&gt; {
                     <span class="comment">// Convert the rhs to a scoreboard value
-                    </span><span class="kw">let </span>ScoreboardPlayer { player, scoreboard } = <span class="self">self
+                    </span><span class="kw">let </span>ScoreboardPlayer {
+                        player,
+                        scoreboard: <span class="kw">_</span>,
+                    } = <span class="self">self
                         </span>.scoreboard_constants
                         .get_name(value, <span class="kw-2">&amp;mut </span><span class="self">self</span>.scoreboard_ctx);
                     (
                         <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(lhs_id),
-                        <span class="self">self</span>.scoreboard_ctx.get_scoreboard(lhs_scoreboard),
                         player,
-                        scoreboard,
                         lhs_id == binary_operation.id,
                     )
                 }
@@ -1348,19 +1287,15 @@
             <span class="kw">let </span>player1 = <span class="self">self
                 </span>.scoreboard_ctx
                 .get_scoreboard_player(binary_operation.id);
-            <span class="kw">let </span>scoreboard1 = <span class="self">self
-                </span>.scoreboard_ctx
-                .get_scoreboard(binary_operation.scoreboard);
             <span class="kw">let </span>player2 = lhs_player;
-            <span class="kw">let </span>scoreboard2 = lhs_scoreboard;
             <span class="self">self</span>.add_command(MinecraftCommand::ScoreboardSetEqual {
                 player1: ScoreboardPlayer {
                     player: player1,
-                    scoreboard: scoreboard1,
+                    scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
                 },
                 player2: ScoreboardPlayer {
                     player: player2,
-                    scoreboard: scoreboard2,
+                    scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
                 },
             });
         }
@@ -1369,17 +1304,14 @@
         </span><span class="kw">let </span>player1 = <span class="self">self
             </span>.scoreboard_ctx
             .get_scoreboard_player(binary_operation.id);
-        <span class="kw">let </span>scoreboard1 = <span class="self">self
-            </span>.scoreboard_ctx
-            .get_scoreboard(binary_operation.scoreboard);
         <span class="self">self</span>.add_command(MinecraftCommand::ScoreboardOperation {
             player1: ScoreboardPlayer {
                 player: player1,
-                scoreboard: scoreboard1,
+                scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
             },
             player2: ScoreboardPlayer {
                 player: rhs_player,
-                scoreboard: rhs_scoreboard,
+                scoreboard: Rc::clone(<span class="kw-2">&amp;</span>scoreboard),
             },
             operation: binary_operation.operation,
         });
@@ -1400,7 +1332,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>found_write = <span class="bool-val">false</span>;
             node.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
                 VariableAccess::Write(id, <span class="kw">_</span>)
-                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id))
+                | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id))
                     <span class="kw">if </span>options.contains(id) =&gt;
                 {
                     found_write = <span class="bool-val">true</span>;
@@ -1601,11 +1533,11 @@
                         ScoreboardValue::Static(val) =&gt; {
                             command.push_str(<span class="kw-2">&amp;</span>val.to_string());
                         }
-                        ScoreboardValue::Scoreboard(scoreboard, id) =&gt; <span class="macro">write!</span>(
+                        ScoreboardValue::Scoreboard(id) =&gt; <span class="macro">write!</span>(
                             command,
                             <span class="string">&quot;{} {}&quot;</span>,
                             <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>id),
-                            <span class="self">self</span>.scoreboard_ctx.get_scoreboard(<span class="kw-2">*</span>scoreboard)
+                            <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main)
                         )
                         .unwrap(),
                     },
@@ -1660,20 +1592,18 @@
                 rhs,
                 comparison,
             } =&gt; <span class="kw">match </span>(lhs, rhs) {
-                (
-                    ScoreboardValue::Scoreboard(lhs_scoreboard, lhs_id),
-                    ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
-                ) =&gt; parts.push(ExecuteComponent::IfScoreRelation {
-                    comparison: <span class="kw-2">*</span>comparison,
-                    player1: ScoreboardPlayer {
-                        player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>lhs_id),
-                        scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(<span class="kw-2">*</span>lhs_scoreboard),
-                    },
-                    player2: ScoreboardPlayer {
-                        player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>rhs_id),
-                        scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(<span class="kw-2">*</span>rhs_scoreboard),
-                    },
-                }),
+                (ScoreboardValue::Scoreboard(lhs_id), ScoreboardValue::Scoreboard(rhs_id)) =&gt; parts
+                    .push(ExecuteComponent::IfScoreRelation {
+                        comparison: <span class="kw-2">*</span>comparison,
+                        player1: ScoreboardPlayer {
+                            player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>lhs_id),
+                            scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
+                        },
+                        player2: ScoreboardPlayer {
+                            player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>rhs_id),
+                            scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
+                        },
+                    }),
                 (ScoreboardValue::Static(lhs), ScoreboardValue::Static(rhs)) =&gt; {
                     <span class="kw">let </span>lhs = <span class="self">self
                         </span>.scoreboard_constants
@@ -1690,15 +1620,15 @@
                 (lhs, rhs) =&gt; {
                     <span class="comment">// 0 &lt; a can be rewritten as a &gt; 0, so we can make a (scoreboard, static) pair
                     // This means we can make an expression of the form `scoreboard comparison static value`
-                    </span><span class="kw">let </span>(scoreboard, id, static_value, operator) = <span class="kw">match </span>(lhs, rhs) {
+                    </span><span class="kw">let </span>(id, static_value, operator) = <span class="kw">match </span>(lhs, rhs) {
                         (
                             ScoreboardValue::Static(static_value),
-                            ScoreboardValue::Scoreboard(scoreboard, id),
-                        ) =&gt; (scoreboard, id, static_value, comparison.flip_sides()),
+                            ScoreboardValue::Scoreboard(id),
+                        ) =&gt; (id, static_value, comparison.flip_sides()),
                         (
-                            ScoreboardValue::Scoreboard(scoreboard, id),
+                            ScoreboardValue::Scoreboard(id),
                             ScoreboardValue::Static(static_value),
-                        ) =&gt; (scoreboard, id, static_value, <span class="kw-2">*</span>comparison),
+                        ) =&gt; (id, static_value, <span class="kw-2">*</span>comparison),
                         (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(
                             <span class="string">&quot;Verified that there is one static and one scoreboard value&quot;
                         </span>),
@@ -1707,7 +1637,7 @@
                     parts.push(ExecuteComponent::IfScoreRange {
                         player: ScoreboardPlayer {
                             player: <span class="self">self</span>.scoreboard_ctx.get_scoreboard_player(<span class="kw-2">*</span>id),
-                            scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(<span class="kw-2">*</span>scoreboard),
+                            scoreboard: <span class="self">self</span>.scoreboard_ctx.get_scoreboard(Scoreboard::Main),
                         },
                         range: MinecraftRange::from_operator(<span class="kw-2">*</span>static_value, operator),
                     });

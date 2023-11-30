@@ -106,8 +106,8 @@
             JsonFormatComponent::RawText(text) =&gt; f.write_str(text),
             JsonFormatComponent::Score(value) =&gt; <span class="kw">match </span>value {
                 ScoreboardValue::Static(int) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{int}&quot;</span>),
-                ScoreboardValue::Scoreboard(scoreboard, value) =&gt; {
-                    <span class="macro">write!</span>(f, <span class="string">&quot;{{{{{scoreboard}@{value}}}}}&quot;</span>)
+                ScoreboardValue::Scoreboard(value) =&gt; {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;{{{{{value}}}}}&quot;</span>)
                 }
             },
             JsonFormatComponent::Function(function) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{{call {function}}}&quot;</span>),

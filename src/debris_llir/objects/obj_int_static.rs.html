@@ -282,13 +282,6 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
 <span class="kw">use </span>debris_error::LangResult;
@@ -301,7 +294,7 @@
     impl_class,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     objects::{obj_bool::ObjBool, obj_class::ObjClass},
     type_context::TypeContext,
     ObjectPayload, ObjectRef, Type,
@@ -312,7 +305,6 @@
     (<span class="macro-nonterminal">$operation</span>:expr, <span class="macro-nonterminal">$ctx</span>:ident, <span class="macro-nonterminal">$lhs</span>:ident, <span class="macro-nonterminal">$rhs</span>:ident) =&gt; {
         <span class="macro-nonterminal">$ctx</span>.emit(Node::BinaryOperation(BinaryOperation {
             id: <span class="macro-nonterminal">$ctx</span>.item_id,
-            scoreboard: Scoreboard::Main,
             operation: <span class="macro-nonterminal">$operation</span>,
             lhs: <span class="macro-nonterminal">$lhs</span>.as_scoreboard_value(),
             rhs: <span class="macro-nonterminal">$rhs</span>.as_scoreboard_value(),
@@ -323,7 +315,6 @@
 <span class="macro">macro_rules! </span>cmp {
     (<span class="macro-nonterminal">$ctx</span>:expr, <span class="macro-nonterminal">$lhs</span>:expr, <span class="macro-nonterminal">$rhs</span>:expr, <span class="macro-nonterminal">$cmp</span>:expr) =&gt; {{
         <span class="macro-nonterminal">$ctx</span>.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            scoreboard: Scoreboard::Main,
             id: <span class="macro-nonterminal">$ctx</span>.item_id,
             command: Box::new(Node::Condition(Condition::Compare {
                 lhs: <span class="macro-nonterminal">$lhs</span>.as_scoreboard_value(),
@@ -377,7 +368,6 @@
             Type::DynamicInt =&gt; {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(this.value),
                 }));
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(ObjInt::new(ctx.item_id).into_object(ctx.type_ctx())))
@@ -467,7 +457,6 @@
             </span><span class="kw">if </span>a.value == i32::MIN {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -485,7 +474,6 @@
             </span><span class="kw">if </span>a.value == i32::MAX {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">1</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -504,7 +492,6 @@
         </span><span class="kw">if </span>a.value == i32::MAX {
             ctx.emit(Node::FastStore(FastStore {
                 id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">0</span>),
             }));
             <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -522,7 +509,6 @@
             </span><span class="kw">if </span>a.value == i32::MIN {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">1</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);

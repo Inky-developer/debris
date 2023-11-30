@@ -217,12 +217,6 @@
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
 <span class="kw">use crate</span>::{
@@ -232,7 +226,7 @@
     json_format::JsonFormatComponent,
     llir_nodes::{Condition, FastStore, FastStoreFromResult, Node},
     memory::{copy, MemoryLayout},
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardValue},
     objects::obj_bool_static::ObjStaticBool,
     ObjectPayload, Type,
 };
@@ -246,7 +240,6 @@
             <span class="bool-val">false </span>=&gt; copy(item_id, bool.id),
             <span class="bool-val">true </span>=&gt; Node::FastStore(FastStore {
                 id: item_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">1</span>),
             }),
         },
@@ -260,7 +253,6 @@
             <span class="bool-val">true </span>=&gt; copy(item_id, bool.id),
             <span class="bool-val">false </span>=&gt; Node::FastStore(FastStore {
                 id: item_id,
-                scoreboard: Scoreboard::Main,
                 value: ScoreboardValue::Static(<span class="number">0</span>),
             }),
         },
@@ -277,7 +269,6 @@
     (
         Node::FastStoreFromResult(FastStoreFromResult {
             id: item_id,
-            scoreboard: Scoreboard::Main,
             command: Box::new(Node::Condition(Condition::Compare {
                 comparison: cmp,
                 lhs: bool.as_scoreboard_value(),
@@ -309,7 +300,6 @@
         |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, lhs: <span class="kw-2">&amp;</span>ObjBool, rhs: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
             ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
                 id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
                 command: Box::new(Node::Condition(Condition::And(<span class="macro">vec!</span>[
                     Condition::Compare {
                         lhs: lhs.as_scoreboard_value(),
@@ -336,7 +326,6 @@
         |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, lhs: <span class="kw-2">&amp;</span>ObjBool, rhs: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
             ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
                 id: ctx.item_id,
-                scoreboard: Scoreboard::Main,
                 command: Box::new(Node::Condition(Condition::Or(<span class="macro">vec!</span>[
                     Condition::Compare {
                         lhs: lhs.as_scoreboard_value(),
@@ -357,7 +346,6 @@
     Not =&gt; |ctx: <span class="kw-2">&amp;mut </span>FunctionContext, value: <span class="kw-2">&amp;</span>ObjBool| -&gt; ObjBool {
         ctx.emit(Node::FastStoreFromResult(FastStoreFromResult {
             id: ctx.item_id,
-            scoreboard: Scoreboard::Main,
             command: Box::new(Node::Condition(Condition::Compare {
                 lhs: value.as_scoreboard_value(),
                 rhs: ScoreboardValue::Static(<span class="number">0</span>),
@@ -423,7 +411,7 @@
     }
 
     <span class="kw">pub fn </span>as_scoreboard_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ScoreboardValue {
-        ScoreboardValue::Scoreboard(Scoreboard::Main, <span class="self">self</span>.id)
+        ScoreboardValue::Scoreboard(<span class="self">self</span>.id)
     }
 }
 

@@ -261,12 +261,6 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt;
 
 <span class="kw">use crate</span>::{
@@ -276,7 +270,7 @@
     json_format::JsonFormatComponent,
     llir_nodes::{BinaryOperation, Condition, FastStore, FastStoreFromResult, Node},
     memory::MemoryLayout,
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     objects::obj_int_static::ObjStaticInt,
     ObjectPayload, Type,
 };
@@ -288,7 +282,6 @@
     (<span class="macro-nonterminal">$operation</span>:expr, <span class="macro-nonterminal">$ctx</span>:ident, <span class="macro-nonterminal">$lhs</span>:ident, <span class="macro-nonterminal">$rhs</span>:ident) =&gt; {
         <span class="macro-nonterminal">$ctx</span>.emit(Node::BinaryOperation(BinaryOperation {
             id: <span class="macro-nonterminal">$ctx</span>.item_id,
-            scoreboard: Scoreboard::Main,
             operation: <span class="macro-nonterminal">$operation</span>,
             lhs: <span class="macro-nonterminal">$lhs</span>.as_scoreboard_value(),
             rhs: <span class="macro-nonterminal">$rhs</span>.as_scoreboard_value(),
@@ -299,7 +292,6 @@
 <span class="macro">macro_rules! </span>cmp {
     (<span class="macro-nonterminal">$ctx</span>:expr, <span class="macro-nonterminal">$lhs</span>:expr, <span class="macro-nonterminal">$rhs</span>:expr, <span class="macro-nonterminal">$cmp</span>:expr) =&gt; {{
         <span class="macro-nonterminal">$ctx</span>.emit(Node::FastStoreFromResult(FastStoreFromResult {
-            scoreboard: Scoreboard::Main,
             id: <span class="macro-nonterminal">$ctx</span>.item_id,
             command: Box::new(Node::Condition(Condition::Compare {
                 lhs: <span class="macro-nonterminal">$lhs</span>.as_scoreboard_value(),
@@ -433,7 +425,6 @@
             </span><span class="kw">if </span>rhs.value == i32::MAX {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -451,7 +442,6 @@
             </span><span class="kw">if </span>rhs.value == i32::MIN {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">1</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -469,7 +459,6 @@
             </span><span class="kw">if </span>rhs.value == i32::MIN {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">0</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -487,7 +476,6 @@
             </span><span class="kw">if </span>rhs.value == i32::MAX {
                 ctx.emit(Node::FastStore(FastStore {
                     id: ctx.item_id,
-                    scoreboard: Scoreboard::Main,
                     value: ScoreboardValue::Static(<span class="number">1</span>),
                 }));
                 <span class="kw">return </span>ObjBool::new(ctx.item_id);
@@ -511,7 +499,7 @@
 
     <span class="doccomment">/// Returns a `ScoreboardValue` which identifies a specific value on a scoreboard
     </span><span class="kw">pub fn </span>as_scoreboard_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ScoreboardValue {
-        ScoreboardValue::Scoreboard(Scoreboard::Main, <span class="self">self</span>.id)
+        ScoreboardValue::Scoreboard(<span class="self">self</span>.id)
     }
 }
 

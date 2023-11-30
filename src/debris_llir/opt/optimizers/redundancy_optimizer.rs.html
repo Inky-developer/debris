@@ -589,40 +589,13 @@
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     item_id::ItemId,
     llir_nodes::{
         BinaryOperation, Branch, Call, Condition, ExecuteRaw, ExecuteRawComponent, FastStore,
         FastStoreFromResult, Node, VariableAccess,
     },
-    minecraft_utils::{Scoreboard, ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
+    minecraft_utils::{ScoreboardComparison, ScoreboardOperation, ScoreboardValue},
     opt::{
         global_opt::{Commands, GlobalOptimizer, Optimizer},
         optimize_commands::{ExecuteRawUpdate, OptimizeCommand, OptimizeCommandKind},
@@ -655,10 +628,9 @@
                     .push(OptimizeCommand::new(node_id, Delete)),
                 <span class="comment">// Copies to itself (`a = a`) are useless and can be removed.
                 </span>Node::FastStore(FastStore {
-                    scoreboard: target_scoreboard,
                     id: target,
-                    value: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_value),
-                }) <span class="kw">if </span>target_scoreboard == rhs_scoreboard &amp;&amp; target == rhs_value =&gt; {
+                    value: ScoreboardValue::Scoreboard(rhs_value),
+                }) <span class="kw">if </span>target == rhs_value =&gt; {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
@@ -683,7 +655,6 @@
                     }
                 }
                 Node::BinaryOperation(BinaryOperation {
-                    scoreboard: <span class="kw">_</span>,
                     id,
                     lhs: <span class="kw">_</span>,
                     rhs: <span class="kw">_</span>,
@@ -695,20 +666,16 @@
                 }
                 <span class="comment">// Checks if a variable is written to and then being overwritten in the same function,
                 // without being read first
-                </span>Node::FastStore(FastStore {
-                    scoreboard: <span class="kw">_</span>,
-                    id,
-                    value: <span class="kw">_</span>,
-                }) <span class="kw">if </span>write_after_write(commands.optimizer, <span class="kw-2">*</span>id, node_id) =&gt; {
+                </span>Node::FastStore(FastStore { id, value: <span class="kw">_ </span>})
+                    <span class="kw">if </span>write_after_write(commands.optimizer, <span class="kw-2">*</span>id, node_id) =&gt;
+                {
                     commands
                         .commands
                         .push(OptimizeCommand::new(node_id, Delete));
                 }
-                Node::FastStoreFromResult(FastStoreFromResult {
-                    scoreboard: <span class="kw">_</span>,
-                    id,
-                    command,
-                }) <span class="kw">if </span>write_after_write(commands.optimizer, <span class="kw-2">*</span>id, node_id) =&gt; {
+                Node::FastStoreFromResult(FastStoreFromResult { id, command })
+                    <span class="kw">if </span>write_after_write(commands.optimizer, <span class="kw-2">*</span>id, node_id) =&gt;
+                {
                     <span class="kw">if </span>command.is_effect_free(<span class="kw-2">&amp;</span>commands.optimizer.functions) {
                         commands
                             .commands
@@ -722,9 +689,8 @@
                 <span class="comment">// Checks if a variable y gets copied to variable x and changes all writes to y to write to x instead if
                 // y is only read here
                 </span>Node::FastStore(FastStore {
-                    scoreboard: <span class="kw">_</span>,
                     id,
-                    value: ScoreboardValue::Scoreboard(<span class="kw">_</span>, copy_from),
+                    value: ScoreboardValue::Scoreboard(copy_from),
                 }) <span class="kw">if </span>commands.get_info(<span class="kw-2">*</span>copy_from).reads == <span class="number">1 </span>=&gt; {
                     <span class="comment">// Now delete this assignment and update all writes to `copy_from`
                     </span>commands
@@ -741,14 +707,9 @@
                     // So to avoid inconsistency, return here
                     </span><span class="kw">return</span>;
                 }
-                Node::FastStoreFromResult(FastStoreFromResult {
-                    scoreboard,
-                    id,
-                    command,
-                }) =&gt; {
+                Node::FastStoreFromResult(FastStoreFromResult { id, command }) =&gt; {
                     <span class="kw">if let </span>Node::Condition(condition) = <span class="kw-2">&amp;**</span>command {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(simplified_condition) = simplify_condition(condition) {
-                            <span class="kw">let </span>scoreboard = <span class="kw-2">*</span>scoreboard;
                             <span class="kw">let </span>id = <span class="kw-2">*</span>id;
 
                             <span class="kw">match </span>simplified_condition {
@@ -762,7 +723,6 @@
                                         node_id,
                                         Replace(Node::FastStore(FastStore {
                                             id,
-                                            scoreboard,
                                             value: ScoreboardValue::Static(value),
                                         })),
                                     ));
@@ -773,7 +733,6 @@
                                         Replace(Node::FastStoreFromResult(FastStoreFromResult {
                                             command: Box::new(Node::Condition(condition)),
                                             id,
-                                            scoreboard,
                                         })),
                                     ));
                                 }
@@ -795,18 +754,16 @@
                 <span class="comment">// If the operation is commutative, move the static value to the right side.
                 // This makes better consistency and is easier to implement in minecraft.
                 </span>Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
                     lhs: ScoreboardValue::Static(value),
-                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs_id),
+                    rhs: ScoreboardValue::Scoreboard(rhs_id),
                     operation: operation @ (ScoreboardOperation::Plus | ScoreboardOperation::Times),
                 }) =&gt; {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         Replace(Node::BinaryOperation(BinaryOperation {
                             id: <span class="kw-2">*</span>id,
-                            scoreboard: <span class="kw-2">*</span>scoreboard,
-                            lhs: ScoreboardValue::Scoreboard(<span class="kw-2">*</span>rhs_scoreboard, <span class="kw-2">*</span>rhs_id),
+                            lhs: ScoreboardValue::Scoreboard(<span class="kw-2">*</span>rhs_id),
                             rhs: ScoreboardValue::Static(<span class="kw-2">*</span>value),
                             operation: <span class="kw-2">*</span>operation,
                         })),
@@ -814,7 +771,6 @@
                 }
                 <span class="comment">// Useless math operation (a + 0, a - 0)
                 </span>Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
                     lhs,
                     rhs: ScoreboardValue::Static(<span class="number">0</span>),
@@ -824,14 +780,12 @@
                         node_id,
                         Replace(Node::FastStore(FastStore {
                             id: <span class="kw-2">*</span>id,
-                            scoreboard: <span class="kw-2">*</span>scoreboard,
                             value: <span class="kw-2">*</span>lhs,
                         })),
                     ));
                 }
                 <span class="comment">// Useless math operation (a * 1, a / 1, a % 1)
                 </span>Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
                     lhs,
                     rhs: ScoreboardValue::Static(value @ <span class="number">0</span>..=<span class="number">1</span>),
@@ -843,12 +797,10 @@
                     <span class="kw">let </span>kind = <span class="kw">match </span>value {
                         <span class="number">0 </span>=&gt; OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: <span class="kw-2">*</span>id,
-                            scoreboard: <span class="kw-2">*</span>scoreboard,
                             value: ScoreboardValue::Static(<span class="number">0</span>),
                         })),
                         <span class="number">1 </span>=&gt; OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: <span class="kw-2">*</span>id,
-                            scoreboard: <span class="kw-2">*</span>scoreboard,
                             value: <span class="kw-2">*</span>lhs,
                         })),
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
@@ -857,34 +809,30 @@
                 }
                 <span class="comment">// `let b = a - a` =&gt; `let b = 0`
                 </span>Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
-                    lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs),
-                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs),
+                    lhs: ScoreboardValue::Scoreboard(lhs),
+                    rhs: ScoreboardValue::Scoreboard(rhs),
                     operation: ScoreboardOperation::Minus,
-                }) <span class="kw">if </span>lhs == rhs &amp;&amp; lhs_scoreboard == rhs_scoreboard =&gt; {
+                }) <span class="kw">if </span>lhs == rhs =&gt; {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: <span class="kw-2">*</span>id,
-                            scoreboard: <span class="kw-2">*</span>scoreboard,
                             value: ScoreboardValue::Static(<span class="number">0</span>),
                         })),
                     ));
                 }
                 <span class="comment">// `let b = a / a` =&gt; `let b = 1`
                 </span>Node::BinaryOperation(BinaryOperation {
-                    scoreboard,
                     id,
-                    lhs: ScoreboardValue::Scoreboard(lhs_scoreboard, lhs),
-                    rhs: ScoreboardValue::Scoreboard(rhs_scoreboard, rhs),
+                    lhs: ScoreboardValue::Scoreboard(lhs),
+                    rhs: ScoreboardValue::Scoreboard(rhs),
                     operation: ScoreboardOperation::Divide,
-                }) <span class="kw">if </span>lhs == rhs &amp;&amp; lhs_scoreboard == rhs_scoreboard =&gt; {
+                }) <span class="kw">if </span>lhs == rhs =&gt; {
                     commands.commands.push(OptimizeCommand::new(
                         node_id,
                         OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: <span class="kw-2">*</span>id,
-                            scoreboard: <span class="kw-2">*</span>scoreboard,
                             value: ScoreboardValue::Static(<span class="number">1</span>),
                         })),
                     ));
@@ -1134,16 +1082,15 @@
     <span class="kw">match </span>condition {
         Condition::Compare {
             comparison: ScoreboardComparison::Equal,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(<span class="number">1</span>),
         }
         | Condition::Compare {
             comparison: ScoreboardComparison::NotEqual,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(<span class="number">0</span>),
         } =&gt; {
             <span class="kw">if let </span>Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: Scoreboard::Main,
                 id: cond_id,
                 command,
             }) = prev_node
@@ -1157,16 +1104,15 @@
         }
         Condition::Compare {
             comparison: ScoreboardComparison::Equal,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(<span class="number">0</span>),
         }
         | Condition::Compare {
             comparison: ScoreboardComparison::NotEqual,
-            lhs: ScoreboardValue::Scoreboard(Scoreboard::Main, id),
+            lhs: ScoreboardValue::Scoreboard(id),
             rhs: ScoreboardValue::Static(<span class="number">1</span>),
         } =&gt; {
             <span class="kw">if let </span>Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard: Scoreboard::Main,
                 id: cond_id,
                 command,
             }) = prev_node
@@ -1212,8 +1158,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>writes_id = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>reads_id = <span class="bool-val">false</span>;
         other_node.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
-            VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, target_id))
-            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, target_id))
+            VariableAccess::Read(ScoreboardValue::Scoreboard(target_id))
+            | VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(target_id))
                 <span class="kw">if </span>target_id == <span class="kw-2">&amp;</span>id =&gt;
             {
                 reads_id = <span class="bool-val">true</span>;

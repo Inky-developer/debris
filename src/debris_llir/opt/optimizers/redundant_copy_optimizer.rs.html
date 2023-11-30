@@ -222,11 +222,6 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! TODO: implement this properly
 
 </span><span class="kw">use crate</span>::{
@@ -253,19 +248,17 @@
     <span class="kw">fn </span>optimize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, commands: <span class="kw-2">&amp;mut </span>Commands) {
         <span class="kw">for </span>(function_id, function) <span class="kw">in </span><span class="kw-2">&amp;</span>commands.optimizer.functions {
             <span class="lifetime">&#39;node_loop</span>: <span class="kw">for </span>(idx, node) <span class="kw">in </span>function.nodes().iter().enumerate() {
-                <span class="kw">let </span>(temp_id, original_id, original_scoreboard, is_bin_op) = <span class="kw">match </span>node {
+                <span class="kw">let </span>(temp_id, original_id, is_bin_op) = <span class="kw">match </span>node {
                     Node::FastStore(FastStore {
-                        scoreboard: <span class="kw">_</span>,
                         id: temp_id,
-                        value: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
-                    }) =&gt; (temp_id, original_id, original_scoreboard, <span class="bool-val">false</span>),
+                        value: ScoreboardValue::Scoreboard(original_id),
+                    }) =&gt; (temp_id, original_id, <span class="bool-val">false</span>),
                     Node::BinaryOperation(BinaryOperation {
-                        scoreboard: <span class="kw">_</span>,
                         id: temp_id,
-                        lhs: ScoreboardValue::Scoreboard(original_scoreboard, original_id),
+                        lhs: ScoreboardValue::Scoreboard(original_id),
                         rhs: <span class="kw">_</span>,
                         operation: <span class="kw">_</span>,
-                    }) =&gt; (temp_id, original_id, original_scoreboard, <span class="bool-val">true</span>),
+                    }) =&gt; (temp_id, original_id, <span class="bool-val">true</span>),
                     <span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
                 };
 
@@ -309,7 +302,7 @@
                     }
 
                     node.variable_accesses(<span class="kw-2">&amp;mut </span>|access| <span class="kw">match </span>access {
-                        VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id)) =&gt; {
+                        VariableAccess::Read(ScoreboardValue::Scoreboard(id)) =&gt; {
                             <span class="kw">if </span>id == original_id {
                                 encountered_original_reads += <span class="number">1</span>;
                                 reads_from_original = <span class="bool-val">true</span>;
@@ -325,7 +318,7 @@
                                 write_to_copy = <span class="bool-val">true</span>;
                             }
                         }
-                        VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id)) =&gt; {
+                        VariableAccess::ReadWrite(ScoreboardValue::Scoreboard(id)) =&gt; {
                             <span class="kw">if </span>id == original_id {
                                 encountered_original_reads += <span class="number">1</span>;
                                 write_to_original = <span class="bool-val">true</span>;
@@ -351,7 +344,7 @@
                             node_id,
                             OptimizeCommandKind::ChangeReads(
                                 <span class="kw-2">*</span>temp_id,
-                                ScoreboardValue::Scoreboard(<span class="kw-2">*</span>original_scoreboard, <span class="kw-2">*</span>original_id),
+                                ScoreboardValue::Scoreboard(<span class="kw-2">*</span>original_id),
                             ),
                         ));
                     }
@@ -360,9 +353,8 @@
                     }
                     <span class="kw">let </span>is_copy_back = <span class="kw">match </span>node {
                         Node::FastStore(FastStore {
-                            scoreboard: <span class="kw">_</span>,
                             id: dest,
-                            value: ScoreboardValue::Scoreboard(<span class="kw">_</span>, src),
+                            value: ScoreboardValue::Scoreboard(src),
                         }) =&gt; dest == original_id &amp;&amp; src == temp_id,
                         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                     };
@@ -421,7 +413,6 @@
                     // First, update the copy node:
                     </span><span class="kw">match </span>node {
                         Node::BinaryOperation(BinaryOperation {
-                            scoreboard,
                             id: <span class="kw">_</span>,
                             lhs,
                             rhs,
@@ -432,7 +423,6 @@
                                 OptimizeCommandKind::Replace(Node::BinaryOperation(
                                     BinaryOperation {
                                         id: <span class="kw-2">*</span>original_id,
-                                        scoreboard: <span class="kw-2">*</span>scoreboard,
                                         lhs: <span class="kw-2">*</span>lhs,
                                         operation: <span class="kw-2">*</span>operation,
                                         rhs: <span class="kw-2">*</span>rhs,

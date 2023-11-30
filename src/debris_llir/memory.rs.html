@@ -121,13 +121,12 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::zip;
 
 <span class="kw">use crate</span>::{
     item_id::ItemId,
     llir_nodes::{FastStore, Node},
-    minecraft_utils::{Scoreboard, ScoreboardValue},
+    minecraft_utils::ScoreboardValue,
     ObjectRef,
 };
 
@@ -136,8 +135,7 @@
 </span><span class="kw">pub fn </span>copy(dest: ItemId, source: ItemId) -&gt; Node {
     Node::FastStore(FastStore {
         id: dest,
-        scoreboard: Scoreboard::Main,
-        value: ScoreboardValue::Scoreboard(Scoreboard::Main, source),
+        value: ScoreboardValue::Scoreboard(source),
     })
 }
 

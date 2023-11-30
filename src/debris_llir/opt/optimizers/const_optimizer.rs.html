@@ -121,12 +121,6 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     llir_nodes::{Branch, FastStore, FastStoreFromResult, Node, VariableAccess},
     minecraft_utils::ScoreboardValue,
@@ -164,7 +158,7 @@
                 <span class="kw">let </span>commands_vec = <span class="kw-2">&amp;mut *</span>commands.commands;
                 <span class="kw">let </span>variable_information = <span class="kw-2">&amp;</span>commands.stats.variable_information;
                 node.variable_accesses(<span class="kw-2">&amp;mut </span>|access| {
-                    <span class="kw">if let </span>VariableAccess::Read(ScoreboardValue::Scoreboard(<span class="kw">_</span>, id)) = access {
+                    <span class="kw">if let </span>VariableAccess::Read(ScoreboardValue::Scoreboard(id)) = access {
                         <span class="kw">let </span>hint = <span class="self">self</span>.value_hints.get_hint(<span class="kw-2">*</span>id).exact();
                         <span class="kw">let </span>global_const = variable_information[id].constant_value;
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(exact_value) = hint.or(global_const) {
@@ -198,7 +192,6 @@
                         node_id,
                         OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                             id: bin_op.id,
-                            scoreboard: bin_op.scoreboard,
                             value: ScoreboardValue::Static(result),
                         })),
                     ));
@@ -206,18 +199,13 @@
                     <span class="kw">return </span><span class="bool-val">true</span>;
                 }
             }
-            Node::FastStoreFromResult(FastStoreFromResult {
-                scoreboard,
-                id,
-                command,
-            }) =&gt; {
+            Node::FastStoreFromResult(FastStoreFromResult { id, command }) =&gt; {
                 <span class="kw">if let </span>Node::Condition(condition) = <span class="kw-2">&amp;**</span>command {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = <span class="self">self</span>.value_hints.static_condition(condition) {
                         commands.push(OptimizeCommand::new(
                             node_id,
                             OptimizeCommandKind::Replace(Node::FastStore(FastStore {
                                 id: <span class="kw-2">*</span>id,
-                                scoreboard: <span class="kw-2">*</span>scoreboard,
                                 value: ScoreboardValue::Static(i32::from(result)),
                             })),
                         ));
